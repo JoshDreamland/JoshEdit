@@ -106,12 +106,6 @@ public class Selection
 	{
 		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 		Transferable contents = clipboard.getContents(null);
-		/*DataFlavor[] a = contents.getTransferDataFlavors();
-		for (DataFlavor i : a) {
-			System.out.println("Contains " + i.getHumanPresentableName() + " flavor " + i);
-			try	{ System.out.println("    " + i.getSubType() + " : " + i.getPrimaryType() + " ==> " + hexDump(contents.getTransferData(i)));
-			}	catch (UnsupportedFlavorException e){}catch (IOException e){}
-		}*/
 		try
 		{
 			String ins = (String) contents.getTransferData(DataFlavor.stringFlavor);
@@ -131,16 +125,6 @@ public class Selection
 		}
 		return caret.row;
 	}
-
-	/*
-		private String hexDump(Object transferData)
-		{
-			String s = transferData instanceof String ? (String)transferData : transferData.toString();
-			String ret = s + " [";
-			for (int i = 0; i < s.length(); i++)
-				ret += Integer.toHexString(s.charAt(i));
-			return ret + "]";
-		}*/
 
 	static Clipboard fallbackMCClipboard;
 
@@ -603,6 +587,7 @@ public class Selection
 
 		Rectangle clip = g.getClipBounds();
 		SortedRegion r = getSortedRegion();
+
 		// This section is fine without tab consideration because selected rectangles
 		// are assumed to be completely column-based.
 		if (type == ST.RECT)

@@ -145,6 +145,7 @@ public class FindDialog extends JDialog implements WindowListener,ActionListener
 				}
 				setVisible(false);
 				selectedJoshText.quickFind.tFind.setText((String)tFind.getEditor().getItem());
+				selectedJoshText.quickFind.tReplace.setText((String)tReplace.getEditor().getItem());
 				selectedJoshText.quickFind.setVisible(true);
 				if (back.isSelected())
 					selectedJoshText.quickFind.findPrevious();

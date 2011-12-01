@@ -77,7 +77,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	Caret caret;
 	DragListener dragger;
 	Point dropPoint = null;
-	Highlighter highlighter = new GMLHighlighter(this);
+	Highlighter highlighter = new CPPHighlighter(this);
 
 	// Dimensions
 	int monoAdvance, lineHeight, lineAscent, lineLeading;
@@ -1698,7 +1698,6 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 
 	public void undo()
 	{
-		System.out.println("Fire undo with index=" + patchIndex);
 		if (patchIndex == 0) return;
 		UndoPatch p = patches.get(--patchIndex);
 		// Reverse patch
@@ -1719,6 +1718,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			prow++;
 		}
 		p.cbefore.replace();
+		fireLineChange(p.startRow,p.startRow+p.oldtext.length);
 		repaint();
 	}
 

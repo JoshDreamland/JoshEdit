@@ -18,7 +18,7 @@ import org.edit.GenericHighlighter.SchemeInfo.SchemeType;
 import org.edit.JoshText.LineChangeListener;
 import org.edit.Line.LINE_ATTRIBS;
 
-public class GenericHighlighter implements Highlighter, LineChangeListener
+public class GenericHighlighter implements Highlighter,LineChangeListener
 {
 	private JoshText jt; // The owning JoshText
 	private int line_count; // The number of lines last time we parsed--used to determine change type
@@ -39,14 +39,14 @@ public class GenericHighlighter implements Highlighter, LineChangeListener
 		int fontStyle; // Font attributes (Font.BOLD, etc)
 
 		public BlockDescriptor(String block_name, String begin_regex, String end_regex,
-				boolean allow_multiline, boolean escaping_newlines, char escape_char,
+				boolean allow_multiline, boolean escape_endmarkers, char escape_char,
 				Color highlight_color, int font_style)
 		{
 			name = block_name;
 			begin = Pattern.compile(begin_regex);
 			end = Pattern.compile(end_regex);
 			multiline = allow_multiline;
-			escapeend = escaping_newlines;
+			escapeend = escape_endmarkers;
 			escapeChar = escape_char;
 			color = highlight_color;
 			fontStyle = font_style;
@@ -91,14 +91,36 @@ public class GenericHighlighter implements Highlighter, LineChangeListener
 
 	ArrayList<CharSymbolSet> hlChars = new ArrayList<CharSymbolSet>();
 
-	int numberFontStyle;
-	Color numberColor;
+	/** This is the pattern we will use to isolate identifiers. **/
+	Pattern identifier_pattern = Pattern.compile("[a-z_A-Z]([a-z_A-Z0-9]*)");
+
+	/** This is a class for specifying anything else we want to skip or highlight.
+	 *  You should use this, for example, to specify how to identify numeric literals
+	 *  and, at your option, how to color them differently.
+	**/
+	class SimpleToken
+	{
+		String name; // The name of this token
+		Pattern pattern; // The pattern that constitutes the token
+		int fontStyle; // The font style with which the token is highlighted
+		Color color; // The color with which the token will be highlighted, or NULL to use the default
+
+		public SimpleToken(String token_name, String regex, int font_style, Color highlight_color)
+		{
+			name = token_name;
+			pattern = Pattern.compile(regex);
+			fontStyle = font_style;
+			color = highlight_color;
+		}
+	}
+
+	ArrayList<SimpleToken> otherTokens = new ArrayList<GenericHighlighter.SimpleToken>();
 
 	static final class SchemeInfo
 	{
 		enum SchemeType
 		{
-			NOTHING,NUMBER,BLOCK,KEYWORD,SYMBOL;
+			NOTHING,TOKEN,BLOCK,KEYWORD,SYMBOL;
 		}
 
 		SchemeType type;
@@ -137,35 +159,67 @@ public class GenericHighlighter implements Highlighter, LineChangeListener
 	private SchemeInfo get_scheme_at(int ischeme, StringBuilder line, int pos)
 	{
 		int i = 0; // The position from which we will parse this thing
-		if (ischeme != 0)
-		{
-			Matcher m = schemes.get(ischeme).end.matcher(line.toString());
-			if (!m.find() || m.end() > pos) return new SchemeInfo(SchemeType.BLOCK,ischeme);
-			if (m.end() > line.length()) return new SchemeInfo();
-			i = m.end();
-		}
-		for (;;)
+		for (;;) // What we're going to do is find any and all blocks up front, and move to the end of them.
 		{
 			int shm = 0; // Scheme Holding Minimum Match
 			int mmin = pos + 1; // Minimum match position
-			for (int si = 0; si < schemes.size(); si++)
-			{
-				Matcher m = schemes.get(si).begin.matcher(line.toString()).region(i,line.length()).useTransparentBounds(
-						true);
-				if (!m.find()) continue;
-				if (m.start() < mmin)
-				{ // If this one is closer to the beginning, it can potentially consume later ones. 
-					mmin = m.start(); // So we have to pay attention to it first.
-					shm = si;
+			int mminend = mmin;
+			if (ischeme == 0) {
+				for (int si = 0; si < schemes.size(); si++)
+				{
+					Matcher m = schemes.get(si).begin.matcher(line.toString()).region(i,line.length()).useTransparentBounds(
+							true);
+					if (!m.find()) continue;
+					if (m.start() < mmin)
+					{ // If this one is closer to the beginning, it can potentially consume later ones. 
+						mmin = m.start(); // So we have to pay attention to it first.
+						mminend = m.end();
+						shm = si;
+					}
 				}
 			}
+			else {
+				mmin = -1;
+				mminend = 0;
+				shm = ischeme;
+				ischeme = 0;
+			}
 			if (mmin <= pos)
-			{ // If we actually found one
-				Matcher mmatcher = schemes.get(shm).end.matcher(line.toString()).region(mmin + 1,
-						line.length());
-				if (!mmatcher.find() || mmatcher.end() > pos) // If there's no end in sight, or that end passed our position of interest
-					return new SchemeInfo(SchemeType.BLOCK,shm); // Then our position is inside the block, so we return the block's scheme info.
-				i = mmatcher.end();
+			{ // If we actually found one that starts before out position,
+				// Start searching for its end.
+				for (;;)
+				{
+					Matcher mmatcher = schemes.get(shm).end.matcher(line.toString()).region(mminend,
+							line.length());
+					if (!mmatcher.find() || mmatcher.end() > pos) // If there's no end in sight, or that end passed our position of interest
+						return new SchemeInfo(SchemeType.BLOCK,shm); // Then our position is inside the block, so we return the block's scheme info.
+					// Now, we have found a chunk that may be the end marker, and lies before our position in question.
+					// Move to its end.
+					i = mmatcher.end();
+					if (!schemes.get(shm).escapeend) // If we can't escape an ending sequence,
+						break; // Then mission complete
+					// Otherwise, we have to verify that the end *isn't* escaped.
+					char escc = schemes.get(shm).escapeChar;
+					boolean end_escaped = false;
+					int cp;
+					for (cp = mminend; cp < mmatcher.start(); cp++)
+					{ // So, start iterating block contents!
+						if (line.charAt(cp) == escc) // If we see an escape char
+						{
+							if (cp + 1 < mmatcher.start()) // Check if it's at the end char we're looking at
+								cp++; // It's not! Skip the next char in case it's another escape char.
+							else
+								end_escaped = true; // It is! The end has been escaped. Find a new end and come back.
+						}
+					}
+					if (!end_escaped) // If the end wasn't escaped,
+						break; // Mission accomplished
+					// So, our line was escaped.
+					if (cp >= line.length()) // If we're at the end of the line now,
+						return new SchemeInfo(SchemeType.BLOCK,shm); // We're clearly in the block.
+					// Otherwise, continue iteration
+					mminend = i; // And perform the next search from the end of this escaped marker
+				}
 			}
 			else
 				// Otherwise, checking again won't help anything. Leave.
@@ -177,7 +231,7 @@ public class GenericHighlighter implements Highlighter, LineChangeListener
 		if (pos >= line.length()) // But if we're looking for our status after the line is over,
 			return new SchemeInfo(); // Then we'd better just return nothing.
 
-		while (i <= pos)
+		SubschemeLoop: while (i <= pos)
 		{
 			if (Character.isWhitespace(line.charAt(i)))
 			{
@@ -185,26 +239,28 @@ public class GenericHighlighter implements Highlighter, LineChangeListener
 					;
 				continue;
 			}
-			if (Character.isLetter(line.charAt(i))) // TODO: This should instead match some modifiable regex.
+			Matcher lookingat = identifier_pattern.matcher(line).region(i,line.length());
+			if (lookingat.lookingAt())
 			{
-				final int si = i;
-				while (++i < line.length() && Character.isLetterOrDigit(line.charAt(i)))
-					;
-				if (i > pos)
+				if (lookingat.end() > pos)
 				{
-					String f = line.substring(si,i);
+					String f = line.substring(i,lookingat.end());
 					for (int sn = 0; sn < hlKeywords.size(); sn++)
 						if (hlKeywords.get(sn).words.contains(f)) return new SchemeInfo(SchemeType.KEYWORD,sn);
 					return new SchemeInfo();
 				}
-				continue;
+				i = lookingat.end();
+				continue SubschemeLoop;
 			}
-			if (Character.isDigit(line.charAt(i))) // TODO: This should instead match some modifiable regex.
+			for (int tt = 0; tt < otherTokens.size(); tt++)
 			{
-				while (++i < line.length() && Character.isDigit(line.charAt(i)))
-					;
-				if (i > pos) return new SchemeInfo(SchemeType.NUMBER,0);
-				continue;
+				lookingat = otherTokens.get(tt).pattern.matcher(line).region(i,line.length());
+				if (lookingat.lookingAt())
+				{
+					if (lookingat.end() > pos) return new SchemeInfo(SchemeType.TOKEN,tt);
+					i = lookingat.end();
+					continue SubschemeLoop;
+				}
 			}
 			if (i == pos)
 			{
@@ -219,16 +275,16 @@ public class GenericHighlighter implements Highlighter, LineChangeListener
 
 	private void highlight()
 	{
-		System.out.println("Invoked from " + invalid_line);
-		while (jt.code.get(invalid_line).attr < 0)
+		do
 		{
 			if (invalid_line == 0)
 				jt.code.get(invalid_line).attr = 0;
 			else
 				invalid_line--;
 		}
+		while (jt.code.get(invalid_line).attr < 0);
 		System.out.println("Highlight from " + invalid_line + " to " + line_count);
-		System.out.println("while (" + invalid_line + " < " + (line_count-1));
+		System.out.println("while (" + invalid_line + " < " + (line_count - 1));
 		while (invalid_line < line_count - 1)
 		{
 			SchemeInfo a = get_scheme_at(
@@ -239,7 +295,8 @@ public class GenericHighlighter implements Highlighter, LineChangeListener
 				jt.code.get(invalid_line).attr = 0;
 			else
 				jt.code.get(invalid_line).attr &= ~LINE_ATTRIBS.LA_SCHEMEBLOCK; // Remove all scheme info
-			System.out.println("Set attribs for line " + invalid_line + " to " + jt.code.get(invalid_line).attr);
+			System.out.println("Set attribs for line " + invalid_line + " to "
+					+ jt.code.get(invalid_line).attr);
 			if (a.type == SchemeType.BLOCK) // If we're in a block scheme, note so.
 				jt.code.get(invalid_line).attr |= a.id << LINE_ATTRIBS.LA_SCHEMEBITOFFSET;
 		}
@@ -267,8 +324,10 @@ public class GenericHighlighter implements Highlighter, LineChangeListener
 	public HighlighterInfo getStyle(int lineNum, int i)
 	{
 		Line line = jt.code.get(lineNum);
-		if (line.attr < 0) {
-			System.err.println("ERROR! That FUCKING highlight function didn't complete; line " + lineNum + " is invalid");
+		if (line.attr < 0)
+		{
+			System.err.println("ERROR! That FUCKING highlight function didn't complete; line " + lineNum
+					+ " is invalid");
 			jt.code.get(lineNum).attr = 0;
 		}
 		SchemeInfo si = get_scheme_at(
@@ -282,8 +341,8 @@ public class GenericHighlighter implements Highlighter, LineChangeListener
 				return new HighlighterInfo(hlKeywords.get(si.id).fontStyle,hlKeywords.get(si.id).color);
 			case NOTHING:
 				break;
-			case NUMBER:
-				return new HighlighterInfo(numberFontStyle,numberColor);
+			case TOKEN:
+				return new HighlighterInfo(otherTokens.get(si.id).fontStyle,otherTokens.get(si.id).color);
 			case SYMBOL:
 				return new HighlighterInfo(hlChars.get(si.id).fontStyle,hlChars.get(si.id).color);
 		}
@@ -302,7 +361,8 @@ public class GenericHighlighter implements Highlighter, LineChangeListener
 		line_count = jt.code.size();
 		if (start < invalid_line || invalid_line == -1) invalid_line = start;
 		for (int i = start; i < end; i++)
-			if (jt.code.get(i).attr > 0) jt.code.get(i).attr = -jt.code.get(i).attr;
+			if (jt.code.get(i).attr > 0)
+				jt.code.get(i).attr = -jt.code.get(i).attr;
 			else if (jt.code.get(i).attr > 0) jt.code.get(i).attr = -1;
 		highlight();
 	}

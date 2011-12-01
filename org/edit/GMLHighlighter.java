@@ -48,8 +48,8 @@ public class GMLHighlighter extends GenericHighlighter
 		for (int i = 0; i < ca.length; i++)
 			css.chars.add(ca[i]);
 		hlChars.add(css);
-
-		numberFontStyle = 0;
-		numberColor = new Color(255,0,255);
+		
+		otherTokens.add(new SimpleToken("Numeric literal","[0-9]+",0,new Color(255,0,255)));
+		otherTokens.add(new SimpleToken("Hex literal","\\$[0-9A-Fa-f]+",0,new Color(255,100,100)));
 	}
 }

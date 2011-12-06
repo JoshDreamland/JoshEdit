@@ -6,7 +6,7 @@
  * General Public License, version 3 or later. 
  */
 
-package org.edit;
+package org.lateralgm.joshedit;
 
 %%
 

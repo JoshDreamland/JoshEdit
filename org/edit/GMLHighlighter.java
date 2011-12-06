@@ -4,7 +4,7 @@
  * You can use, modify, and distribute it under the terms of
  * the GNU General Public License, version 3 or later. 
  */
-package org.edit;
+package org.lateralgm.joshedit;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -16,9 +16,9 @@ public class GMLHighlighter extends GenericHighlighter
 		super(jt);
 		schemes.add(new BlockDescriptor("Formal Comment","/\\*!","(?<=\\*)/",true,false,(char) 0,
 				new Color(128,128,255),Font.BOLD));
-		schemes.add(new BlockDescriptor("Lazy Formal Comment","/\\*\\*","(?<=\\*)/",true,false,
+		schemes.add(new BlockDescriptor("Lazy Formal Comment","/\\*(?=\\*)","(?<=\\*)/",true,false,
 				(char) 0,new Color(128,128,255),Font.BOLD));
-		schemes.add(new BlockDescriptor("Comment","/\\*","(?<=\\*)/",true,false,(char) 0,new Color(13,
+		schemes.add(new BlockDescriptor("Comment","/(?=\\*)","\\*/",true,false,(char) 0,new Color(13,
 				165,13),Font.ITALIC));
 		schemes.add(new BlockDescriptor("Formal C++ Comment","//!","$",true,false,(char) 0,new Color(
 				128,128,255),Font.BOLD));

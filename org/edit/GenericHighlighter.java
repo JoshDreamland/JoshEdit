@@ -5,7 +5,7 @@
  * the GNU General Public License, version 3 or later. 
  */
 
-package org.edit;
+package org.lateralgm.joshedit;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -14,9 +14,9 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.edit.GenericHighlighter.SchemeInfo.SchemeType;
-import org.edit.JoshText.LineChangeListener;
-import org.edit.Line.LINE_ATTRIBS;
+import org.lateralgm.joshedit.GenericHighlighter.SchemeInfo.SchemeType;
+import org.lateralgm.joshedit.JoshText.LineChangeListener;
+import org.lateralgm.joshedit.Line.LINE_ATTRIBS;
 
 public class GenericHighlighter implements Highlighter,LineChangeListener
 {
@@ -164,7 +164,8 @@ public class GenericHighlighter implements Highlighter,LineChangeListener
 			int shm = 0; // Scheme Holding Minimum Match
 			int mmin = pos + 1; // Minimum match position
 			int mminend = mmin;
-			if (ischeme == 0) {
+			if (ischeme == 0)
+			{
 				for (int si = 0; si < schemes.size(); si++)
 				{
 					Matcher m = schemes.get(si).begin.matcher(line.toString()).region(i,line.length()).useTransparentBounds(
@@ -178,7 +179,8 @@ public class GenericHighlighter implements Highlighter,LineChangeListener
 					}
 				}
 			}
-			else {
+			else
+			{
 				mmin = -1;
 				mminend = 0;
 				shm = ischeme;
@@ -236,7 +238,8 @@ public class GenericHighlighter implements Highlighter,LineChangeListener
 			if (Character.isWhitespace(line.charAt(i)))
 			{
 				while (++i < line.length() && Character.isWhitespace(line.charAt(i)))
-					;
+				{ /* Move past whitespace */
+				}
 				continue;
 			}
 			Matcher lookingat = identifier_pattern.matcher(line).region(i,line.length());
@@ -283,8 +286,6 @@ public class GenericHighlighter implements Highlighter,LineChangeListener
 				invalid_line--;
 		}
 		while (jt.code.get(invalid_line).attr < 0);
-		System.out.println("Highlight from " + invalid_line + " to " + line_count);
-		System.out.println("while (" + invalid_line + " < " + (line_count - 1));
 		while (invalid_line < line_count - 1)
 		{
 			SchemeInfo a = get_scheme_at(
@@ -295,8 +296,6 @@ public class GenericHighlighter implements Highlighter,LineChangeListener
 				jt.code.get(invalid_line).attr = 0;
 			else
 				jt.code.get(invalid_line).attr &= ~LINE_ATTRIBS.LA_SCHEMEBLOCK; // Remove all scheme info
-			System.out.println("Set attribs for line " + invalid_line + " to "
-					+ jt.code.get(invalid_line).attr);
 			if (a.type == SchemeType.BLOCK) // If we're in a block scheme, note so.
 				jt.code.get(invalid_line).attr |= a.id << LINE_ATTRIBS.LA_SCHEMEBITOFFSET;
 		}
@@ -314,13 +313,11 @@ public class GenericHighlighter implements Highlighter,LineChangeListener
 		// TODO Auto-generated constructor stub
 	}
 
-	@Override
 	public void set_owner(JoshText jt)
 	{
 		this.jt = jt;
 	}
 
-	@Override
 	public HighlighterInfo getStyle(int lineNum, int i)
 	{
 		Line line = jt.code.get(lineNum);
@@ -349,13 +346,11 @@ public class GenericHighlighter implements Highlighter,LineChangeListener
 		return new HighlighterInfo(0,null);
 	}
 
-	@Override
 	public void formatCode()
 	{
 		return; // We can't format the code; we're only pretending to know anything about it.
 	}
 
-	@Override
 	public void linesChanged(int start, int end)
 	{
 		line_count = jt.code.size();

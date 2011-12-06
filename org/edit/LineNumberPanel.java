@@ -5,7 +5,7 @@
  * the GNU General Public License, version 3 or later. 
  */
 
-package org.edit;
+package org.lateralgm.joshedit;
 
 import java.awt.Dimension;
 import java.awt.Font;
@@ -61,6 +61,7 @@ public class LineNumberPanel extends JPanel
 		//		getParent().doLayout();
 	}
 
+	@Override
 	public void paintComponent(Graphics g)
 	{
 		Rectangle clip = g.getClipBounds();

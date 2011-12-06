@@ -6,7 +6,7 @@
  * the GNU General Public License, version 3 or later. 
  */
 
-package org.edit;
+package org.lateralgm.joshedit;
 
 import java.util.ArrayList;
 import java.util.regex.Pattern;
@@ -61,7 +61,7 @@ class SyntaxDesc
 	{
 		//TODO: Read $s.properties to populate this
 		// Rexex explained:   [separator]if[spaces](   (........)*  .........*   ) \n
-		ir.add(new IndentRule("(^|((.*)[\\W]+))(if|for|while)(\\s*)\\((([^\\(]*)\\)*)([^\\(\\)]*)\\)(\\s*)$","{","}","    "));
+		//ir.add(new IndentRule("(^|((.*)[\\W]+))(if|for|while)(\\s*)\\((([^\\(]*)\\)*)([^\\(\\)]*)\\)(\\s*)$","{","}","    "));
 		/*System.out.println("Test1: " + (ir.get(0).rule.matcher("testString").matches()));
 		System.out.println("Test2: " + (ir.get(0).rule.matcher("if (test)").matches()));
 		System.out.println("Test3: " + (ir.get(0).rule.matcher("if(test)").matches()));
@@ -75,7 +75,6 @@ class SyntaxDesc
 	{
 		for (int i = 0; i < ir.size(); i++)
 		{
-			System.out.println("Testing `" + line + "'");
 			if (ir.get(i).rule.matcher(line).matches())
 				return i;
 			System.out.println("False.");

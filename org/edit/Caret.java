@@ -6,7 +6,7 @@
  * the GNU General Public License, version 3 or later. 
  */
 
-package org.edit;
+package org.lateralgm.joshedit;
 
 import java.awt.Color;
 import java.awt.FontMetrics;
@@ -14,12 +14,15 @@ import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 import javax.swing.JComponent;
 import javax.swing.Timer;
 import javax.swing.UIManager;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
 
-import org.edit.Selection.ST;
+import org.lateralgm.joshedit.Selection.ST;
 
 public class Caret implements ActionListener
 {
@@ -32,6 +35,7 @@ public class Caret implements ActionListener
 	private Timer flasher;
 	private JComponent painter;
 	private JoshText joshText;
+	private ArrayList<CaretListener> caretListeners;
 
 	public Caret(JoshText jt)
 	{
@@ -74,7 +78,6 @@ public class Caret implements ActionListener
 		}
 	}
 
-	@Override
 	public void actionPerformed(ActionEvent e)
 	{
 		visible = !visible;
@@ -124,5 +127,31 @@ public class Caret implements ActionListener
 	public int getPositionRepresentation(Selection selection)
 	{
 		return selection.type == ST.RECT ? joshText.column_to_index(row,col) : col;
+	}
+
+	public void addCaretListener(CaretListener cl)
+	{
+		caretListeners.add(cl);
+	}
+
+	public void positionChanged()
+	{
+		for (int i = 0; i < caretListeners.size(); i++)
+			caretListeners.get(i).caretUpdate(new CaretEvent(joshText)
+			{
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public int getMark()
+				{
+					return col;
+				}
+				
+				@Override
+				public int getDot()
+				{
+					return joshText.sel.col;
+				}
+			});
 	}
 }

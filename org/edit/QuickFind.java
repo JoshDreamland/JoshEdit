@@ -6,7 +6,7 @@
  * the GNU General Public License, version 3 or later. 
  */
 
-package org.edit;
+package org.lateralgm.joshedit;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -14,56 +14,87 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 
-public class QuickFind extends JToolBar
+import org.lateralgm.joshedit.Code.FindResults;
+import org.lateralgm.joshedit.FindDialog.FindNavigator;
+import org.lateralgm.joshedit.JoshText.OPT;
+import org.lateralgm.joshedit.JoshText.UndoPatch;
+
+public class QuickFind extends JToolBar implements FindNavigator
 {
 	private static final long serialVersionUID = 1L;
+	private static final Font FONT = new Font(Font.SANS_SERIF,Font.PLAIN,12);
+	private static final String S_FIND, S_REPL, B_HIGHL, B_REPL;
+	private static final ImageIcon CLOSE, PREV, NEXT, MARK, REPL, SET;
+	static
+	{
+		S_FIND = Runner.editorInterface.getString("QuickFind.FIND") + ": "; //$NON-NLS-1$
+		S_REPL = Runner.editorInterface.getString("QuickFind.REPLACE") + ": "; //$NON-NLS-1$
+		B_HIGHL = Runner.editorInterface.getString("QuickFind.HIGHLIGHT"); //$NON-NLS-1$
+		B_REPL = Runner.editorInterface.getString("QuickFind.REPLACE"); //$NON-NLS-1$
 
-	public JButton close, prev, next, settings, swapFnR;
-	JToggleButton highlight;
+		CLOSE = Runner.editorInterface.getIconForKey("QuickFind.CLOSE"); //$NON-NLS-1$
+		PREV = Runner.editorInterface.getIconForKey("QuickFind.PREV"); //$NON-NLS-1$
+		NEXT = Runner.editorInterface.getIconForKey("QuickFind.NEXT"); //$NON-NLS-1$
+		MARK = Runner.editorInterface.getIconForKey("QuickFind.MARK"); //$NON-NLS-1$
+		REPL = Runner.editorInterface.getIconForKey("QuickFind.REPL"); //$NON-NLS-1$
+		SET = Runner.editorInterface.getIconForKey("QuickFind.SET"); //$NON-NLS-1$
+	}
+
+	public JButton close, prev, next, settings;
+	public JLabel swapFnR;
+	public JToggleButton highlight;
+	public JButton bReplace;
 	public JTextField tFind, tReplace;
 	public JoshText joshText;
+
+	enum Mode
+	{
+		mode_find,mode_replace
+	}
+
+	Mode mode = Mode.mode_find;
 
 	public QuickFind(JoshText text)
 	{
 		super();
-		setVisible(false);
 		setFloatable(false);
-		add(close = new JButton(Runner.findIcon("x.gif")));
-		close.setMaximumSize(new Dimension(12,12));
-		close.setPreferredSize(new Dimension(12,12));
-		add(swapFnR = new JButton("Find: "));
+		add(close = new JButton(CLOSE));
+		//		close.setMaximumSize(new Dimension(12,12));
+		//		close.setPreferredSize(new Dimension(12,12));
+		add(swapFnR = new JLabel(S_FIND));
 		add(tFind = new JTextField());
 		add(tReplace = new JTextField());
-		add(prev = new JButton(Runner.findIcon("la.gif")));
-		add(next = new JButton(Runner.findIcon("ra.gif")));
-		add(highlight = new JToggleButton("Highlight All",Runner.findIcon("hl.gif")));
-		add(settings = new JButton(Runner.findIcon("set.gif")));
-		highlight.setFont(new Font("Sans",0,12));
-		swapFnR.setFont(new Font("Sans",0,12));
-		swapFnR.setBackground(new Color(255,255,255,0));
-		swapFnR.setBorder(null);
+		add(prev = new JButton(PREV));
+		add(next = new JButton(NEXT));
+		add(highlight = new JToggleButton(B_HIGHL,MARK));
+		add(bReplace = new JButton(B_REPL,REPL));
+		add(settings = new JButton(SET));
+		highlight.setFont(FONT);
+		swapFnR.setFont(FONT);
 
 		setMaximumSize(new Dimension(Integer.MAX_VALUE,20));
 		setPreferredSize(new Dimension(320,24));
 		setBorder(null);
-		
+
 		tReplace.setVisible(false);
+		bReplace.setVisible(false);
 		joshText = text;
 
 		settings.addActionListener(new ActionListener()
 		{
-			@Override
 			public void actionPerformed(ActionEvent e)
 			{
 				FindDialog.tFind.setSelectedItem(tFind.getText());
@@ -73,7 +104,6 @@ public class QuickFind extends JToolBar
 		});
 		close.addActionListener(new ActionListener()
 		{
-			@Override
 			public void actionPerformed(ActionEvent e)
 			{
 				setVisible(false);
@@ -81,7 +111,6 @@ public class QuickFind extends JToolBar
 		});
 		prev.addActionListener(new ActionListener()
 		{
-			@Override
 			public void actionPerformed(ActionEvent arg0)
 			{
 				findPrevious();
@@ -89,7 +118,6 @@ public class QuickFind extends JToolBar
 		});
 		next.addActionListener(new ActionListener()
 		{
-			@Override
 			public void actionPerformed(ActionEvent arg0)
 			{
 				findNext();
@@ -97,126 +125,110 @@ public class QuickFind extends JToolBar
 		});
 		tFind.addActionListener(new ActionListener()
 		{
-
-			@Override
 			public void actionPerformed(ActionEvent e)
 			{
-				if ((e.getModifiers() & InputEvent.SHIFT_DOWN_MASK) != 0)
+				if ((e.getModifiers() & InputEvent.SHIFT_DOWN_MASK) != 0 ^ FindDialog.back.isSelected())
 					findPrevious();
 				else
 					findNext();
 			}
 		});
-		swapFnR.addActionListener(new ActionListener()
+		bReplace.addActionListener(new ActionListener()
 		{
-			boolean meaning = false;
-
-			@Override
-			public void actionPerformed(ActionEvent arg0)
+			public void actionPerformed(ActionEvent e)
 			{
-				if (meaning) {
-					((JButton) arg0.getSource()).setText("Find:");
-					tFind.setVisible(true);
-					tReplace.setVisible(false);
-				}
-				else {
-					((JButton) arg0.getSource()).setText("Replace:");
-					tFind.setVisible(false);
-					tReplace.setVisible(true);
-				}
-				meaning = !meaning;
+				//selectFind(lastResult);
+				if (joshText.sel.isEmpty()) if (!FindDialog.back.isSelected())
+					findNext();
+				else
+					findPrevious();
+				doReplace();
 			}
 		});
-		swapFnR.addMouseListener(new MouseListener()
+		swapFnR.addMouseListener(new MouseAdapter()
 		{
-			@Override
-			public void mouseReleased(MouseEvent arg0)
-			{
-			}
-
-			@Override
-			public void mousePressed(MouseEvent arg0)
-			{
-			}
+			final Color HIGHLIGHT = new Color(0,128,255);
 
 			@Override
 			public void mouseExited(MouseEvent arg0)
 			{
-				JButton but = (JButton) arg0.getSource();
-//				Font mf = but.getFont();
-//				if ((mf.getStyle() & Font.BOLD) != 0)
-//					but.setFont(mf.deriveFont(mf.getStyle() & ~Font.BOLD));
-				but.setForeground(new Color(0,0,0));
+				JComponent but = (JComponent) arg0.getSource();
+				//				Font mf = but.getFont();
+				//				if ((mf.getStyle() & Font.BOLD) != 0)
+				//					but.setFont(mf.deriveFont(mf.getStyle() & ~Font.BOLD));
+				but.setForeground(Color.BLACK);
 			}
 
 			@Override
 			public void mouseEntered(MouseEvent arg0)
 			{
-				JButton but = (JButton) arg0.getSource();
-//				Font mf = but.getFont();
-//				if ((mf.getStyle() & Font.BOLD) == 0)
-//				{
-//					orig = mf;
-//					but.setFont(mf.deriveFont(mf.getStyle() | Font.BOLD));
-//				}
-				but.setForeground(new Color(0,128,255));
+				JComponent but = (JComponent) arg0.getSource();
+				//				Font mf = but.getFont();
+				//				if ((mf.getStyle() & Font.BOLD) == 0)
+				//				{
+				//					orig = mf;
+				//					but.setFont(mf.deriveFont(mf.getStyle() | Font.BOLD));
+				//				}
+				but.setForeground(HIGHLIGHT);
 			}
 
 			@Override
 			public void mouseClicked(MouseEvent arg0)
 			{
+				toggleMode();
 			}
 		});
+
+		setVisible(false);
 	}
 
-	private void selectFind(int x, int y, int l)
+	protected void doReplace()
 	{
-		selectFind(x,y,x + l,y);
+		UndoPatch up = joshText.new UndoPatch();
+		joshText.sel.insert(tReplace.getText());
+		up.realize(Math.max(joshText.caret.row,joshText.sel.row));
+		joshText.storeUndo(up,OPT.REPLACE);
 		joshText.repaint();
 	}
 
-	private void selectFind(int x, int y, int x2, int y2)
+	protected void toggleMode()
 	{
-		joshText.caret.row = y;
-		joshText.caret.col = x;
-		joshText.sel.row = y2;
-		joshText.sel.col = x2;
-		joshText.repaint();
-	}
-
-	private int find_next_in(StringBuilder sb, String findme, int from)
-	{
-		if (FindDialog.sens.isSelected())
-			return sb.indexOf(findme,from);
+		if (mode != Mode.mode_find)
+			toggleModeFind();
 		else
-			return sb.toString().toLowerCase().indexOf(findme,from);
+			toggleModeReplace();
 	}
 
-	private int find_prev_in(StringBuilder sb, String findme, int from)
+	protected void toggleModeFind()
 	{
-		int ind, p;
-		String findin = sb.toString(), find = findme;
-		if (!FindDialog.sens.isSelected())
-		{
-			findin = findin.toLowerCase();
-			find = find.toLowerCase();
-		}
-		if (from == -1) from = sb.length();
-		ind = findin.indexOf(find,0);
-		if (ind != -1)
-		{
-			if (ind >= from) return -1;
-			for (;;)
-			{
-				p = ind;
-				ind = findin.indexOf(find,ind + 1);
-				if (ind == -1 || ind >= from) return p;
-			}
-		}
-		return -1;
+		swapFnR.setText(S_FIND);
+		tFind.setVisible(true);
+		tReplace.setVisible(false);
+		highlight.setVisible(true);
+		bReplace.setVisible(false);
+		mode = Mode.mode_find;
 	}
 
-	void findNext()
+	protected void toggleModeReplace()
+	{
+		swapFnR.setText(S_REPL);
+		tFind.setVisible(false);
+		tReplace.setVisible(true);
+		highlight.setVisible(false);
+		bReplace.setVisible(true);
+		mode = Mode.mode_replace;
+	}
+
+	private void selectFind(FindResults fr)
+	{
+		joshText.caret.row = fr.line;
+		joshText.caret.col = fr.pos;
+		joshText.sel.row = fr.endLine;
+		joshText.sel.col = fr.endPos;
+		joshText.repaint();
+	}
+
+	public void findNext()
 	{
 		// TODO: I have no idea how multiline regexp search will be handled.
 		String ftext = tFind.getText();
@@ -230,93 +242,54 @@ public class QuickFind extends JToolBar
 			}
 			catch (PatternSyntaxException pse)
 			{
-				System.err.println("Shit man, your expression sucks");
+				System.out.println("Shit man, your expression sucks");
 				return;
 			}
-			for (int y = joshText.caret.row; y < joshText.code.size(); y++)
-			{
-				Matcher m = p.matcher(joshText.code.getsb(y).toString());
-				int si = y == joshText.caret.row ? joshText.caret.col + (joshText.sel.isEmpty() ? 0 : 1)
-						: 0;
-				System.out.println(si);
-				if (m.find(si))
-				{
-					selectFind(m.start(),y,m.end() - m.start());
-					return;
-				}
-			}
+			FindResults fr = joshText.code.findNext(p,joshText.caret.row,joshText.caret.col
+					+ (joshText.sel.isEmpty() ? 0 : 1));
+			if (fr != null) selectFind(fr);
 			return;
 		}
 		String[] findme = ftext.split("\r?\n");
-		System.out.println("Find next instance of `" + findme[0] + "'");
 
-		findMain: for (int y = joshText.caret.row; y < joshText.code.size(); y++)
-		{
-			int io = find_next_in(joshText.code.getsb(y),findme[0],
-					y == joshText.caret.row ? joshText.caret.col + (joshText.sel.isEmpty() ? 0 : 1) : 0);
-			if (io == -1) continue;
-			if (findme.length == 1)
-			{
-				selectFind(io,y,findme[0].length());
-				return;
-			}
-			int intermediate;
-			for (intermediate = 1; intermediate < findme.length - 1; intermediate++)
-			{
-				if (!findme[intermediate].equals(joshText.code.getsb(y + intermediate))) continue findMain;
-			}
-			if (joshText.code.getsb(y + intermediate).length() >= findme[intermediate].length()
-					&& joshText.code.getsb(y + intermediate).substring(0,findme[intermediate].length()).equals(
-							findme[intermediate]))
-			{
-				selectFind(io,y,findme[intermediate].length(),y + intermediate);
-				return;
-			}
-		}
+		FindResults fr = joshText.code.findNext(findme,joshText.caret.row,joshText.caret.col
+				+ (joshText.sel.isEmpty() ? 0 : 1));
+		if (fr != null) selectFind(fr);
+		return;
 	}
 
 	public void findPrevious()
 	{
-		/* FIXME: I'm not sure what to do with this, yet. This method only works right
-		          for one instance per line, and regexps can't be traversed backward. */
 		String ftext = tFind.getText();
 		if (ftext.length() == 0) return;
-		if (FindDialog.regex.isSelected())
-		{
-			return;/*
-							Pattern p;
-							try {
-							p = Pattern.compile(ftext,Pattern.CASE_INSENSITIVE);
-							} catch (PatternSyntaxException pse) {
-							System.err.println("Shit man, your expression sucks");
-							return;
-							}
-							for (int y = joshText.caret.row; y < joshText.code.size(); y++)
-							{
-							Matcher m = p.matcher(joshText.code.getsb(y).toString());
-							int si = y==joshText.caret.row?joshText.caret.col+(joshText.sel.isEmpty()?0:1):0;
-							System.out.println(si);
-							if (m.find(si)) {
-							selectFind(m.start(),y,m.end()-m.start());
-							return;
-							}
-							}
-							return;/**/
-		}
+		if (FindDialog.regex.isSelected()) return;
 		String[] findme = ftext.split("\r?\n");
-		System.out.println("Find previous instance of `" + findme[0] + "'");
-		for (int y = joshText.caret.row; y >= 0; y--)
-		{
-			if (findme.length == 1)
-			{
-				int io = find_prev_in(joshText.code.getsb(y),findme[0].toLowerCase(),
-						y == joshText.caret.row ? joshText.caret.col : -1);
-				if (io != -1)
-				{
-					selectFind(io,y,findme[0].length());
-					return;
-				}
-			}
-		}
+		FindResults fr = joshText.code.findPrevious(findme,joshText.caret.row,joshText.caret.col);
+		if (fr != null) selectFind(fr);
+	}
+
+	public void updateParameters(String find, String replace)
+	{
+		tFind.setText(find);
+		tReplace.setText(replace);
+	}
+
+	public void present()
+	{
+		setVisible(true);
+		tFind.selectAll();
+		tFind.grabFocus();
+	}
+
+	public void replaceNext()
+	{
+		findNext();
+		toggleModeReplace();
+	}
+
+	public void replacePrevious()
+	{
+		findPrevious();
+		toggleModeReplace();
 	}
 }

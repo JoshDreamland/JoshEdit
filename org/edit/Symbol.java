@@ -5,7 +5,7 @@
  * the GNU General Public License, version 3 or later. 
  */
 
-package org.edit;
+package org.lateralgm.joshedit;
 
 public class Symbol
 {
@@ -47,6 +47,7 @@ public class Symbol
 		this.val = val;
 	}
 
+	@Override
 	public String toString()
 	{
 		return name + " " + (val == null ? "" : val);

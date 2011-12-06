@@ -6,9 +6,10 @@
  * the GNU General Public License, version 3 or later. 
  */
 
-package org.edit;
+package org.lateralgm.joshedit;
 
 import java.awt.Component;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,15 +34,15 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
 
-import org.edit.Bindings.KeystrokeTableModel.Row;
+import org.lateralgm.joshedit.Bindings.KeystrokeTableModel.Row;
 
 public class Bindings extends JPanel
 {
 	private static final long serialVersionUID = 1L;
 
-	private static final ResourceBundle DEFAULTS = ResourceBundle.getBundle("org.edit.defaults"); //$NON-NLS-1$
-	private static final ResourceBundle TRANSLATE = ResourceBundle.getBundle("org.edit.translate"); //$NON-NLS-1$
-	public static final Preferences PREFS = Preferences.userRoot().node("/org/joshedit"); //$NON-NLS-1$
+	private static final ResourceBundle DEFAULTS = ResourceBundle.getBundle("org.lateralgm.joshedit.defaults"); //$NON-NLS-1$
+	private static final ResourceBundle TRANSLATE = ResourceBundle.getBundle("org.lateralgm.joshedit.translate"); //$NON-NLS-1$
+	public static final Preferences PREFS = Preferences.userRoot().node("/org/lateralgm/joshedit"); //$NON-NLS-1$
 
 	JTable list;
 	HashMap<String,String> shortcutName;
@@ -73,24 +74,22 @@ public class Bindings extends JPanel
 			rows.add(new Row(desc,key));
 		}
 
-		@Override
 		public int getColumnCount()
 		{
 			return 2;
 		}
 
+		@Override
 		public String getColumnName(int columnIndex)
 		{
 			return columnIndex == 0 ? "Description" : "Keystroke";
 		}
 
-		@Override
 		public int getRowCount()
 		{
 			return rows.size();
 		}
 
-		@Override
 		public Object getValueAt(int rowIndex, int columnIndex)
 		{
 			return columnIndex == 0 ? rows.get(rowIndex).desc : rows.get(rowIndex).key;
@@ -119,21 +118,22 @@ public class Bindings extends JPanel
 		int mods = 0;
 		if (pieces.length > 1)
 		{
-			if (pieces[0].contains("C")) mods |= KeyEvent.CTRL_DOWN_MASK;
-			if (pieces[0].contains("S")) mods |= KeyEvent.SHIFT_DOWN_MASK;
-			if (pieces[0].contains("A")) mods |= KeyEvent.ALT_DOWN_MASK;
-			if (pieces[0].contains("M")) mods |= KeyEvent.META_DOWN_MASK;
-			if (pieces[0].contains("G")) mods |= KeyEvent.ALT_GRAPH_DOWN_MASK;
+			if (pieces[0].contains("C")) mods |= InputEvent.CTRL_DOWN_MASK;
+			if (pieces[0].contains("S")) mods |= InputEvent.SHIFT_DOWN_MASK;
+			if (pieces[0].contains("A")) mods |= InputEvent.ALT_DOWN_MASK;
+			if (pieces[0].contains("M")) mods |= InputEvent.META_DOWN_MASK;
+			if (pieces[0].contains("G")) mods |= InputEvent.ALT_GRAPH_DOWN_MASK;
 		}
 		String lastPiece = pieces[pieces.length - 1];
 		if (mods == 0) return lastPiece;
-		return KeyEvent.getModifiersExText(mods) + " + " + lastPiece;
+		return InputEvent.getModifiersExText(mods) + " + " + lastPiece;
 	}
 
 	class KeystrokeRenderer extends DefaultTableCellRenderer
 	{
 		private static final long serialVersionUID = 1L;
 
+		@Override
 		public void setValue(Object value)
 		{
 			super.setValue((value == null) ? "" : value instanceof String ? keyToEnglish((String) value)
@@ -156,6 +156,7 @@ public class Bindings extends JPanel
 			setEditable(false);
 		}
 
+		@Override
 		public void processKeyEvent(KeyEvent e)
 		{
 			if (e.getID() != KeyEvent.KEY_PRESSED) return;
@@ -180,7 +181,7 @@ public class Bindings extends JPanel
 					|| e.getKeyCode() == KeyEvent.VK_SHIFT || e.getKeyCode() == 0) return;
 
 			// Typable characters invalid
-			if (e.getModifiersEx() == KeyEvent.SHIFT_DOWN_MASK //and nothing else
+			if (e.getModifiersEx() == InputEvent.SHIFT_DOWN_MASK //and nothing else
 					|| e.getModifiersEx() == 0 && !e.isActionKey()) return;
 
 			// Generate name
@@ -218,12 +219,14 @@ public class Bindings extends JPanel
 			return true;
 		}
 
+		@Override
 		public void setText(String text)
 		{
 			coreValue = text;
 			super.setText(keyToEnglish(text));
 		}
 
+		@Override
 		public String getText()
 		{
 			return super.getText();
@@ -253,7 +256,6 @@ public class Bindings extends JPanel
 			comp = new KeystrokeSelector();
 		}
 
-		@Override
 		public Object getCellEditorValue()
 		{
 			return comp.coreValue;
@@ -268,7 +270,6 @@ public class Bindings extends JPanel
 			return true;
 		}*/
 
-		@Override
 		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected,
 				int row, int column)
 		{
@@ -325,6 +326,7 @@ public class Bindings extends JPanel
 		}
 		catch (BackingStoreException e)
 		{
+			System.err.println("Failed to read JoshEdit keybindings!");
 		}
 		if (model.getRowCount() == 0)
 		{
@@ -379,6 +381,7 @@ public class Bindings extends JPanel
 		}
 		catch (BackingStoreException e)
 		{
+			System.err.println("Failed to read JoshEdit keybindings!");
 		}
 
 		for (String key : DEFAULTS.keySet())

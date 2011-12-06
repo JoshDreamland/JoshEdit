@@ -6,7 +6,7 @@
  * the GNU General Public License, version 3 or later. 
  */
 
-package org.edit;
+package org.lateralgm.joshedit;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -95,9 +95,12 @@ public class Selection
 		}
 		catch (UnsupportedFlavorException e)
 		{
+			// Clipboard format unsupported; no sense erroring.
 		}
 		catch (IOException e)
 		{
+			// Something broke reading the clipboard. Maybe it was too big.
+			// Who knows? The user probably does, and probably isn't surprised.
 		}
 		return 0;
 	}
@@ -168,9 +171,12 @@ public class Selection
 		}
 		catch (UnsupportedFlavorException e)
 		{
+			// Clipboard format unsupported; no sense erroring.
 		}
 		catch (IOException e)
 		{
+			// Something broke reading the clipboard. Maybe it was too big.
+			// Who knows? The user probably does, and probably isn't surprised.
 		}
 		return 0;
 	}
@@ -344,7 +350,6 @@ public class Selection
 							spaces.append(' ');
 						s.append(spaces);
 					}
-					System.out.println("Insert(" + ipos + ", " + c + ")");
 					s.insert(ipos,c);
 				}
 				col = ++caret.col;
@@ -658,7 +663,6 @@ public class Selection
 				}
 				return sbr.toString();
 			case NORM:
-				System.out.println(r.getMinY() + ", " + r.getMinX());
 				StringBuilder sbn = new StringBuilder(joshText.code.getsb(r.getMinY()).substring(
 						r.getMinX()));
 				for (int y = r.getMinY() + 1; y < maxY; y++)
@@ -713,7 +717,7 @@ public class Selection
 		while (special.spos > 0 && JoshText.selOfKind(sb,special.spos - 1,skind))
 			special.spos--;
 		while (++special.epos < sb.length() && JoshText.selOfKind(sb,special.epos,skind))
-			;
+		{ /* Move to end of selection kind */ }
 		row = caret.row;
 		col = special.spos;
 		caret.col = special.epos;

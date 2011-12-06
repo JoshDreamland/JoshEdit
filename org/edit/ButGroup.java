@@ -5,7 +5,7 @@
  * the GNU General Public License, version 3 or later. 
  */
 
-package org.edit;
+package org.lateralgm.joshedit;
 
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
@@ -22,6 +22,7 @@ public class ButGroup extends ButtonGroup
 			add(b);
 	}
 
+	@Override
 	public void setSelected(ButtonModel m, boolean b)
 	{
 		if (m == getSelection() && b == false) clearSelection();

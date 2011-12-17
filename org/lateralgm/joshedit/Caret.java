@@ -35,7 +35,7 @@ public class Caret implements ActionListener
 	private Timer flasher;
 	private JComponent painter;
 	private JoshText joshText;
-	private ArrayList<CaretListener> caretListeners;
+	private ArrayList<CaretListener> caretListeners = new ArrayList<CaretListener>();
 
 	public Caret(JoshText jt)
 	{

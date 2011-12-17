@@ -55,10 +55,10 @@ public class GenericHighlighter implements Highlighter,LineChangeListener
 
 	ArrayList<BlockDescriptor> schemes = new ArrayList<BlockDescriptor>();
 
-	class KeywordSet
+	public static class KeywordSet
 	{
 		String name; // The name of this group of keywords
-		Set<String> words; // A set of words highlighted according to this rule
+		public Set<String> words; // A set of words highlighted according to this rule
 		Color color; // The color with which this will be rendered, or NULL to use the default
 		int fontStyle; // Font attributes (Font.BOLD, etc)
 
@@ -71,7 +71,7 @@ public class GenericHighlighter implements Highlighter,LineChangeListener
 		}
 	}
 
-	ArrayList<KeywordSet> hlKeywords = new ArrayList<KeywordSet>();
+	public ArrayList<KeywordSet> hlKeywords = new ArrayList<KeywordSet>();
 
 	class CharSymbolSet
 	{
@@ -360,5 +360,139 @@ public class GenericHighlighter implements Highlighter,LineChangeListener
 				jt.code.get(i).attr = -jt.code.get(i).attr;
 			else if (jt.code.get(i).attr > 0) jt.code.get(i).attr = -1;
 		highlight();
+	}
+
+	public ArrayList<HighlighterInfoEx> getStyles(int lineNum)
+	{
+		ArrayList<HighlighterInfoEx> res = new ArrayList<HighlighterInfoEx>();
+		Line jline = jt.code.get(lineNum);
+		StringBuilder line = jline.sbuild;
+		int ischeme = (int) ((jline.attr & LINE_ATTRIBS.LA_SCHEMEBLOCK) >> LINE_ATTRIBS.LA_SCHEMEBITOFFSET);
+
+		int i = 0; // The position from which we will parse this thing
+		FindAllBlocks: for (;;) // What we're going to do is find any and all blocks up front, and move to the end of them.
+		{
+			int shm = -1; // Scheme Holding Minimum Match
+			int mmin = line.length(); // Minimum match position
+			int mminend = mmin;
+			if (ischeme == 0)
+			{
+				for (int si = 0; si < schemes.size(); si++)
+				{
+					Matcher m = schemes.get(si).begin.matcher(line.toString()).region(i,line.length()).useTransparentBounds(
+							true);
+					if (!m.find()) continue;
+					if (m.start() < mmin)
+					{ // If this one is closer to the beginning, it can potentially consume later ones. 
+						mmin = m.start(); // So we have to pay attention to it first.
+						mminend = m.end();
+						shm = si;
+					}
+				}
+			}
+			else
+			{
+				mmin = 0;
+				mminend = 0;
+				shm = ischeme;
+				ischeme = 0;
+			}
+			
+			if (shm == -1)
+				break;
+
+			// Start searching for its end.
+			for (;;)
+			{
+				Matcher mmatcher = schemes.get(shm).end.matcher(line.toString()).region(mminend,
+						line.length());
+				if (!mmatcher.find()) // If there's no end in sight, or that end passed our position of interest
+				{
+					res.add(new HighlighterInfoEx(schemes.get(shm).fontStyle,schemes.get(shm).color,mmin,line.length(),shm));
+					break FindAllBlocks; // Then we've found all the blocks. Quit.
+				}
+				// Now, we have found a chunk that may be the end marker, and lies before our position in question.
+				// Move to its end.
+				i = mmatcher.end();
+				if (!schemes.get(shm).escapeend) // If we can't escape an ending sequence,
+				{
+					res.add(new HighlighterInfoEx(schemes.get(shm).fontStyle,schemes.get(shm).color,mmin,i,shm));
+					break; // Then mission complete
+				}
+				// Otherwise, we have to verify that the end *isn't* escaped.
+				char escc = schemes.get(shm).escapeChar;
+				boolean end_escaped = false;
+				int cp;
+				for (cp = mminend; cp < mmatcher.start(); cp++)
+				{ // So, start iterating block contents!
+					if (line.charAt(cp) == escc) // If we see an escape char
+					{
+						if (cp + 1 < mmatcher.start()) // Check if it's at the end char we're looking at
+							cp++; // It's not! Skip the next char in case it's another escape char.
+						else
+							end_escaped = true; // It is! The end has been escaped. Find a new end and come back.
+					}
+				}
+				if (!end_escaped) // If the end wasn't escaped,
+					break; // Mission accomplished
+				// So, our line was escaped.
+				if (cp >= line.length()) // If we're at the end of the line now,
+				{ // Then the block is escaped and doesn't end on this line. Hop out. 
+					res.add(new HighlighterInfoEx(schemes.get(shm).fontStyle,schemes.get(shm).color,mmin,line.length(),shm));
+					break FindAllBlocks;
+				}
+				// Otherwise, continue iteration
+				mminend = i; // And perform the next search from the end of this escaped marker
+				res.add(new HighlighterInfoEx(schemes.get(shm).fontStyle,schemes.get(shm).color,mmin,i,shm));
+			}
+		}
+
+		i = 0;
+		res.add(new HighlighterInfoEx(0,null,line.length(),line.length(),0));
+		for (int bi = 0; bi < res.size(); i = res.get(bi++).endPos)
+		{
+			final int sp = res.get(bi).startPos;
+			SubschemeLoop: while (i < sp)
+			{
+				if (Character.isWhitespace(line.charAt(i)))
+				{
+					while (++i < line.length() && Character.isWhitespace(line.charAt(i)))
+					{ /* Move past whitespace */
+					}
+					continue;
+				}
+				Matcher lookingat = identifier_pattern.matcher(line).region(i,line.length());
+				if (lookingat.lookingAt())
+				{
+					String f = line.substring(i,lookingat.end());
+					for (int sn = 0; sn < hlKeywords.size(); sn++)
+						if (hlKeywords.get(sn).words.contains(f))
+						{
+							res.add(bi++,new HighlighterInfoEx(hlKeywords.get(sn).fontStyle,
+									hlKeywords.get(sn).color,lookingat.start(),lookingat.end(),0));
+							break;
+						}
+					i = lookingat.end();
+					continue SubschemeLoop;
+				}
+				for (int tt = 0; tt < otherTokens.size(); tt++)
+				{
+					lookingat = otherTokens.get(tt).pattern.matcher(line).region(i,line.length());
+					if (lookingat.lookingAt())
+					{
+						res.add(bi++,new HighlighterInfoEx(otherTokens.get(tt).fontStyle,otherTokens.get(tt).color,
+								lookingat.start(),lookingat.end(),0));
+						i = lookingat.end();
+						continue SubschemeLoop;
+					}
+				}
+				char c = line.charAt(i);
+				for (int sn = 0; sn < hlChars.size(); sn++)
+					if (hlChars.get(sn).chars.contains(c))
+						res.add(bi++,new HighlighterInfoEx(hlChars.get(sn).fontStyle,hlChars.get(sn).color,i,i+1,0));
+				i++;
+			}
+		}
+		return res;
 	}
 }

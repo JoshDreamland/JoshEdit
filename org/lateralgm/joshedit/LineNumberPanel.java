@@ -11,7 +11,10 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.util.Map;
 
 import javax.swing.JPanel;
 
@@ -48,7 +51,7 @@ public class LineNumberPanel extends JPanel
 			if (widths[i] > maxAdvance) maxAdvance = widths[i];
 
 		//multiply by max number of digits
-		int width = maxAdvance * (int) Math.max(Math.log10(lines - (startZero ? 1 : 0)) + 1,1);
+		int width = maxAdvance * (int) Math.max(Math.log10(lines - (startZero ? 1 : 0)) + 2,2);
 
 		//get line height, multiply by number of lines. + 1 line since the end seems to have a little extra
 		int height = getFontMetrics(metricFont).getHeight() * (lines + 1);
@@ -64,6 +67,9 @@ public class LineNumberPanel extends JPanel
 	@Override
 	public void paintComponent(Graphics g)
 	{
+		Object map = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
+		if (map != null) ((Graphics2D) g).addRenderingHints((Map<?,?>) map);
+		
 		Rectangle clip = g.getClipBounds();
 		FontMetrics fm = getFontMetrics(metricFont);
 		final int insetY = fm.getLeading() + fm.getAscent();

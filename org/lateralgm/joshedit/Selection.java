@@ -21,7 +21,10 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 
-public class Selection
+import org.lateralgm.joshedit.JoshText.CodeMetrics;
+import org.lateralgm.joshedit.JoshText.Marker;
+
+public class Selection implements Marker
 {
 	enum ST
 	{
@@ -494,7 +497,7 @@ public class Selection
 		}
 	}
 
-	static class RowFirstRegion extends SortedRegion
+	public static class RowFirstRegion extends SortedRegion
 	{
 		public RowFirstRegion(Point p1, Point p2)
 		{
@@ -522,7 +525,7 @@ public class Selection
 		}
 	}
 
-	static class RectangleRegion extends SortedRegion
+	public static class RectangleRegion extends SortedRegion
 	{
 		public RectangleRegion(Point p1, Point p2)
 		{
@@ -584,39 +587,84 @@ public class Selection
 		return false;
 	}
 
-	public void paint(Graphics g, Insets i, int gw, int gh)
+	public static class SimpleMarker implements Marker
+	{
+		protected static final Color DEF_COL = new Color(200,200,220);
+		protected int y, x1, x2;
+
+		public SimpleMarker(int y, int x1, int x2)
+		{
+			this.y = y;
+			this.x1 = x1;
+			this.x2 = x2;
+		}
+
+		public void paint(Graphics g, Insets i, CodeMetrics cm, int line_start, int line_end)
+		{
+			g.setColor(DEF_COL);
+			int gh = cm.lineHeight();
+			int xx = cm.lineWidth(y,x1);
+			g.fillRect(i.left + xx,i.top + y * gh,cm.lineWidth(y,x2) - xx,gh);
+		}
+	}
+
+	public static class SortedRegionMarker implements Marker
+	{
+		SortedRegion r;
+		ST type;
+		static final Color DEF_COL = new Color(200,200,220);
+
+		public SortedRegionMarker(SortedRegion r, ST type)
+		{
+			this.r = r;
+			this.type = type;
+		}
+
+		public void paint(Graphics g, Insets i, CodeMetrics cm, int line_start, int line_end)
+		{
+			//g.setXORMode(Color.WHITE);
+
+			Color rc = g.getColor();
+			g.setColor(DEF_COL);
+
+			int gw = cm.glyphWidth();
+			int gh = cm.lineHeight();
+
+			// This section is fine without tab consideration because selected rectangles
+			// are assumed to be completely column-based.
+			if (type == ST.RECT)
+				g.fillRect(i.left + r.getMinX() * gw,i.top + r.getMinY() * gh,(r.getMaxX() - r.getMinX())
+						* gw,(r.getMaxY() - r.getMinY() + 1) * gh);
+			else if (r.getMaxY() == r.getMinY())
+			{
+				new SimpleMarker(r.getMinY(),r.getMinX(),r.getMaxX()).paint(g,i,cm,line_start,line_end);
+				/*				int xx = line_wid_at(r.getMinY(),r.getMinX());
+								g.fillRect(i.left + xx,i.top + r.getMinY() * gh,line_wid_at(r.getMaxY(),r.getMaxX()) - xx,
+										gh);*/
+			}
+			else if (type == ST.NORM)
+			{
+				Rectangle clip = g.getClipBounds();
+
+				// First line
+				g.fillRect(i.left + cm.lineWidth(r.getMinY(),r.getMinX()),i.top + r.getMinY() * gh,
+						clip.width - cm.lineWidth(r.getMinY(),r.getMinX()) - i.left + clip.x,gh);
+				// Middle lines
+				g.fillRect(i.left + clip.x,i.top + (r.getMinY() + 1) * gh,clip.width,
+						(r.getMaxY() - r.getMinY() - 1) * gh);
+				// Last line
+				g.fillRect(i.left,i.top + r.getMaxY() * gh,cm.lineWidth(r.getMaxY(),r.getMaxX()),gh);
+			}
+
+			g.setColor(rc);
+			//g.setPaintMode();
+		}
+	}
+
+	public void paint(Graphics g, Insets i, CodeMetrics cm, int line_start, int line_end)
 	{
 		if (isEmpty()) return;
-
-		g.setXORMode(Color.WHITE);
-
-		Rectangle clip = g.getClipBounds();
-		SortedRegion r = getSortedRegion();
-
-		// This section is fine without tab consideration because selected rectangles
-		// are assumed to be completely column-based.
-		if (type == ST.RECT)
-			g.fillRect(i.left + r.getMinX() * gw,i.top + r.getMinY() * gh,(r.getMaxX() - r.getMinX())
-					* gw,(r.getMaxY() - r.getMinY() + 1) * gh);
-		else if (r.getMaxY() == r.getMinY())
-		{
-			int xx = joshText.line_wid_at(r.getMinY(),r.getMinX());
-			g.fillRect(i.left + xx,i.top + r.getMinY() * gh,joshText.line_wid_at(r.getMaxY(),r.getMaxX())
-					- xx,gh);
-		}
-		else if (type == ST.NORM)
-		{
-			// First line
-			g.fillRect(i.left + joshText.line_wid_at(r.getMinY(),r.getMinX()),i.top + r.getMinY() * gh,
-					clip.width - joshText.line_wid_at(r.getMinY(),r.getMinX()) - i.left,gh);
-			// Middle lines
-			g.fillRect(i.left,i.top + (r.getMinY() + 1) * gh,clip.width,(r.getMaxY() - r.getMinY() - 1)
-					* gh);
-			// Last line
-			g.fillRect(i.left,i.top + r.getMaxY() * gh,joshText.line_wid_at(r.getMaxY(),r.getMaxX()),gh);
-		}
-
-		g.setPaintMode();
+		new SortedRegionMarker(getSortedRegion(),type).paint(g,i,cm,line_start,line_end);
 	}
 
 	public void changeType(ST t)
@@ -717,7 +765,8 @@ public class Selection
 		while (special.spos > 0 && JoshText.selOfKind(sb,special.spos - 1,skind))
 			special.spos--;
 		while (++special.epos < sb.length() && JoshText.selOfKind(sb,special.epos,skind))
-		{ /* Move to end of selection kind */ }
+		{ /* Move to end of selection kind */
+		}
 		row = caret.row;
 		col = special.spos;
 		caret.col = special.epos;

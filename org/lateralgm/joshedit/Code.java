@@ -1,4 +1,5 @@
 /* Copyright (C) 2011 IsmAvatar <IsmAvatar@gmail.com>
+ * Copyright (C) 2011 Josh Ventura <joshv@zoominternet.net>
  * 
  * This file is part of JoshEdit. JoshEdit is free software.
  * You can use, modify, and distribute it under the terms of

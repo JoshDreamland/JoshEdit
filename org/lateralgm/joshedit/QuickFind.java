@@ -66,6 +66,7 @@ public class QuickFind extends JToolBar implements FindNavigator
 	}
 
 	Mode mode = Mode.mode_find;
+	protected FindResults lastResult = null;
 
 	public QuickFind(JoshText text)
 	{
@@ -137,12 +138,15 @@ public class QuickFind extends JToolBar implements FindNavigator
 		{
 			public void actionPerformed(ActionEvent e)
 			{
-				//selectFind(lastResult);
-				if (joshText.sel.isEmpty()) if (!FindDialog.back.isSelected())
-					findNext();
+				if (lastResult == null || !isSelected(lastResult))
+				{
+					if (joshText.sel.isEmpty()) if (!FindDialog.back.isSelected())
+						findNext();
+					else
+						findPrevious();
+				}
 				else
-					findPrevious();
-				doReplace();
+					doReplace();
 			}
 		});
 		swapFnR.addMouseListener(new MouseAdapter()
@@ -228,6 +232,14 @@ public class QuickFind extends JToolBar implements FindNavigator
 		joshText.repaint();
 	}
 
+	protected boolean isSelected(FindResults fr)
+	{
+		boolean res = (joshText.caret.row == fr.line && joshText.caret.col == fr.pos
+				&& joshText.sel.row == fr.endLine && joshText.sel.col == fr.endPos);
+		System.out.println("SELECTED: " + res);
+		return res;
+	}
+
 	public void findNext()
 	{
 		// TODO: I have no idea how multiline regexp search will be handled.
@@ -245,16 +257,16 @@ public class QuickFind extends JToolBar implements FindNavigator
 				System.out.println("Shit man, your expression sucks");
 				return;
 			}
-			FindResults fr = joshText.code.findNext(p,joshText.caret.row,joshText.caret.col
+			lastResult = joshText.code.findNext(p,joshText.caret.row,joshText.caret.col
 					+ (joshText.sel.isEmpty() ? 0 : 1));
-			if (fr != null) selectFind(fr);
+			if (lastResult != null) selectFind(lastResult);
 			return;
 		}
 		String[] findme = ftext.split("\r?\n");
 
-		FindResults fr = joshText.code.findNext(findme,joshText.caret.row,joshText.caret.col
+		lastResult = joshText.code.findNext(findme,joshText.caret.row,joshText.caret.col
 				+ (joshText.sel.isEmpty() ? 0 : 1));
-		if (fr != null) selectFind(fr);
+		if (lastResult != null) selectFind(lastResult);
 		return;
 	}
 
@@ -264,8 +276,8 @@ public class QuickFind extends JToolBar implements FindNavigator
 		if (ftext.length() == 0) return;
 		if (FindDialog.regex.isSelected()) return;
 		String[] findme = ftext.split("\r?\n");
-		FindResults fr = joshText.code.findPrevious(findme,joshText.caret.row,joshText.caret.col);
-		if (fr != null) selectFind(fr);
+		lastResult = joshText.code.findPrevious(findme,joshText.caret.row,joshText.caret.col);
+		if (lastResult != null) selectFind(lastResult);
 	}
 
 	public void updateParameters(String find, String replace)

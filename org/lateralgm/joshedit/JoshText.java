@@ -17,6 +17,8 @@ import java.awt.Event;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -38,11 +40,13 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.JComponent;
 import javax.swing.JViewport;
@@ -51,9 +55,11 @@ import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
 
 import org.lateralgm.joshedit.FindDialog.FindNavigator;
-import org.lateralgm.joshedit.Highlighter.HighlighterInfo;
+import org.lateralgm.joshedit.Highlighter.HighlighterInfoEx;
 import org.lateralgm.joshedit.Selection.ST;
 
 import sun.awt.dnd.SunDragSourceContextPeer;
@@ -64,12 +70,13 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	private static final long serialVersionUID = 1L;
 
 	// Settings
-	static class Settings
+	public static class Settings
 	{
 		public static boolean indentUseTabs = false; // True if the tab character is used, false to use spaces
 		public static int indentSizeInSpaces = 4; // The size with which tab characters are represented, in spaces (characters)
 		public static String indentRepString = "    "; // The string which will be inserted into the code for indentation.
 		public static boolean smartBackspace = true; // True if backspace should clear indentation to tab marks
+		public static boolean highlight_line = true; // True if the caret's line is to be highlighted
 	}
 
 	// Components
@@ -77,21 +84,72 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	Selection sel;
 	Caret caret;
 	DragListener dragger;
-	Point dropPoint = null;
-	Highlighter highlighter = new CPPHighlighter(this);
+	public Highlighter highlighter = new GMLHighlighter(this);
+	public ArrayList<Marker> markers = new ArrayList<Marker>();
 
 	// Dimensions
-	int monoAdvance, lineHeight, lineAscent, lineLeading;
+	private int monoAdvance, lineHeight, lineAscent, lineLeading;
 
 	// Our longest row, and how many other rows are this long
-	int maxRowSize; // This is the size of the longest row, not the index.
-	int maxcount; // This is how many other rows are this long.
+	private int maxRowSize; // This is the size of the longest row, not the index.
 
 	// Status bar messages
 	Queue<String> infoMessages = new LinkedList<String>();
 
 	// Find/Replace
 	public FindNavigator finder;
+
+	/**
+	 * These get painted before the text
+	 */
+	public static interface Marker
+	{
+		void paint(Graphics g, Insets i, CodeMetrics gm, int line_start, int line_end);
+	}
+
+	public static interface CodeMetrics
+	{
+		int stringWidth(String str, int end);
+
+		int lineWidth(int y, int end);
+
+		int glyphWidth();
+
+		int lineHeight();
+	}
+
+	CodeMetrics metrics = new CodeMetrics()
+	{
+		public int stringWidth(String l, int end)
+		{
+			end = Math.min(end,l.length());
+			int w = 0;
+			for (int i = 0; i < end; i++)
+				if (l.charAt(i) == '\t')
+				{
+					final int wf = monoAdvance * Settings.indentSizeInSpaces;
+					w = ((w + wf) / wf) * wf;
+				}
+				else
+					w += monoAdvance;
+			return w;
+		}
+
+		public int lineWidth(int y, int end)
+		{
+			return stringWidth(code.getsb(y).toString(),end);
+		}
+
+		public int glyphWidth()
+		{
+			return monoAdvance;
+		}
+
+		public int lineHeight()
+		{
+			return lineHeight;
+		}
+	};
 
 	/**
 	 * Character "type", such as letter (1), whitespace (2), symbol (0), etc.
@@ -104,7 +162,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		public static final int WHITE = 2;
 	}
 
-	static final char chType[] = new char[256];
+	private static final char chType[] = new char[256];
 	static
 	{
 		for (int i = 0; i < 256; i++)
@@ -135,7 +193,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	{
 		// Drawing stuff
 		setPreferredSize(new Dimension(320,240));
-		setFont(new Font(Font.MONOSPACED,0,15));
+		setFont(new Font(Font.MONOSPACED,Font.PLAIN,12));
 		setBackground(Color.WHITE);
 		setForeground(Color.BLACK);
 		setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
@@ -177,6 +235,26 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		myLang = new SyntaxDesc();
 		myLang.set_language("Shitbag");
 
+		if (Settings.highlight_line) markers.add(new Marker()
+		{
+			public void paint(Graphics g, Insets i, CodeMetrics gm, int line_start, int line_end)
+			{
+				if (sel.row == caret.row)
+				{
+					Color rc = g.getColor();
+					g.setColor(new Color(230,240,255));
+					Rectangle clip = g.getClipBounds();
+					g.fillRect(i.left + clip.x,i.top + caret.row * gm.lineHeight(),clip.width,gm.lineHeight());
+					g.setColor(rc);
+				}
+			}
+		});
+		markers.add(sel);
+
+		BracketMarker bm = new BracketMarker();
+		markers.add(bm);
+		caret.addCaretListener(bm);
+
 		addLineChangeListener((LineChangeListener) highlighter);
 		fireLineChange(0,code.size());
 
@@ -195,130 +273,146 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	}
 
 	/** Maps action names to their implementations */
+	public static abstract class CustomAction extends AbstractAction
+	{
+		private static final long serialVersionUID = 1L;
+
+		public CustomAction(String name)
+		{
+			super(name);
+		}
+	}
+
+	public AbstractAction aLineDel = new CustomAction("LINEDEL")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			//delete the line where the caret is
+		}
+	};
+	public AbstractAction aLineDup = new CustomAction("LINEDUP")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			UndoPatch up = new UndoPatch();
+			up.realize(up.startRow + sel.duplicate());
+			storeUndo(up,OPT.DUPLICATE);
+		}
+	};
+	public AbstractAction aSelAll = new CustomAction("SELALL")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			sel.row = sel.col = 0;
+			caret.row = code.size() - 1;
+			caret.col = code.getsb(caret.row).length();
+			sel.type = ST.NORM;
+			sel.selectionChanged();
+		}
+	};
+	public AbstractAction aCopy = new CustomAction("COPY")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			sel.copy();
+		}
+	};
+	public AbstractAction aCut = new CustomAction("CUT")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			if (sel.isEmpty()) return;
+			sel.copy();
+			UndoPatch up = new UndoPatch();
+			sel.deleteSel();
+			up.realize(Math.max(caret.row,sel.row));
+			storeUndo(up,OPT.DELETE);
+			repaint();
+		}
+	};
+	public AbstractAction aPaste = new CustomAction("PASTE")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			UndoPatch up = new UndoPatch(Math.min(caret.row,sel.row),Math.min(code.size() - 1,
+					Math.max(caret.row,sel.row) + sel.getPasteRipple()));
+			up.realize(sel.paste());
+			storeUndo(up,OPT.PASTE);
+		}
+	};
+	public AbstractAction aUndo = new CustomAction("UNDO")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			undo();
+		}
+	};
+	public AbstractAction aRedo = new CustomAction("REDO")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			redo();
+		}
+	};
+	public AbstractAction aFind = new CustomAction("FIND")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			findDialog.setVisible(true);
+		}
+	};
+	public AbstractAction aQuickFind = new CustomAction("QUICKFIND")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			finder.present();
+		}
+	};
+	public AbstractAction aUnindent = new CustomAction("UNINDENT")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			UndoPatch up = new UndoPatch();
+			int erow;
+			for (int row = erow = Math.min(sel.row,caret.row); row <= sel.row || row <= caret.row; row++)
+			{
+				unindent(row);
+				erow = row;
+			}
+			up.realize(erow);
+			storeUndo(up,OPT.INDENT);
+		}
+	};
+
 	private void mapActions()
 	{
 		ActionMap am = getActionMap();
-		am.put("LINEDEL",new AbstractAction()
-		{
-			private static final long serialVersionUID = 1L;
-
-			public void actionPerformed(ActionEvent e)
-			{
-				//delete the line where the caret is
-			}
-		});
-		am.put("LINEDUP",new AbstractAction()
-		{
-			private static final long serialVersionUID = 1L;
-
-			public void actionPerformed(ActionEvent e)
-			{
-				UndoPatch up = new UndoPatch();
-				up.realize(up.startRow + sel.duplicate());
-				storeUndo(up,OPT.DUPLICATE);
-			}
-		});
-		am.put("SELALL",new AbstractAction()
-		{
-			private static final long serialVersionUID = 1L;
-
-			public void actionPerformed(ActionEvent e)
-			{
-				sel.row = sel.col = 0;
-				caret.row = code.size() - 1;
-				caret.col = code.getsb(caret.row).length();
-				sel.type = ST.NORM;
-				sel.selectionChanged();
-			}
-		});
-		am.put("COPY",new AbstractAction()
-		{
-			private static final long serialVersionUID = 1L;
-
-			public void actionPerformed(ActionEvent e)
-			{
-				sel.copy();
-			}
-		});
-		am.put("CUT",new AbstractAction()
-		{
-			private static final long serialVersionUID = 1L;
-
-			public void actionPerformed(ActionEvent e)
-			{
-				if (sel.isEmpty()) return;
-				sel.copy();
-				UndoPatch up = new UndoPatch();
-				sel.deleteSel();
-				up.realize(Math.max(caret.row,sel.row));
-				storeUndo(up,OPT.DELETE);
-			}
-		});
-		am.put("PASTE",new AbstractAction()
-		{
-			private static final long serialVersionUID = 1L;
-
-			public void actionPerformed(ActionEvent e)
-			{
-				UndoPatch up = new UndoPatch(Math.min(caret.row,sel.row),Math.min(code.size() - 1,
-						Math.max(caret.row,sel.row) + sel.getPasteRipple()));
-				up.realize(sel.paste());
-				storeUndo(up,OPT.PASTE);
-			}
-		});
-		am.put("UNDO",new AbstractAction()
-		{
-			private static final long serialVersionUID = 1L;
-
-			public void actionPerformed(ActionEvent e)
-			{
-				undo();
-			}
-		});
-		am.put("REDO",new AbstractAction()
-		{
-			private static final long serialVersionUID = 1L;
-
-			public void actionPerformed(ActionEvent e)
-			{
-				redo();
-			}
-		});
-		am.put("FIND",new AbstractAction()
-		{
-			private static final long serialVersionUID = 1L;
-
-			public void actionPerformed(ActionEvent e)
-			{
-				findDialog.setVisible(true);
-			}
-		});
-		am.put("QUICKFIND",new AbstractAction()
-		{
-			private static final long serialVersionUID = 1L;
-
-			public void actionPerformed(ActionEvent e)
-			{
-				finder.present();
-			}
-		});
-		am.put("UNINDENT",new AbstractAction()
-		{
-			private static final long serialVersionUID = 1L;
-
-			public void actionPerformed(ActionEvent e)
-			{
-				UndoPatch up = new UndoPatch();
-				int erow;
-				for (int row = erow = Math.min(sel.row,caret.row); row <= sel.row || row <= caret.row; row++)
-				{
-					unindent(row);
-					erow = row;
-				}
-				up.realize(erow);
-				storeUndo(up,OPT.INDENT);
-			}
-		});
+		Action acts[] = { aLineDel,aLineDup,aSelAll,aCopy,aCut,aPaste,aUndo,aRedo,aFind,aQuickFind,
+				aUnindent };
+		for (Action a : acts)
+			am.put(a.getValue(Action.NAME),a);
 	}
 
 	FindDialog findDialog = FindDialog.getInstance();
@@ -470,14 +564,8 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	void doCodeSize(boolean rs)
 	{
 		maxRowSize = 0;
-		maxcount = 0;
 		for (int i = 0; i < code.size(); i++)
-			if (code.getsb(i).length() > maxRowSize)
-			{
-				maxRowSize = code.getsb(i).length();
-				maxcount = 1;
-			}
-			else if (code.getsb(i).length() == maxRowSize) maxcount++;
+			if (code.getsb(i).length() > maxRowSize) maxRowSize = code.getsb(i).length();
 		if (rs)
 		{
 			fitToCode();
@@ -573,28 +661,11 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 
 	private MouseAutoScroll mas = new MouseAutoScroll();
 
-	/** Returns the width encompassed by line @param l 
-	 * when read @param pos characters in. */
-	public int line_wid_at(String l, int pos)
-	{
-		pos = Math.min(pos,l.length());
-		int w = 0;
-		for (int i = 0; i < pos; i++)
-			if (l.charAt(i) == '\t')
-			{
-				final int wf = monoAdvance * Settings.indentSizeInSpaces;
-				w = ((w + wf) / wf) * wf;
-			}
-			else
-				w += monoAdvance;
-		return w;
-	}
-
 	/** Returns the width encompassed by line with index 
 	 *  @param l when read @param pos characters in. */
-	public int line_wid_at(int l, int pos)
+	int line_wid_at(int l, int pos)
 	{
-		return line_wid_at(code.getsb(l).toString(),pos);
+		return metrics.stringWidth(code.getsb(l).toString(),pos);
 	}
 
 	/** Returns the position in new line @param lTo when transitioned
@@ -696,12 +767,12 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		return false;
 	}
 
-	static int selGetKind(StringBuilder str, int pos)
+	public static int selGetKind(CharSequence str, int pos)
 	{
 		return pos >= 0 && pos < str.length() ? chType[str.charAt(pos)] : 2;
 	}
 
-	static boolean selOfKind(StringBuilder str, int pos, int otype)
+	public static boolean selOfKind(CharSequence str, int pos, int otype)
 	{
 		return ((pos >= 0 && pos < str.length()) ? chType[str.charAt(pos)] == otype : otype == 2);
 	}
@@ -716,6 +787,31 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		return new Dimension(monoAdvance,lineHeight);
 	}
 
+	private int drawChars(Graphics g, char[] a, int sp, int ep, int xx, int ty)
+	{
+		Color c = g.getColor();
+		for (int i = sp; i < ep; i++)
+		{
+			if (a[i] == '\t')
+			{
+				final int incby = Settings.indentSizeInSpaces * monoAdvance; //, xxp = xx;
+				xx = ((xx + incby) / incby) * incby;
+				g.setColor(new Color(255,0,0));
+				/*g.drawLine(xxp + 2,ty - (lineHeight / 3),xx - 2,ty - (lineHeight / 3));
+				g.drawLine(xxp + 2,ty - (lineHeight / 3) - (lineHeight / 5),xxp + 2,ty - (lineHeight / 3)
+						+ (lineHeight / 5));
+				g.drawLine(xx - 2,ty - (lineHeight / 3) - (lineHeight / 5),xx - 2,ty - (lineHeight / 3)
+						+ (lineHeight / 5));*/
+				g.setColor(c);
+				continue;
+			}
+			g.drawChars(a,i,1,xx,getInsets().top + ty);
+			xx += monoAdvance;
+			g.setColor(c);
+		}
+		return xx;
+	}
+
 	private void drawLine(Graphics g, int lineNum, int ty)
 	{
 		g.setColor(getForeground());
@@ -727,46 +823,60 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		int xx = getInsets().left;
 		char[] a = line.toString().toCharArray();
 		Color c = g.getColor();
-		for (int i = 0; i < line.length(); i++)
+
+		if (highlighter == null)
 		{
-			if (a[i] == '\t')
+			drawChars(g,a,0,a.length,xx,ty);
+		}
+		else
+		{
+			ArrayList<HighlighterInfoEx> hlall = highlighter.getStyles(lineNum);
+			/*DEBUG SHIT: This is annoying to write, so I'm going to commit it once.
+			if (lineNum == 10)
 			{
-				final int incby = Settings.indentSizeInSpaces * monoAdvance, xxp = xx;
-				xx = ((xx + incby) / incby) * incby;
-				g.setColor(new Color(255,0,0));
-				g.drawLine(xxp + 2,ty - (lineHeight / 3),xx - 2,ty - (lineHeight / 3));
-				g.drawLine(xxp + 2,ty - (lineHeight / 3) - (lineHeight / 5),xxp + 2,ty - (lineHeight / 3)
-						+ (lineHeight / 5));
-				g.drawLine(xx - 2,ty - (lineHeight / 3) - (lineHeight / 5),xx - 2,ty - (lineHeight / 3)
-						+ (lineHeight / 5));
-				g.setColor(c);
-				continue;
-			}
-			HighlighterInfo hl = highlighter.getStyle(lineNum,i);
-			if (hl.color != null)
-				g.setColor(hl.color);
-			else
-				g.setColor(c);
-			if (hl.fontStyle != fontFlags)
+				System.out.print("[ ");
+				for (HighlighterInfoEx hl : hlall)
+					System.out.print(hl.startPos + "-" + hl.endPos + " ");
+				System.out.println("]");
+			}*/
+			int pos = 0;
+			for (HighlighterInfoEx hl : hlall)
 			{
-				fontFlags = hl.fontStyle;
-				drawingFont = getFont().deriveFont(fontFlags);
-				g.setFont(drawingFont);
+				// Start by printing normal characters until we reach styleBlock.startPos
+				xx = drawChars(g,a,pos,hl.startPos,xx,ty);
+				// Print the remaining characters in the styleBlock range
+				if (hl.color != null)
+					g.setColor(hl.color);
+				else
+					g.setColor(c);
+				if (hl.fontStyle != fontFlags)
+				{
+					fontFlags = hl.fontStyle;
+					drawingFont = getFont().deriveFont(fontFlags);
+					g.setFont(drawingFont);
+				}
+				xx = drawChars(g,a,hl.startPos,hl.endPos,xx,ty);
+				pos = hl.endPos;
+				g.setFont(getFont());
+				g.setColor(c);
 			}
-			g.drawChars(a,i,1,xx,getInsets().top + ty);
-			xx += monoAdvance;
-			g.setColor(c);
 		}
 	}
 
 	@Override
 	public void paintComponent(Graphics g)
 	{
+		Object map = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
+		if (map != null) ((Graphics2D) g).addRenderingHints((Map<?,?>) map);
+
 		Rectangle clip = g.getClipBounds();
 
 		// Fill background
 		g.setColor(getBackground());
 		g.fillRect(clip.x,clip.y,clip.width,clip.height);
+
+		for (Marker a : markers)
+			a.paint(g,getInsets(),metrics,0,code.size());
 
 		// Draw each line
 		final int insetY = lineLeading + lineAscent;
@@ -776,9 +886,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 				&& lineNum < code.size(); ty += lineHeight)
 			drawLine(g,lineNum++,ty);
 
-		sel.paint(g,getInsets(),monoAdvance,lineHeight);
-		caret.paint(g,sel);
-
+		if (isFocusOwner()) caret.paint(g,sel);
 	}
 
 	/**
@@ -856,6 +964,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			else
 				sel.changeType(ST.NORM);
 
+			Point sp = new Point(caret.col,caret.row);
 			Point p = mouseToPoint(e.getPoint(),sel.type != ST.RECT);
 			caret.col = p.x;
 			caret.row = p.y;
@@ -905,6 +1014,8 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			shouldHandleRelease = false;
 			caret.flashOn();
 
+			if (sp.x != caret.col || sp.y != caret.row) caret.positionChanged();
+
 			if (e.getID() == MouseEvent.MOUSE_RELEASED) sel.selectionChanged();
 
 			repaint();
@@ -937,6 +1048,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 
 	protected void processKeyTyped(KeyEvent e)
 	{
+		final Point sc = new Point(caret.col, caret.row);
 		switch (e.getKeyChar())
 		{
 			case KeyEvent.VK_ENTER:
@@ -1182,6 +1294,8 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 				}
 				break;
 		}
+		if (sc.x != caret.col || sc.y != caret.row)
+			caret.positionChanged();
 		doCodeSize(true);
 		doShowCursor();
 	}
@@ -1198,6 +1312,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		//Note to developers: please consume keys that you use.
 		//This way, containers don't still see them as usable
 		//(e.g. arrow keys triggering the scrollbar)
+		Point sc = new Point(caret.col, caret.row);
 		switch (e.getKeyCode())
 		{
 			case KeyEvent.VK_INSERT:
@@ -1333,6 +1448,8 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 				e.consume();
 				break;
 		}
+		if (sc.x != caret.col || sc.y != caret.row)
+			caret.positionChanged();
 		fitToCode();
 		doShowCursor();
 	}
@@ -1645,6 +1762,222 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		// WHOGIVESAFUCK.jpg
 	}
 
+	//-----------------------------------------------------------------
+	//----- Mark Matching Brackets ------------------------------------
+	//-----------------------------------------------------------------
+
+	static enum MatchState
+	{
+		NOT_MATCHING,NO_MATCH,MATCHING
+	}
+
+	class BracketMarker implements Marker,CaretListener
+	{
+		MatchState matching;
+		int matchLine, matchPos;
+
+		public void paint(Graphics g, Insets i, CodeMetrics gm, int line_start, int line_end)
+		{
+			Color c = g.getColor();
+			if (matching == MatchState.MATCHING)
+			{
+				g.setColor(new Color(100,100,100));
+				g.drawRect(line_wid_at(matchLine,matchPos),matchLine * lineHeight,monoAdvance,lineHeight);
+			}
+			else if (matching == MatchState.NO_MATCH)
+			{
+				g.setColor(new Color(255,0,0));
+				g.fillRect(line_wid_at(matchLine,matchPos),matchLine * lineHeight,monoAdvance,lineHeight);
+			}
+			g.setColor(c);
+		}
+
+		private boolean matchFound(BracketMatch m, int x, int y)
+		{
+			if (--m.count <= 0)
+			{
+				matchLine = y;
+				matchPos = x;
+				matching = MatchState.MATCHING;
+				return true;
+			}
+			return false;
+		}
+
+		class BracketMatch
+		{
+			char match;
+			char opposite;
+			short count;
+
+			public BracketMatch(char m, char o, short c)
+			{
+				match = m;
+				opposite = o;
+				count = c;
+			}
+		}
+
+		private void findMatchForward(int row, int col, BracketMatch match)
+		{
+			int y = row;
+			int blockType = 0;
+			StringBuilder sb = code.getsb(y);
+
+			// Figure out what kind of block we're in, if any.
+			ArrayList<HighlighterInfoEx> hlall = highlighter.getStyles(y);
+
+			int offset;
+			for (offset = 0; offset < hlall.size(); offset++)
+			{
+				HighlighterInfoEx hl = hlall.get(offset);
+				if (col < hl.startPos) break; // The blocks have skipped us.
+				if (col >= hl.startPos && col < hl.endPos)
+				{
+					blockType = hl.blockHash;
+					break;
+				}
+			}
+			if (subFindMatchForward(match,sb,hlall,offset,col,blockType,y)) return;
+
+			for (y++; y < code.size(); y++)
+			{
+				hlall = highlighter.getStyles(y);
+				if (subFindMatchForward(match,code.getsb(y),hlall,0,0,blockType,y)) return;
+			}
+		}
+
+		private boolean subFindMatchForward(BracketMatch match, StringBuilder sb,
+				ArrayList<HighlighterInfoEx> hlall, int offset, int spos, int blockType, int y)
+		{
+			int pos = spos;
+			for (int i = offset; i < hlall.size(); i++)
+			{
+				HighlighterInfoEx hl = hlall.get(i);
+				if (blockType == 0) // If our start wasn't in a block
+					for (; pos < hl.startPos; pos++)
+						// Check outside this block's range
+						if (sb.charAt(pos) == match.match)
+						{
+							if (matchFound(match,pos,y)) return true;
+						}
+						else if (sb.charAt(pos) == match.opposite) match.count++;
+				if (blockType == hlall.get(i).blockHash) // If the block has the same type
+					for (pos = Math.max(spos,hl.startPos); pos < hl.endPos; pos++)
+						// Check inside it
+						if (sb.charAt(pos) == match.match)
+						{
+							if (matchFound(match,pos,y)) return true;
+						}
+						else if (sb.charAt(pos) == match.opposite) match.count++;
+				pos = hl.endPos;
+			}
+			return false;
+		}
+
+		private void findMatchBackward(int row, int col, BracketMatch match)
+		{
+			int y = row;
+			int blockType = 0;
+			StringBuilder sb = code.getsb(y);
+
+			// Figure out what kind of block we're in, if any.
+			ArrayList<HighlighterInfoEx> hlall = highlighter.getStyles(y);
+
+			int offset;
+			for (offset = 0; offset < hlall.size(); offset++)
+			{
+				HighlighterInfoEx hl = hlall.get(offset);
+				if (col < hl.startPos) break; // The blocks have skipped us.
+				if (col >= hl.startPos && col < hl.endPos)
+				{
+					blockType = hl.blockHash;
+					break;
+				}
+			}
+			if (subFindMatchBackward(match,sb,hlall,offset,caret.col,blockType,y)) return;
+
+			for (y--; y >= 0; y--)
+			{
+				hlall = highlighter.getStyles(y);
+				if (subFindMatchBackward(match,code.getsb(y),hlall,hlall.size() - 1,code.getsb(y).length(),
+						blockType,y)) return;
+			}
+		}
+
+		private boolean subFindMatchBackward(BracketMatch match, StringBuilder sb,
+				ArrayList<HighlighterInfoEx> hlall, int offset, int spos, int blockType, int y)
+		{
+			int pos = spos;
+			int i = offset;
+			HighlighterInfoEx hl = hlall.get(i);
+			for (;;)
+			{
+				if (blockType == hlall.get(i).blockHash) // If the block has the same type
+					for (pos = Math.min(spos,hl.endPos - 1); pos >= hl.startPos; pos--)
+						// Check inside it
+						if (sb.charAt(pos) == match.match)
+						{
+							if (matchFound(match,pos,y)) return true;
+						}
+						else if (sb.charAt(pos) == match.opposite) match.count++;
+				if (i > 0)
+				{
+					hl = hlall.get(--i);
+					if (blockType == 0) // If our start wasn't in a block
+						for (pos = hl.startPos - 1; pos >= hl.endPos; pos--)
+							// Check outside this block's range
+							if (sb.charAt(pos) == match.match)
+							{
+								if (matchFound(match,pos,y)) return true;
+							}
+							else if (sb.charAt(pos) == match.opposite) match.count++;
+				}
+				else
+				{
+					if (blockType == 0) // If our start wasn't in a block
+						for (pos = hl.startPos - 1; pos >= 0; pos--)
+							// Check outside this block's range
+							if (sb.charAt(pos) == match.match)
+							{
+								if (matchFound(match,pos,y)) return true;
+							}
+							else if (sb.charAt(pos) == match.opposite) match.count++;
+					break;
+				}
+			}
+			return false;
+		}
+
+		public void caretUpdate(CaretEvent ce)
+		{
+			matching = MatchState.NOT_MATCHING;
+			StringBuilder sb = code.getsb(caret.row);
+			String start = "([{", end = ")]}";
+			for (int x : new int[] { caret.col - 1,caret.col })
+				if (x >= 0 && x < sb.length())
+				{
+					char c = sb.charAt(x);
+					int p = start.indexOf(c);
+					if (p != -1)
+					{
+						findMatchForward(caret.row,x,new BracketMatch(end.charAt(p),start.charAt(p),(short) 0));
+						return;
+					}
+					p = end.indexOf(c);
+					if (p != -1)
+					{
+						findMatchBackward(caret.row,x,new BracketMatch(start.charAt(p),end.charAt(p),(short) 0));
+						return;
+					}
+				}
+		}
+	}
+
+	//-----------------------------------------------------------------
+	//----- Be Undoable -----------------------------------------------
+	//-----------------------------------------------------------------
+
 	static final class OPT
 	{
 		public static final int OTHER = 0;
@@ -1659,7 +1992,6 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		public static final int REPLACE = 9;
 	}
 
-	// Be Undoable
 	class UndoPatch
 	{
 		int opTag;
@@ -1754,8 +2086,8 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		}
 	}
 
-	ArrayList<UndoPatch> undoPatches = new ArrayList<UndoPatch>();
-	int patchIndex = 0;
+	private ArrayList<UndoPatch> undoPatches = new ArrayList<UndoPatch>();
+	private int patchIndex = 0;
 
 	public void undo()
 	{

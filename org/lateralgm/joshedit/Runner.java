@@ -27,7 +27,6 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.event.CaretListener;
 
@@ -105,7 +104,6 @@ public class Runner
 				}
 			});
 
-			//TODO: Remove text.quickFind (remove the interdependence)
 			find = new QuickFind(text);
 			text.finder = find;
 
@@ -116,39 +114,44 @@ public class Runner
 			add(find,BorderLayout.SOUTH);
 		}
 
-		void addEditorButtons(JToolBar tb) //adds a bunch of buttons for interacting with the text (copy, goto line, syntax check, etc)
-		{
-			//TODO: IMPLEMENT
-		}
-
-		int getCaretLine()
+		public int getCaretLine()
 		{
 			return text.caret.row;
 		}
 
-		int getCaretColumn()
+		public int getCaretColumn()
 		{
 			return text.caret.col;
 		}
 
-		void addCaretListener(CaretListener cl)
+		public void addCaretListener(CaretListener cl)
 		{
 			text.caret.addCaretListener(cl);
 		}
 
-		String getTextCompat() //convenience method that replaces newlines with \r\n for GM compatability
+		/** Convenience method that replaces newlines with \r\n for GM compatibility */
+		public String getTextCompat()
 		{
-			String res = "";
+			StringBuilder res = new StringBuilder();
 			for (int i = 0; i < text.code.size(); i++)
-				res += text.code.getsb(i).toString().replaceAll("[^\r]\n","\r\n");
-			return res;
+				res.append(text.code.getsb(i)).append("\r\n");
+			return res.toString();
 		}
 
-		boolean isChanged() //will probably need replaced. Simply used to determine if the text has changed at all (resourceChanged()) so can probably just replace with isChanged()
+		public boolean isChanged()
 		{
 			return text.isChanged();
 		}
 
+		public void setText(String s)
+		{
+			text.setText(s.split("\r?\n"));
+		}
+
+		public String getLineText(int line)
+			{
+			return text.code.getsb(line).toString();
+			}
 	}
 
 	public static void showCodeWindow(boolean closeExit)
@@ -166,7 +169,7 @@ public class Runner
 	{
 		ArrayList<String> code = new ArrayList<String>();
 		code.add("Hello, world");
-		code.add("Mystical second line what can't' be edited");
+		code.add("Bracket's' { test }");
 		code.add("\tTab test line 1");
 		code.add("\tTab test line 2");
 		code.add("\tTab test line 3");

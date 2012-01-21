@@ -149,9 +149,9 @@ public class Runner
 		}
 
 		public String getLineText(int line)
-			{
+		{
 			return text.code.getsb(line).toString();
-			}
+		}
 	}
 
 	public static void showCodeWindow(boolean closeExit)

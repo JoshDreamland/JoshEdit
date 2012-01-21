@@ -158,6 +158,7 @@ public class Selection implements Marker
 			joshText.infoMessages.add("Middle click paste: I/O Exception.");
 			System.err.println("Middle click paste: I/O Exception.");
 		}
+		caret.positionChanged();
 		return caret.row;
 	}
 
@@ -729,11 +730,123 @@ public class Selection implements Marker
 		return ret;
 	}
 
+	/**
+	 * Handle special mouse selections.
+	 */
+
+	interface SpecialSelectionHandler
+	{
+		void adjustSelection(SpecialSel ss);
+	}
+
+	class WordSelHandler implements SpecialSelectionHandler
+	{
+		public void adjustSelection(SpecialSel ss)
+		{
+			if (type == ST.RECT ? caret.col >= joshText.index_to_column(ss.irow,ss.icol)
+					: caret.row > ss.irow || (caret.row == ss.irow && caret.col >= ss.icol))
+			{
+				// Handle first selected word (us)
+				col = ss.icol;
+				if (col > 0) col--;
+				StringBuilder sb = code.getsb(row);
+				int st = JoshText.selGetKind(sb,col);
+				while (col >= 0 && JoshText.selOfKind(sb,col,st))
+					col--;
+				col++;
+
+				// Handle cursor
+				sb = code.getsb(caret.row);
+				if (type == ST.RECT) caret.col = joshText.column_to_index(caret.row,caret.col);
+				st = JoshText.selGetKind(sb,caret.col);
+				int ep = caret.col, sp = caret.col;
+				while (sp >= 0 && JoshText.selOfKind(sb,sp,st))
+					sp--;
+				sp++;
+				while (ep < sb.length() && JoshText.selOfKind(sb,ep,st))
+					ep++;
+				if (type != ST.RECT)
+					caret.col = caret.col - sp > 0 || (caret.col == ss.icol && caret.row == ss.irow) ? ep
+							: sp;
+				else
+					caret.col = caret.col - sp > 0 || (sp == joshText.column_to_index(ss.irow,ss.icol)) ? ep
+							: sp;
+			}
+			else
+			{
+				// Handle cursor
+				StringBuilder sb = code.getsb(caret.row);
+				if (type == ST.RECT) caret.col = joshText.column_to_index(caret.row,caret.col);
+				int st = JoshText.selGetKind(sb,caret.col);
+				while (caret.col >= 0 && JoshText.selOfKind(sb,caret.col,st))
+					caret.col--;
+				caret.col++;
+
+				// Handle first selected word (us)
+				col = ss.icol;
+				sb = code.getsb(row);
+				st = JoshText.selGetKind(sb,col);
+				while (col < sb.length() && JoshText.selOfKind(sb,col,st))
+					col++;
+			}
+			if (type == ST.RECT)
+			{
+				caret.col = joshText.index_to_column(caret.row,caret.col);
+				col = joshText.index_to_column(row,col);
+			}
+		}
+	}
+
+	WordSelHandler wordSelHandler = new WordSelHandler();
+
+	class LineSelHandler implements SpecialSelectionHandler
+	{
+		public void adjustSelection(SpecialSel ss)
+		{
+			if (row > caret.row)
+			{
+				caret.col = 0;
+				col = code.getsb(row).length();
+			}
+			else if (row < caret.row)
+			{
+				col = 0;
+				caret.col = code.getsb(caret.row).length();
+			}
+			else if (col < caret.col)
+			{
+				col = 0;
+				caret.col = code.getsb(caret.row).length();
+			}
+			else
+			{
+				caret.col = 0;
+				col = code.getsb(row).length();
+			}
+
+			if (type == ST.RECT)
+			{
+				if (caret.col == 0)
+					for (int i = caret.row; i <= row; i++)
+						col = Math.max(col,joshText.index_to_column(i,code.getsb(i).length()));
+				else
+					for (int i = row; i <= caret.row; i++)
+						caret.col = Math.max(caret.col,joshText.index_to_column(i,code.getsb(i).length()));
+			}
+		}
+	}
+
+	LineSelHandler lineSelHandler = new LineSelHandler();
+
 	class SpecialSel
 	{
 		boolean valid = false;
 		int spos = 0, epos = 0;
 		public int row;
+		SpecialSelectionHandler ssh;
+		int irow, icol;
+
+		/**< Initial column and row **/
 
 		public void toNorm()
 		{
@@ -751,6 +864,19 @@ public class Selection implements Marker
 				spos = joshText.index_to_column(row,spos);
 				epos = joshText.index_to_column(row,epos);
 			}
+		}
+
+		public void setHandler(SpecialSelectionHandler specSelHandler)
+		{
+			valid = true;
+			ssh = specSelHandler;
+			icol = caret.col;
+			irow = caret.row;
+		}
+
+		public void adjust()
+		{
+			ssh.adjustSelection(this);
 		}
 	}
 

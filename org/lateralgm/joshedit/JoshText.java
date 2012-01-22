@@ -349,7 +349,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		{
 				if (caret.row == sel.row) {
 					if (caret.row >= code.size() - 1) return;
-					UndoPatch up = new UndoPatch(caret.row + 1, caret.row);
+					UndoPatch up = new UndoPatch(caret.row, caret.row + 1);
 					StringBuilder swb = code.getsb(caret.row + 1);
 					code.get(caret.row + 1).sbuild = code.get(caret.row).sbuild;
 					code.get(caret.row).sbuild = swb;

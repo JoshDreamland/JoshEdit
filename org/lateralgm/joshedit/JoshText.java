@@ -415,10 +415,11 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 
 		public void actionPerformed(ActionEvent e)
 		{
-			UndoPatch up = new UndoPatch(Math.min(caret.row,sel.row),Math.min(code.size() - 1,
-					Math.max(caret.row,sel.row) + sel.getPasteRipple()));
+			UndoPatch up = new UndoPatch(Math.min(caret.row,sel.row),Math.max(Math.max(caret.row,sel.row), Math.min(code.size() - 1,
+					Math.min(caret.row,sel.row) + sel.getPasteRipple()-1)));
 			up.realize(sel.paste());
 			storeUndo(up,OPT.PASTE);
+			repaint();
 		}
 	};
 	public AbstractAction aUndo = new CustomAction("UNDO")

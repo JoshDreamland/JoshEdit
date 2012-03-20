@@ -1120,43 +1120,39 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		switch (e.getKeyChar())
 		{
 			case KeyEvent.VK_ENTER:
-				switch (sel.type)
+				if (sel.type == Selection.ST.NORM)
 				{
-					case NORM:
-						UndoPatch up = new UndoPatch();
-						sel.deleteSel();
-						StringBuilder nr = code.getsb(caret.row);
+					UndoPatch up = new UndoPatch();
+					sel.deleteSel();
+					StringBuilder nr = code.getsb(caret.row);
 
-						int offset = 0;
-						StringBuilder ins = new StringBuilder();
+					int offset = 0;
+					StringBuilder ins = new StringBuilder();
 
-						for (int i = 0; i < nr.length(); i++)
-							if (Character.isWhitespace(nr.charAt(i)))
-							{
-								offset++;
-								ins.append(nr.charAt(i));
-							}
-							else
-								break;
-
-						int iind = myLang.hasIndentAfter(nr.toString());
-						if (iind != -1)
+					for (int i = 0; i < nr.length(); i++)
+						if (Character.isWhitespace(nr.charAt(i)))
 						{
-							String ind = myLang.getIndent(iind);
-							ins.append(ind);
-							offset += ind.length();
+							offset++;
+							ins.append(nr.charAt(i));
 						}
-						code.add(++caret.row,ins + nr.substring(caret.col));
-						nr.delete(caret.col,nr.length());
-						sel.col = caret.col = offset;
-						caret.colw = line_wid_at(caret.row,caret.col);
-						up.realize(caret.row);
-						storeUndo(up,OPT.ENTER);
-						break;
-					case RECT:
-						sel.deselect(true);
-						break;
+						else
+							break;
+
+					int iind = myLang.hasIndentAfter(nr.toString());
+					if (iind != -1)
+					{
+						String ind = myLang.getIndent(iind);
+						ins.append(ind);
+						offset += ind.length();
+					}
+					code.add(++caret.row,ins + nr.substring(caret.col));
+					nr.delete(caret.col,nr.length());
+					sel.col = caret.col = offset;
+					caret.colw = line_wid_at(caret.row,caret.col);
+					up.realize(caret.row);
+					storeUndo(up,OPT.ENTER);
 				}
+				//RECT falls to here
 				sel.deselect(true);
 				break;
 			case KeyEvent.VK_BACK_SPACE:

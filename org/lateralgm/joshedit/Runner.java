@@ -145,7 +145,7 @@ public class Runner
 
 		public void setText(String s)
 		{
-			text.setText(s.split("\r?\n"));
+			text.setText(s == null ? null : s.split("\r?\n"));
 		}
 
 		public String getLineText(int line)

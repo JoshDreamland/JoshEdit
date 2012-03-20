@@ -34,45 +34,45 @@ import org.lateralgm.joshedit.Code.CodeEvent;
 import org.lateralgm.joshedit.Code.CodeListener;
 
 public class Runner
-{
+	{
 	public static final ResourceBundle MESSAGES = ResourceBundle.getBundle("org.lateralgm.joshedit.translate"); //$NON-NLS-1$
 	public static final Preferences PREFS = Preferences.userRoot().node("/org/lateralgm/joshedit"); //$NON-NLS-1$
 
 	public static EditorInterface editorInterface = new EditorInterface()
-	{
-		public ImageIcon getIconForKey(String key)
 		{
-			return Runner.getIconForKey(key);
-		}
+			public ImageIcon getIconForKey(String key)
+				{
+				return Runner.getIconForKey(key);
+				}
 
-		public String getString(String key)
-		{
-			return Runner.getString(key,null);
-		}
+			public String getString(String key)
+				{
+				return Runner.getString(key,null);
+				}
 
-		public String getString(String key, String def)
-		{
-			return Runner.getString(key,def);
-		}
-	};
+			public String getString(String key, String def)
+				{
+				return Runner.getString(key,def);
+				}
+		};
 
 	public static interface EditorInterface
-	{
+		{
 		ImageIcon getIconForKey(String key);
 
 		String getString(String key);
 
 		String getString(String key, String def);
-	}
+		}
 
 	public static void createAndShowGUI()
-	{
+		{
 		showCodeWindow(true);
 		//showBindingsWindow(false);
-	}
+		}
 
 	public static class JoshTextPanel extends JPanel
-	{
+		{
 		private static final long serialVersionUID = 1L;
 
 		public JScrollPane scroller;
@@ -81,28 +81,28 @@ public class Runner
 		public QuickFind find;
 
 		public JoshTextPanel()
-		{
+			{
 			this((String[]) null);
-		}
+			}
 
 		public JoshTextPanel(String code)
-		{
+			{
 			this(Runner.splitLines(code));
-		}
+			}
 
 		public JoshTextPanel(String[] codeLines)
-		{
+			{
 			super(new BorderLayout());
 
 			text = new JoshText(codeLines);
 			lines = new LineNumberPanel(text.getFont(),text.code.size());
 			text.code.addCodeListener(new CodeListener()
-			{
-				public void codeChanged(CodeEvent e)
 				{
-					lines.setLines(text.code.size());
-				}
-			});
+					public void codeChanged(CodeEvent e)
+						{
+						lines.setLines(text.code.size());
+						}
+				});
 
 			find = new QuickFind(text);
 			text.finder = find;
@@ -112,50 +112,67 @@ public class Runner
 
 			add(scroller,BorderLayout.CENTER);
 			add(find,BorderLayout.SOUTH);
-		}
+			}
 
 		public int getCaretLine()
-		{
+			{
 			return text.caret.row;
-		}
+			}
 
 		public int getCaretColumn()
-		{
+			{
 			return text.caret.col;
-		}
+			}
+
+		public void setCaretPosition(int row, int col)
+			{
+			text.caret.row = row;
+			text.caret.col = col;
+			text.caret.colw = text.line_wid_at(row,col);
+			text.sel.deselect(false);
+			text.caret.positionChanged();
+			}
 
 		public void addCaretListener(CaretListener cl)
-		{
+			{
 			text.caret.addCaretListener(cl);
-		}
+			}
 
 		/** Convenience method that replaces newlines with \r\n for GM compatibility */
 		public String getTextCompat()
-		{
+			{
 			StringBuilder res = new StringBuilder();
 			for (int i = 0; i < text.code.size(); i++)
-				res.append(text.code.getsb(i)).append("\r\n");
+				{
+				if (i != 0) res.append("\r\n");
+				res.append(text.code.getsb(i));
+				}
 			return res.toString();
-		}
+			}
 
 		public boolean isChanged()
-		{
+			{
 			return text.isChanged();
-		}
+			}
 
 		public void setText(String s)
-		{
+			{
 			text.setText(s == null ? null : s.split("\r?\n"));
-		}
+			}
 
 		public String getLineText(int line)
-		{
+			{
 			return text.code.getsb(line).toString();
+			}
+
+		public int getLineCount()
+			{
+			return text.code.size();
+			}
 		}
-	}
 
 	public static void showCodeWindow(boolean closeExit)
-	{
+		{
 		JFrame f = new JFrame("Title");
 		JoshTextPanel p = new JoshTextPanel(getDefaultCode());
 		f.setContentPane(p);
@@ -163,10 +180,10 @@ public class Runner
 		f.setLocationRelativeTo(null);
 		if (closeExit) f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		f.setVisible(true);
-	}
+		}
 
 	public static String[] getDefaultCode()
-	{
+		{
 		ArrayList<String> code = new ArrayList<String>();
 		code.add("Hello, world");
 		code.add("Bracket's' { test }");
@@ -187,20 +204,20 @@ public class Runner
 		code.add("    some bugs to work out, but you");
 		code.add("    have to admit... It looks nice. */");
 		return code.toArray(new String[0]);
-	}
+		}
 
 	public static String[] splitLines(String text)
-	{
+		{
 		if (text == null) return null;
 		LinkedList<String> list = new LinkedList<String>();
 		Scanner sc = new Scanner(text);
 		while (sc.hasNext())
 			list.add(sc.nextLine());
 		return list.toArray(new String[0]);
-	}
+		}
 
 	public static void showBindingsWindow(boolean closeExit)
-	{
+		{
 		JFrame f = new JFrame();
 		f.getContentPane().setLayout(new BoxLayout(f.getContentPane(),BoxLayout.PAGE_AXIS));
 
@@ -218,67 +235,67 @@ public class Runner
 		f.setLocationRelativeTo(null);
 		if (closeExit) f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		f.setVisible(true);
-	}
+		}
 
 	public static void showFindWindow(boolean closeExit)
-	{
+		{
 		JFrame f = new JFrame();
 		f.getContentPane().setLayout(new BoxLayout(f.getContentPane(),BoxLayout.PAGE_AXIS));
 
-	}
+		}
 
 	public static ImageIcon findIcon(String filename)
-	{
+		{
 		String location = "org/lateralgm/joshedit/icons/" + filename; //$NON-NLS-1$
 		ImageIcon ico = new ImageIcon(location);
 		if (ico.getIconWidth() == -1)
-		{
+			{
 			URL url = Runner.class.getClassLoader().getResource(location);
 			if (url != null) ico = new ImageIcon(url);
-		}
+			}
 		return ico;
-	}
+		}
 
 	public static ImageIcon getIconForKey(String key)
-	{
+		{
 		Properties iconProps = new Properties();
 		InputStream is = Runner.class.getClassLoader().getResourceAsStream(
 				"org/lateralgm/joshedit/icons.properties"); //$NON-NLS-1$
 		try
-		{
+			{
 			iconProps.load(is);
-		}
+			}
 		catch (IOException e)
-		{
+			{
 			System.err.println("Unable to read icons.properties"); //$NON-NLS-1$
-		}
+			}
 		String filename = iconProps.getProperty(key,""); //$NON-NLS-1$
 		if (!filename.isEmpty()) return findIcon(filename);
 		return null;
-	}
+		}
 
 	public static String getString(String key, String def)
-	{
+		{
 		String r;
 		try
-		{
+			{
 			r = MESSAGES.getString(key);
-		}
+			}
 		catch (MissingResourceException e)
-		{
+			{
 			r = def == null ? '!' + key + '!' : def;
-		}
+			}
 		return PREFS.get(key,r);
-	}
+		}
 
 	public static void main(String[] args)
-	{
-		SwingUtilities.invokeLater(new Runnable()
 		{
-			public void run()
+		SwingUtilities.invokeLater(new Runnable()
 			{
-				createAndShowGUI();
-			}
-		});
+				public void run()
+					{
+					createAndShowGUI();
+					}
+			});
+		}
 	}
-}

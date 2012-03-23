@@ -10,10 +10,10 @@ package org.lateralgm.joshedit;
 import java.awt.Color;
 import java.util.ArrayList;
 
-public interface Highlighter
-{
-	void set_owner(JoshText jt); // Affiliate a JoshEdit with us
+import org.lateralgm.joshedit.JoshText.LineChangeListener;
 
+public interface Highlighter extends LineChangeListener
+{
 	class HighlighterInfo
 	{
 		int fontStyle;
@@ -41,9 +41,9 @@ public interface Highlighter
 		}
 	}
 
-	HighlighterInfo getStyle(int lineNum, int ind); // Return the color expected at a given line
+	HighlighterInfo getStyle(Line line, int ind); // Return the color expected at a given line
 
-	ArrayList<HighlighterInfoEx> getStyles(int lineNum); // Return an array of line highlight colors with their positions
+	ArrayList<HighlighterInfoEx> getStyles(Line jline); // Return an array of line highlight colors with their positions
 
 	void formatCode(); // Format the code according to some specification in some grammar
 }

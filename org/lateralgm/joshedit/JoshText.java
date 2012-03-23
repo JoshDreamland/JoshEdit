@@ -1,5 +1,5 @@
 /* Copyright (C) 2011 Josh Ventura <joshv@zoominternet.net>
- * Copyright (C) 2011 IsmAvatar <IsmAvatar@gmail.com>
+ * Copyright (C) 2011, 2012 IsmAvatar <IsmAvatar@gmail.com>
  * 
  * This file is part of JoshEdit. JoshEdit is free software.
  * You can use, modify, and distribute it under the terms of
@@ -262,7 +262,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			}
 		});
 
-		addLineChangeListener((LineChangeListener) highlighter);
+		addLineChangeListener(highlighter);
 		fireLineChange(0,code.size());
 
 		doCodeSize(true);
@@ -910,7 +910,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		}
 		else
 		{
-			ArrayList<HighlighterInfoEx> hlall = highlighter.getStyles(lineNum);
+			ArrayList<HighlighterInfoEx> hlall = highlighter.getStyles(code.get(lineNum));
 			/*DEBUG SHIT: This is annoying to write, so I'm going to commit it once.
 			if (lineNum == 10)
 			{
@@ -1543,13 +1543,13 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 
 	//Line Change Listeners
 	/**
-	 * A LineChange is invoked whenever a characters are added/removed
+	 * A LineChange is invoked whenever characters are added/removed
 	 * from lines, whether the line exists or is created. For only
 	 * listening to whether lines are added/removed, use Code.CodeListener.
 	 */
 	public interface LineChangeListener extends EventListener
 	{
-		void linesChanged(int start, int end);
+		void linesChanged(Code code, int start, int end);
 	}
 
 	public void addLineChangeListener(LineChangeListener listener)
@@ -1574,7 +1574,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 				// Lazily create the event:
 				// if (e == null)
 				// e = new ListSelectionEvent(this, firstIndex, lastIndex);
-				((LineChangeListener) listeners[i + 1]).linesChanged(start,end);
+				((LineChangeListener) listeners[i + 1]).linesChanged(code,start,end);
 			}
 	}
 
@@ -1897,7 +1897,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			StringBuilder sb = code.getsb(y);
 
 			// Figure out what kind of block we're in, if any.
-			ArrayList<HighlighterInfoEx> hlall = highlighter.getStyles(y);
+			ArrayList<HighlighterInfoEx> hlall = highlighter.getStyles(code.get(y));
 
 			int offset;
 			for (offset = 0; offset < hlall.size(); offset++)
@@ -1914,7 +1914,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 
 			for (y++; y < code.size(); y++)
 			{
-				hlall = highlighter.getStyles(y);
+				hlall = highlighter.getStyles(code.get(y));
 				if (subFindMatchForward(match,code.getsb(y),hlall,0,0,blockType,y)) return;
 			}
 		}
@@ -1954,7 +1954,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			StringBuilder sb = code.getsb(y);
 
 			// Figure out what kind of block we're in, if any.
-			ArrayList<HighlighterInfoEx> hlall = highlighter.getStyles(y);
+			ArrayList<HighlighterInfoEx> hlall = highlighter.getStyles(code.get(y));
 
 			int offset;
 			for (offset = 0; offset < hlall.size(); offset++)
@@ -1971,7 +1971,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 
 			for (y--; y >= 0; y--)
 			{
-				hlall = highlighter.getStyles(y);
+				hlall = highlighter.getStyles(code.get(y));
 				if (subFindMatchBackward(match,code.getsb(y),hlall,hlall.size() - 1,code.getsb(y).length(),
 						blockType,y)) return;
 			}

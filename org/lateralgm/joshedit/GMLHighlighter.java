@@ -13,7 +13,7 @@ public class GMLHighlighter extends GenericHighlighter
 {
 	public GMLHighlighter(JoshText jt)
 	{
-		super(jt);
+		super();
 		schemes.add(new BlockDescriptor("Formal Comment","/\\*!","(?<=\\*)/",true,false,(char) 0,
 				new Color(128,128,255),Font.BOLD));
 		schemes.add(new BlockDescriptor("Lazy Formal Comment","/\\*(?=\\*)","(?<=\\*)/",true,false,

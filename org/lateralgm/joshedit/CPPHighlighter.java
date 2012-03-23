@@ -12,9 +12,9 @@ import java.awt.Font;
 
 public class CPPHighlighter extends GenericHighlighter
 {
-	public CPPHighlighter(JoshText jt)
+	public CPPHighlighter()
 	{
-		super(jt);
+		super();
 		schemes.add(new BlockDescriptor("Formal Comment","/\\*!","\\*/",true,false,(char) 0,new Color(
 				128,128,255),Font.BOLD));
 		schemes.add(new BlockDescriptor("Lazy Formal Comment","/\\*(?=\\*)","\\*/",true,false,(char) 0,

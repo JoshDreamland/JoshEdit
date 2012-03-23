@@ -15,12 +15,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.lateralgm.joshedit.GenericHighlighter.SchemeInfo.SchemeType;
-import org.lateralgm.joshedit.JoshText.LineChangeListener;
 import org.lateralgm.joshedit.Line.LINE_ATTRIBS;
 
-public class GenericHighlighter implements Highlighter,LineChangeListener
+public class GenericHighlighter implements Highlighter
 {
-	private JoshText jt; // The owning JoshText
 	private int line_count; // The number of lines last time we parsed--used to determine change type
 	private int invalid_line = 0; // The index of the first invalid line, or -1 for all-clear
 
@@ -276,56 +274,39 @@ public class GenericHighlighter implements Highlighter,LineChangeListener
 		return new SchemeInfo();
 	}
 
-	private void highlight()
+	private void highlight(Code code)
 	{
 		do
 		{
 			if (invalid_line == 0)
-				jt.code.get(invalid_line).attr = 0;
+				code.get(invalid_line).attr = 0;
 			else
 				invalid_line--;
 		}
-		while (jt.code.get(invalid_line).attr < 0);
+		while (code.get(invalid_line).attr < 0);
 		while (invalid_line < line_count - 1)
 		{
 			SchemeInfo a = get_scheme_at(
-					(int) ((jt.code.get(invalid_line).attr & LINE_ATTRIBS.LA_SCHEMEBLOCK) >> LINE_ATTRIBS.LA_SCHEMEBITOFFSET),
-					jt.code.get(invalid_line).sbuild,jt.code.get(invalid_line).sbuild.length());
+					(int) ((code.get(invalid_line).attr & LINE_ATTRIBS.LA_SCHEMEBLOCK) >> LINE_ATTRIBS.LA_SCHEMEBITOFFSET),
+					code.get(invalid_line).sbuild,code.get(invalid_line).sbuild.length());
 			invalid_line++;
-			if (jt.code.get(invalid_line).attr < 1)
-				jt.code.get(invalid_line).attr = 0;
+			if (code.get(invalid_line).attr < 1)
+				code.get(invalid_line).attr = 0;
 			else
-				jt.code.get(invalid_line).attr &= ~LINE_ATTRIBS.LA_SCHEMEBLOCK; // Remove all scheme info
+				code.get(invalid_line).attr &= ~LINE_ATTRIBS.LA_SCHEMEBLOCK; // Remove all scheme info
 			if (a.type == SchemeType.BLOCK) // If we're in a block scheme, note so.
-				jt.code.get(invalid_line).attr |= a.id << LINE_ATTRIBS.LA_SCHEMEBITOFFSET;
+				code.get(invalid_line).attr |= a.id << LINE_ATTRIBS.LA_SCHEMEBITOFFSET;
 		}
 		invalid_line = -1;
 	}
 
-	public GenericHighlighter(JoshText joshText)
+	@Override
+	public HighlighterInfo getStyle(Line line, int i)
 	{
-		this();
-		set_owner(joshText);
-	}
-
-	public GenericHighlighter()
-	{
-		// TODO Auto-generated constructor stub
-	}
-
-	public void set_owner(JoshText jt)
-	{
-		this.jt = jt;
-	}
-
-	public HighlighterInfo getStyle(int lineNum, int i)
-	{
-		Line line = jt.code.get(lineNum);
 		if (line.attr < 0)
 		{
-			System.err.println("ERROR! That FUCKING highlight function didn't complete; line " + lineNum
-					+ " is invalid");
-			jt.code.get(lineNum).attr = 0;
+			System.err.println("ERROR! That FUCKING highlight function didn't complete; line is invalid");
+			line.attr = 0;
 		}
 		SchemeInfo si = get_scheme_at(
 				(int) ((line.attr & LINE_ATTRIBS.LA_SCHEMEBLOCK) >> LINE_ATTRIBS.LA_SCHEMEBITOFFSET),
@@ -346,26 +327,27 @@ public class GenericHighlighter implements Highlighter,LineChangeListener
 		return new HighlighterInfo(0,null);
 	}
 
+	@Override
 	public void formatCode()
 	{
 		return; // We can't format the code; we're only pretending to know anything about it.
 	}
 
-	public void linesChanged(int start, int end)
+	public void linesChanged(Code code, int start, int end)
 	{
-		line_count = jt.code.size();
+		line_count = code.size();
 		if (start < invalid_line || invalid_line == -1) invalid_line = start;
 		for (int i = start; i < end; i++)
-			if (jt.code.get(i).attr > 0)
-				jt.code.get(i).attr = -jt.code.get(i).attr;
-			else if (jt.code.get(i).attr > 0) jt.code.get(i).attr = -1;
-		highlight();
+			if (code.get(i).attr > 0)
+				code.get(i).attr = -code.get(i).attr;
+			else if (code.get(i).attr > 0) code.get(i).attr = -1;
+		highlight(code);
 	}
 
-	public ArrayList<HighlighterInfoEx> getStyles(int lineNum)
+	@Override
+	public ArrayList<HighlighterInfoEx> getStyles(Line jline)
 	{
 		ArrayList<HighlighterInfoEx> res = new ArrayList<HighlighterInfoEx>();
-		Line jline = jt.code.get(lineNum);
 		StringBuilder line = jline.sbuild;
 		int ischeme = (int) ((jline.attr & LINE_ATTRIBS.LA_SCHEMEBLOCK) >> LINE_ATTRIBS.LA_SCHEMEBITOFFSET);
 

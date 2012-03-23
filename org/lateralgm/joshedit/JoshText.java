@@ -280,17 +280,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	}
 
 	/** Maps action names to their implementations */
-	public static abstract class CustomAction extends AbstractAction
-	{
-		private static final long serialVersionUID = 1L;
-
-		public CustomAction(String name)
-		{
-			super(name);
-		}
-	}
-
-	public AbstractAction aLineDel = new CustomAction("LINEDEL")
+	public AbstractAction aLineDel = new AbstractAction("LINEDEL")
 	{
 		private static final long serialVersionUID = 1L;
 
@@ -299,7 +289,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			//delete the line where the caret is
 		}
 	};
-	public AbstractAction aLineDup = new CustomAction("LINEDUP")
+	public AbstractAction aLineDup = new AbstractAction("LINEDUP")
 	{
 		private static final long serialVersionUID = 1L;
 
@@ -310,7 +300,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			storeUndo(up,OPT.DUPLICATE);
 		}
 	};
-	public AbstractAction aLineSwap = new CustomAction("LINESWAP")
+	public AbstractAction aLineSwap = new AbstractAction("LINESWAP")
 	{
 		private static final long serialVersionUID = 1L;
 
@@ -341,7 +331,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			}
 		}
 	};
-	public AbstractAction aLineUnSwap = new CustomAction("LINEUNSWAP")
+	public AbstractAction aLineUnSwap = new AbstractAction("LINEUNSWAP")
 	{
 		private static final long serialVersionUID = 1L;
 
@@ -372,7 +362,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 				}
 			}
 	};
-	public AbstractAction aSelAll = new CustomAction("SELALL")
+	public AbstractAction aSelAll = new AbstractAction("SELALL")
 	{
 		private static final long serialVersionUID = 1L;
 
@@ -385,7 +375,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			sel.selectionChanged();
 		}
 	};
-	public AbstractAction aCopy = new CustomAction("COPY")
+	public AbstractAction aCopy = new AbstractAction("COPY")
 	{
 		private static final long serialVersionUID = 1L;
 
@@ -394,7 +384,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			sel.copy();
 		}
 	};
-	public AbstractAction aCut = new CustomAction("CUT")
+	public AbstractAction aCut = new AbstractAction("CUT")
 	{
 		private static final long serialVersionUID = 1L;
 
@@ -409,7 +399,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			repaint();
 		}
 	};
-	public AbstractAction aPaste = new CustomAction("PASTE")
+	public AbstractAction aPaste = new AbstractAction("PASTE")
 	{
 		private static final long serialVersionUID = 1L;
 
@@ -422,7 +412,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			repaint();
 		}
 	};
-	public AbstractAction aUndo = new CustomAction("UNDO")
+	public AbstractAction aUndo = new AbstractAction("UNDO")
 	{
 		private static final long serialVersionUID = 1L;
 
@@ -431,7 +421,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			undo();
 		}
 	};
-	public AbstractAction aRedo = new CustomAction("REDO")
+	public AbstractAction aRedo = new AbstractAction("REDO")
 	{
 		private static final long serialVersionUID = 1L;
 
@@ -440,7 +430,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			redo();
 		}
 	};
-	public AbstractAction aFind = new CustomAction("FIND")
+	public AbstractAction aFind = new AbstractAction("FIND")
 	{
 		private static final long serialVersionUID = 1L;
 
@@ -449,7 +439,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			findDialog.setVisible(true);
 		}
 	};
-	public AbstractAction aQuickFind = new CustomAction("QUICKFIND")
+	public AbstractAction aQuickFind = new AbstractAction("QUICKFIND")
 	{
 		private static final long serialVersionUID = 1L;
 
@@ -458,7 +448,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			finder.present();
 		}
 	};
-	public AbstractAction aUnindent = new CustomAction("UNINDENT")
+	public AbstractAction aUnindent = new AbstractAction("UNINDENT")
 	{
 		private static final long serialVersionUID = 1L;
 

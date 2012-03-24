@@ -59,7 +59,6 @@ import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 
 import org.lateralgm.joshedit.FindDialog.FindNavigator;
-import org.lateralgm.joshedit.Highlighter.HighlighterInfo;
 import org.lateralgm.joshedit.Highlighter.HighlighterInfoEx;
 import org.lateralgm.joshedit.Selection.ST;
 

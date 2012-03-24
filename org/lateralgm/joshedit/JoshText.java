@@ -1541,8 +1541,6 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	public interface LineChangeListener extends EventListener
 	{
 		void linesChanged(Code code, int start, int end);
-
-		HighlighterInfo getStyle(Line line, int i);
 	}
 
 	public void addLineChangeListener(LineChangeListener listener)

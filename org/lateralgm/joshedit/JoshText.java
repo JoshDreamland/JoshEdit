@@ -59,6 +59,7 @@ import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 
 import org.lateralgm.joshedit.FindDialog.FindNavigator;
+import org.lateralgm.joshedit.Highlighter.HighlighterInfo;
 import org.lateralgm.joshedit.Highlighter.HighlighterInfoEx;
 import org.lateralgm.joshedit.Selection.ST;
 
@@ -325,9 +326,9 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 				  code.get(i).sbuild = code.get(i+1).sbuild;
 				code.get(erow).sbuild = swb;
 				up.realize(erow);
-				storeUndo(up,OPT.SWAP);
 				if (sel.type != ST.RECT)
 					caret.col = line_offset_from(caret.row,caret.colw);
+				storeUndo(up,OPT.SWAP);
 			}
 		}
 	};
@@ -1540,6 +1541,8 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	public interface LineChangeListener extends EventListener
 	{
 		void linesChanged(Code code, int start, int end);
+
+		HighlighterInfo getStyle(Line line, int i);
 	}
 
 	public void addLineChangeListener(LineChangeListener listener)
@@ -2040,36 +2043,75 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	//----- Be Undoable -----------------------------------------------
 	//-----------------------------------------------------------------
 
+	/**
+	 * A class of a dozen types an UndoPatch can have.
+	 * @author josh
+	 */
 	static final class OPT
 	{
+		/** The patch is a one-of-a-kind that isn't worth its own constant. */
 		public static final int OTHER = 0;
+		/** The patch contains something the user typed. */
 		public static final int TYPED = 1;
+		/** The patch is from backspacing over something. */
 		public static final int BACKSPACE = 2;
+		/** The patch is from deleting something. */
 		public static final int DELETE = 3;
+		/** The patch is from typing a space; 'space' gets its
+		 *  own type to allow changing merge behavior around it */
 		public static final int SPACE = 4;
+		/** The patch is from a newline insertion. */
 		public static final int ENTER = 5;
+		/** The patch is from the 'paste' function. */
 		public static final int PASTE = 6;
+		/** The patch is from changing line indentation. */
 		public static final int INDENT = 7;
+		/** The patch is from the 'duplicate line' function. */
 		public static final int DUPLICATE = 8;
+		/** The patch is from a find-replace replace. */
 		public static final int REPLACE = 9;
+		/** The patch is from the 'swap lines' function. */
 		public static final int SWAP = 10;
+		/** The patch is from the 'unswap lines' function. */
 		public static final int UNSWAP = 11;
 	}
 
+	/**
+	 * A class for storing two patches of code used in the
+	 * Undo and Redo mechanisms. An UndoPatch contains sufficient
+	 * information to be undone and applied any number of times
+	 * during its lifecycle, with perfect accuracy assuming each
+	 * patch is applied in the same order it was created and reverted
+	 * in the opposite. (And was, of course, constructed properly.)
+	 * @author josh
+	 */
 	class UndoPatch
 	{
+		/** The type of this UndoPatch; a member of {@link OPT} */
 		int opTag;
-		Line[] oldtext;
-		Line[] patchtext;
+		/** The text stored before the code was modified, hereafter
+		 * referred to as the "pre-patch text." */
+		Line[] oldText;
+		/** The text as it stood after the modifications that sparked
+		 * the creation of this UndoPatch, hereafter just "patch text." */
+		Line[] patchText;
+		/** The index of the row that begins both segments of text.
+		 * In other words, both oldText and patchText must start at the same line. */
 		int startRow;
 
 		caretdata cbefore = new caretdata(), cafter = new caretdata();
 
+		/**
+		 * Storage class for grabbing caret data and later replacing it.
+		 */
 		class caretdata
 		{
 			public int ccol, crow, scol, srow;
 			ST selt;
 
+			/**
+			 * Grab the current caret indexes for use later.
+			 */
 			public void grab()
 			{
 				ccol = caret.col;
@@ -2079,6 +2121,9 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 				selt = sel.type;
 			}
 
+			/**
+			 * Replace previously grabbed caret data, modifying {@link caret}.
+			 */
 			public void replace()
 			{
 				caret.col = ccol;
@@ -2098,113 +2143,170 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			}
 		}
 
+		/**
+		 * Construct a complete, finalized UndoPatch manually.
+		 * @param t  The pre-patch code.
+		 * @param ot The patch code.
+		 * @param sr The index of the starting row of the two codes.
+		 */
 		UndoPatch(Line[] t, Line[] ot, int sr)
 		{
-			oldtext = ot;
-			patchtext = t;
+			oldText = ot;
+			patchText = t;
 			startRow = sr;
 		}
 
+		/**
+		 * Prefixes a line to the stored pre-patch code, decrementing
+		 * the recorded startRow to account for the change.
+		 * @param ln  The line to prefix to our stored pre-patch code.
+		 */
 		public void prefix_row(Line ln)
 		{
 			startRow--;
-			Line[] ancient = oldtext;
-			oldtext = new Line[oldtext.length + 1];
-			oldtext[0] = ln;
+			Line[] ancient = oldText;
+			oldText = new Line[oldText.length + 1];
+			oldText[0] = ln;
 			for (int i = 0; i < ancient.length; i++)
-				oldtext[i + 1] = ancient[i];
+				oldText[i + 1] = ancient[i];
 		}
 
+		/**
+		 * A convenience constructor; same as calling the other overload as
+		 * UndoPatch(<caret.row,sel.row>.sort).
+		 */
 		UndoPatch()
 		{
 			this(Math.min(caret.row,sel.row),Math.max(caret.row,sel.row));
 		}
 
+		/**
+		 * Construct a new UndoPatch, copying in pre-patch code from
+		 * {@link code} in the given row interval.
+		 * @param startRow
+		 * @param endRow
+		 */
 		UndoPatch(int startRow, int endRow)
 		{
 			final int lc = endRow - startRow + 1;
-			oldtext = new Line[lc];
+			oldText = new Line[lc];
 			for (int i = 0; i < lc; i++)
-				oldtext[i] = new Line(code.get(startRow + i));
+				oldText[i] = new Line(code.get(startRow + i));
 			this.startRow = startRow;
 			cbefore.grab();
 		}
 
+		/**
+		 * Reconstruct the stored pre-patch text by copying from
+		 * {@link code} in the given row range.
+		 * @param newStartRow  The index of the first row to copy.
+		 * @param newEndRow    The index of the last row to copy.
+		 */
 		public void reconstruct(int newStartRow, int newEndRow)
 		{
 			final int lc = newEndRow - newStartRow + 1;
-			oldtext = new Line[lc];
+			oldText = new Line[lc];
 			for (int i = 0; i < lc; i++)
-				oldtext[i] = new Line(code.get(startRow + i));
+				oldText[i] = new Line(code.get(startRow + i));
 			startRow = newStartRow;
 		}
 
+		/**
+		 * Populates the patchText member by copying data stored in
+		 * {@link code} from the previously given starting line {@link startRow}
+		 * to the newly specified end row.
+		 * @param endRow  The row at which to stop copying the patch text.
+		 */
 		public void realize(int endRow)
 		{
 			fireLineChange(startRow,endRow);
 			final int lc = endRow - startRow + 1;
-			patchtext = new Line[lc];
+			patchText = new Line[lc];
 			for (int i = 0; i < lc; i++)
-				patchtext[i] = new Line(code.get(startRow + i));
+				patchText[i] = new Line(code.get(startRow + i));
 			cafter.grab();
 		}
 	}
 
+	/**
+	 * An array of all available UndoPatches to be reverted (as in Undo) or
+	 * re-applied (as in Redo).
+	 */
 	private ArrayList<UndoPatch> undoPatches = new ArrayList<UndoPatch>();
+	/**
+	 * A control variable that determines whether a new
+	 * UndoPatch can be merged with an old if it is compatible.
+	 */
 	private boolean undoCanMerge = true;
+	/**
+	 * Our position in {@link undoPatches}.
+	 */
 	private int patchIndex = 0;
 
+	/**
+	 * Undo the most recently stored UndoPatch.
+	 * The patch itself is not moved; instead, {@link patchIndex} is decremented.
+	 */
 	public void undo()
 	{
 		if (patchIndex == 0) return;
 		UndoPatch p = undoPatches.get(--patchIndex);
 		// Reverse patch
 		int prow;
-		for (prow = 0; prow < p.patchtext.length; prow++)
+		for (prow = 0; prow < p.patchText.length; prow++)
 		{
-			if (prow >= p.oldtext.length)
+			if (prow >= p.oldText.length)
 			{
-				for (int da = p.patchtext.length - prow; da > 0; da--)
+				for (int da = p.patchText.length - prow; da > 0; da--)
 					code.remove(p.startRow + prow);
 				break;
 			}
-			code.set(p.startRow + prow,new Line(p.oldtext[prow]));
+			code.set(p.startRow + prow,new Line(p.oldText[prow]));
 		}
-		while (prow < p.oldtext.length)
+		while (prow < p.oldText.length)
 		{
-			code.add(p.startRow + prow,new Line(p.oldtext[prow]));
+			code.add(p.startRow + prow,new Line(p.oldText[prow]));
 			prow++;
 		}
 		p.cbefore.replace();
-		fireLineChange(p.startRow,p.startRow + p.oldtext.length);
+		fireLineChange(p.startRow,p.startRow + p.oldText.length);
 		repaint();
 	}
 
+	/**
+	 * Re-apply the UndoPatch that has most recently been undone.
+	 * If no previous UndoPatch has been reverted, return without error.
+	 */
 	public void redo()
 	{
 		if (patchIndex >= undoPatches.size()) return;
 		UndoPatch p = undoPatches.get(patchIndex++);
 		// Perform patch
 		int prow;
-		for (prow = 0; prow < p.oldtext.length; prow++)
+		for (prow = 0; prow < p.oldText.length; prow++)
 		{
-			if (prow >= p.patchtext.length)
+			if (prow >= p.patchText.length)
 			{
-				for (int da = p.oldtext.length - prow; da > 0; da--)
+				for (int da = p.oldText.length - prow; da > 0; da--)
 					code.remove(p.startRow + prow);
 				break;
 			}
-			code.set(p.startRow + prow,new Line(p.patchtext[prow]));
+			code.set(p.startRow + prow,new Line(p.patchText[prow]));
 		}
-		while (prow < p.patchtext.length)
+		while (prow < p.patchText.length)
 		{
-			code.add(p.startRow + prow,new Line(p.patchtext[prow]));
+			code.add(p.startRow + prow,new Line(p.patchText[prow]));
 			prow++;
 		}
 		p.cafter.replace();
 		repaint();
 	}
-
+  
+	/**
+	 * Store an UndoPatch so we can undo it later.
+	 * @param undo      The UndoPatch to store.
+	 * @param patchType The type of the patch, as a constant from {@link OPT}.
+	 */
 	public void storeUndo(UndoPatch undo, int patchType)
 	{
 		undo.opTag = patchType;
@@ -2220,18 +2322,31 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			undoMerge(undo,undoPatches.get(patchIndex - 1));
 	}
 
+	/**
+	 * Merge two undo patches into one, assuming the patches have the
+	 * same starting line index and line count.
+	 * @param merge  The new UndoPatch to merge in.
+	 * @param into   The old UndoPatch into which we will merge the new one.
+	 */
 	private static void undoMerge(UndoPatch merge, UndoPatch into)
 	{
-		into.patchtext[0] = merge.patchtext[0];
+		into.patchText = merge.patchText;
 		into.cafter.copy(merge.cafter);
 		into.opTag = merge.opTag;
 	}
 
+	/**
+	 * Utility function to check if two UndoPatches are ideal candidates for merging.
+	 * @param up1 Some UndoPatch, which will be tested for merge sanity.
+	 * @param up2 Some other UndoPatch against which to test the first for compatibility.
+	 * @return Whether, given the two undo patches, they should be merged instead of pushing the new one.
+	 * @note It is immaterial which UndoPatch is newer.
+	 */
 	private static boolean undoCompatible(UndoPatch up1, UndoPatch up2)
 	{
 		if ((up1.opTag != up2.opTag && up2.opTag != OPT.SPACE) || up1.startRow != up2.startRow)
 			return false;
-		if (up1.oldtext.length != up2.oldtext.length || up2.patchtext.length != up2.patchtext.length)
+		if (up1.oldText.length != up1.patchText.length || up1.oldText.length != up2.oldText.length || up2.patchText.length != up2.patchText.length)
 			return false;
 		return true;
 	}

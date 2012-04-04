@@ -1332,6 +1332,11 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 				up.realize(caret.row);
 				storeUndo(up,OPT.TYPED);
 				break;
+      case '\u0018': //cancel (not sure why it's VK_FINAL instead of VK_CANCEL)
+      case KeyEvent.VK_ESCAPE: //escape (in paramString, this is \u001B, which is VK_ESCAPE
+      case KeyEvent.CHAR_UNDEFINED:
+      	//these cases are taken from KeyEvent.paramString
+      	break;
 			default:
 				if (e.isControlDown() || e.isAltDown())
 				{

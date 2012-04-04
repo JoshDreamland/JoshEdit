@@ -258,7 +258,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		{
 			public void caretUpdate(CaretEvent e)
 			{
-				doShowCaret();
+				if (!mas.isRunning()) doShowCaret();
 			}
 		});
 
@@ -707,6 +707,8 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			running = false;
 		}
 
+		boolean isRunning() { return running; }
+		
 		TimerTask doMouseAutoScroll = new TimerTask()
 		{
 			@Override
@@ -714,7 +716,9 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			{
 				if (!running) return;
 				Point po = p.getViewPosition();
-				p.setViewPosition(new Point(po.x + rp.x,po.y + rp.y));
+				p.setViewPosition(new Point(po.x + rp.x * monoAdvance,po.y + rp.y * lineHeight));
+//				doShowCaret();
+				updateUI();
 			}
 		};
 	}

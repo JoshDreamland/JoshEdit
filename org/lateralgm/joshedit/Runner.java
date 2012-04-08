@@ -9,6 +9,7 @@
 package org.lateralgm.joshedit;
 
 import java.awt.BorderLayout;
+import java.awt.Font;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -169,6 +170,17 @@ public class Runner
 			{
 			return text.code.size();
 			}
+
+		@SuppressWarnings("static-method")
+		public void setTabSize(int spaces)
+		{
+			JoshText.Settings.indentSizeInSpaces = spaces;
+		}
+		
+		public void setFont(Font f)
+		{
+			text.setFont(f);
+		}
 		}
 
 	public static void showCodeWindow(boolean closeExit)

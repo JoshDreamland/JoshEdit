@@ -23,9 +23,9 @@ public class CPPHighlighter extends GenericHighlighter
 				165,13),Font.ITALIC));
 		schemes.add(new BlockDescriptor("Formal C++ Comment","//!","$",true,false,(char) 0,new Color(
 				128,128,255),Font.BOLD));
-		schemes.add(new BlockDescriptor("Lazy Formal C++ Comment","///","$",true,false,(char) 0,
+		schemes.add(new BlockDescriptor("Lazy Formal C++ Comment","///","$",true,true, '\\',
 				new Color(128,128,255),Font.BOLD));
-		schemes.add(new BlockDescriptor("C++ Comment","//","$",true,false,(char) 0,
+		schemes.add(new BlockDescriptor("C++ Comment","//","($)",true,true, '\\',
 				new Color(13,165,13),Font.ITALIC));
 		schemes.add(new BlockDescriptor("Double Quote String","\"","($|\")",true,true,'\\',new Color(
 				0,0,255),0));

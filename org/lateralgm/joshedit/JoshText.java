@@ -60,10 +60,9 @@ import javax.swing.event.CaretListener;
 
 import org.lateralgm.joshedit.FindDialog.FindNavigator;
 import org.lateralgm.joshedit.Highlighter.HighlighterInfo;
-import org.lateralgm.joshedit.Highlighter.HighlighterInfoEx;
 import org.lateralgm.joshedit.Selection.ST;
 
-import sun.awt.dnd.SunDragSourceContextPeer;
+//import sun.awt.dnd.SunDragSourceContextPeer;
 
 public class JoshText extends JComponent implements Scrollable,ComponentListener,ClipboardOwner,
 		FocusListener
@@ -73,9 +72,9 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	// Settings
 	public static class Settings
 	{
-		public static boolean indentUseTabs = false; // True if the tab character is used, false to use spaces
-		public static int indentSizeInSpaces = 4; // The size with which tab characters are represented, in spaces (characters)
-		public static String indentRepString = "    "; // The string which will be inserted into the code for indentation.
+		public static boolean indentUseTabs = true; // True if the tab character is used, false to use spaces
+		public static int indentSizeInSpaces = 8; // The size with which tab characters are represented, in spaces (characters)
+		public static String indentRepString = "\t"; // The string which will be inserted into the code for indentation.
 		public static boolean smartBackspace = true; // True if backspace should clear indentation to tab marks
 		public static boolean highlight_line = true; // True if the caret's line is to be highlighted
 	}
@@ -85,7 +84,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	Selection sel;
 	Caret caret;
 	DragListener dragger;
-	public Highlighter highlighter = new GMLHighlighter(this);
+	public Highlighter highlighter = new CPPHighlighter();
 	public ArrayList<Marker> markers = new ArrayList<Marker>();
 
 	// Dimensions
@@ -278,6 +277,22 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			for (String line : lines)
 				code.add(line);
 		fireLineChange(0,code.size());
+	}
+	
+	public String[] getLines()
+	{
+		String res[] = new String[code.size()];
+		for (int i = 0; i < code.size(); i++)
+			res[i] = code.get(i).sbuild.toString();
+		return res;
+	}
+
+	public String getText()
+	{
+		StringBuilder res = new StringBuilder();
+		for (int i = 0; i < code.size(); i++)
+			res.append(code.get(i).sbuild.toString() + "\n");
+		return res.toString();
 	}
 
 	/** Maps action names to their implementations */
@@ -901,7 +916,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		}
 		else
 		{
-			ArrayList<HighlighterInfoEx> hlall = highlighter.getStyles(code.get(lineNum));
+			ArrayList<HighlighterInfo> hlall = highlighter.getStyles(code.get(lineNum));
 			/*DEBUG SHIT: This is annoying to write, so I'm going to commit it once.
 			if (lineNum == 10)
 			{
@@ -911,7 +926,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 				System.out.println("]");
 			}*/
 			int pos = 0;
-			for (HighlighterInfoEx hl : hlall)
+			for (HighlighterInfo hl : hlall)
 			{
 				// Start by printing normal characters until we reach styleBlock.startPos
 				xx = drawChars(g,a,pos,hl.startPos,xx,ty);
@@ -1541,8 +1556,6 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	public interface LineChangeListener extends EventListener
 	{
 		void linesChanged(Code code, int start, int end);
-
-		HighlighterInfo getStyle(Line line, int i);
 	}
 
 	public void addLineChangeListener(LineChangeListener listener)
@@ -1629,8 +1642,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 				th.exportAsDrag(
 						JoshText.this,
 						dndArmedEvent,
-						SunDragSourceContextPeer.convertModifiersToDropAction(e.getModifiersEx(),
-								th.getSourceActions(JoshText.this)));
+						th.COPY);
 				dndArmedEvent = null;
 			}
 			e.consume();
@@ -1890,12 +1902,12 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			StringBuilder sb = code.getsb(y);
 
 			// Figure out what kind of block we're in, if any.
-			ArrayList<HighlighterInfoEx> hlall = highlighter.getStyles(code.get(y));
+			ArrayList<HighlighterInfo> hlall = highlighter.getStyles(code.get(y));
 
 			int offset;
 			for (offset = 0; offset < hlall.size(); offset++)
 			{
-				HighlighterInfoEx hl = hlall.get(offset);
+				HighlighterInfo hl = hlall.get(offset);
 				if (col < hl.startPos) break; // The blocks have skipped us.
 				if (col >= hl.startPos && col < hl.endPos)
 				{
@@ -1913,12 +1925,12 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		}
 
 		private boolean subFindMatchForward(BracketMatch match, StringBuilder sb,
-				ArrayList<HighlighterInfoEx> hlall, int offset, int spos, int blockType, int y)
+				ArrayList<HighlighterInfo> hlall, int offset, int spos, int blockType, int y)
 		{
 			int pos = spos;
 			for (int i = offset; i < hlall.size(); i++)
 			{
-				HighlighterInfoEx hl = hlall.get(i);
+				HighlighterInfo hl = hlall.get(i);
 				if (blockType == 0) // If our start wasn't in a block
 					for (; pos < hl.startPos; pos++)
 						// Check outside this block's range
@@ -1947,12 +1959,12 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			StringBuilder sb = code.getsb(y);
 
 			// Figure out what kind of block we're in, if any.
-			ArrayList<HighlighterInfoEx> hlall = highlighter.getStyles(code.get(y));
+			ArrayList<HighlighterInfo> hlall = highlighter.getStyles(code.get(y));
 
 			int offset;
 			for (offset = 0; offset < hlall.size(); offset++)
 			{
-				HighlighterInfoEx hl = hlall.get(offset);
+				HighlighterInfo hl = hlall.get(offset);
 				if (col < hl.startPos) break; // The blocks have skipped us.
 				if (col >= hl.startPos && col < hl.endPos)
 				{
@@ -1971,11 +1983,11 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		}
 
 		private boolean subFindMatchBackward(BracketMatch match, StringBuilder sb,
-				ArrayList<HighlighterInfoEx> hlall, int offset, int spos, int blockType, int y)
+				ArrayList<HighlighterInfo> hlall, int offset, int spos, int blockType, int y)
 		{
 			int pos = spos;
 			int i = offset;
-			HighlighterInfoEx hl = hlall.get(i);
+			HighlighterInfo hl = hlall.get(i);
 			for (;;)
 			{
 				if (blockType == hlall.get(i).blockHash) // If the block has the same type

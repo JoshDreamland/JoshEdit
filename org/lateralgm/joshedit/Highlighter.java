@@ -2,8 +2,7 @@
  * 
  * This file is part of JoshEdit. JoshEdit is free software.
  * You can use, modify, and distribute it under the terms of
- * the GNU General Public License, version 3 or later. 
- */
+ * the GNU General Public License, version 3 or later. */
 
 package org.lateralgm.joshedit;
 
@@ -12,38 +11,74 @@ import java.util.ArrayList;
 
 import org.lateralgm.joshedit.JoshText.LineChangeListener;
 
-public interface Highlighter extends LineChangeListener
-{
-	class HighlighterInfo
-	{
+/**
+ * An interface for getting highlight styles for a given line.
+ */
+public interface Highlighter extends LineChangeListener {
+	/**
+	 * A storage class for information about a given highlighted block.
+	 * 
+	 * @author Josh Ventura
+	 */
+	class HighlighterInfo {
+		/** The font style flags to use, such as BOLD or ITALIC. */
 		int fontStyle;
+		/** The font color to use. */
 		Color color;
+		/** Where this block ends. */
+		public int endPos;
+		/** Where this block starts. */
+		public int startPos;
+		/** A unique hash for open block types. Implementation specific. */
+		public int blockHash;
 
-		public HighlighterInfo(int fs, Color col)
-		{
+		/**
+		 * @param fs
+		 *            The font style to use when rendering this block.
+		 * @param col
+		 *            The font color to use when rendering this block.
+		 * @param start
+		 *            The starting position of this block on the current line.
+		 * @param end
+		 *            The ending position of this block on the current line.
+		 * @param hash
+		 *            The block hash to assign.
+		 */
+		public HighlighterInfo(int fs, Color col, int start, int end, int hash) {
 			fontStyle = fs;
 			color = col;
-		}
-	}
-
-	class HighlighterInfoEx extends HighlighterInfo
-	{
-		public int endPos;
-		public int startPos;
-		public int blockHash; /// A unique hash for open block types.
-
-		public HighlighterInfoEx(int fs, Color col, int start, int end, int hash)
-		{
-			super(fs,col);
 			startPos = start;
 			endPos = end;
 			blockHash = hash;
 		}
+
+		/**
+		 * Convenience constructor for simple information.
+		 * 
+		 * @param fs
+		 *            The font style to use when rendering this block.
+		 * @param col
+		 *            The font color to use when rendering this block.
+		 */
+		public HighlighterInfo(int fs, Color col) {
+			this(fs, col, 0, 0, 0);
+		}
 	}
 
-	HighlighterInfo getStyle(Line line, int ind); // Return the color expected at a given line
+	/**
+	 * Return an array of line highlight colors with their positions
+	 * 
+	 * @param jline
+	 *            The JoshText line to parse.
+	 * @return An array of line highlight colors with their positions
+	 */
+	ArrayList<HighlighterInfo> getStyles(Line jline);
 
-	ArrayList<HighlighterInfoEx> getStyles(Line jline); // Return an array of line highlight colors with their positions
-
-	void formatCode(); // Format the code according to some specification in some grammar
+	/**
+	 * Format the code according to some specification in some grammar.
+	 * 
+	 * @param code
+	 *            The code to format.
+	 */
+	void formatCode(Code code);
 }

@@ -9,27 +9,37 @@
 
 package org.lateralgm.joshedit;
 
+import java.awt.AWTEvent;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Frame;
 import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.Window;
+import java.awt.event.AWTEventListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
-import java.awt.event.WindowFocusListener;
+import java.awt.event.WindowListener;
 import java.util.ArrayList;
+import java.util.EventListener;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
 import javax.swing.JViewport;
-import javax.swing.JWindow;
 import javax.swing.ListSelectionModel;
+import javax.swing.Popup;
+import javax.swing.PopupFactory;
+import javax.swing.UIManager;
 
-public class CompletionMenu extends JWindow
+public class CompletionMenu
 	{
-	private static final long serialVersionUID = 1L;
 	protected JoshText area;
 	private JScrollPane scroll;
 	private final Completion[] completions;
@@ -43,9 +53,11 @@ public class CompletionMenu extends JWindow
 
 	protected int row, wordStart, wordEnd, caret;
 
+	protected PopupHandler ph;
+	protected Point loc;
+
 	public CompletionMenu(Frame owner, JoshText a, int y, int x1, int x2, int caret, Completion[] c)
 		{
-		super(owner);
 		area = a;
 		row = y;
 		wordStart = x1;
@@ -61,7 +73,6 @@ public class CompletionMenu extends JWindow
 			{
 				public void mouseClicked(MouseEvent e)
 					{
-					System.out.println(e);
 					if (apply())
 						e.consume();
 					else
@@ -70,26 +81,26 @@ public class CompletionMenu extends JWindow
 			});
 		scroll = new JScrollPane(completionList);
 		scroll.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-		add(scroll);
-		getContentPane().setFocusTraversalKeysEnabled(false);
-		addWindowFocusListener(new WindowFocusListener()
+		ph = new PopupHandler(owner,scroll);
+		ph.addHideListener(new PopupHandler.HideListener()
 			{
-				public void windowGainedFocus(WindowEvent e)
-					{
-					//					area.setCaretVisible(true);
-					}
-
-				public void windowLostFocus(WindowEvent e)
+				public void hidePerformed(boolean wasVisible)
 					{
 					dispose();
 					}
 			});
+
 		reset();
+		}
+
+	public void show()
+		{
+		ph.show(loc.x,loc.y);
 		}
 
 	public void dispose()
 		{
-		super.dispose();
+		ph.dispose();
 		area.requestFocusInWindow();
 		}
 
@@ -107,7 +118,9 @@ public class CompletionMenu extends JWindow
 
 		p.x += Math.min(area.getWidth(),Math.max(0,x));
 		p.y += Math.min(area.getHeight(),Math.max(0,y)) + 3;
-		setLocation(p);
+		loc = p;
+		//		pm.setLocation(p);
+		//		setLocation(p);
 		}
 
 	public void reset()
@@ -140,11 +153,12 @@ public class CompletionMenu extends JWindow
 		word = w;
 		completionList.setListData(options);
 		completionList.setVisibleRowCount(Math.min(options.length,8));
-		pack();
+		//		pack();
 		setLocation();
 		select(0);
-		setVisible(true);
-		requestFocus();
+
+		show();
+		//		requestFocus();
 		completionList.requestFocusInWindow();
 		}
 
@@ -183,6 +197,190 @@ public class CompletionMenu extends JWindow
 	public void setSelectedText(String s)
 		{
 		area.sel.insert(s);
+		}
+
+	/**
+	 * The PopupHandler class maintains a popup container that can popup on demand,
+	 * and hide at the expected time (e.g. loss of focus). Please be sure to dispose of
+	 * it when you are done, as this will free up the global listeners it registers.
+	 * A HideListener can be registered to listen for whenever the popup is hidden
+	 * (e.g. loss of focus causes it to hide itself - as well as user-invoked hides).
+	 * <p>
+	 * A PopupHandler is intended for custom popup components where a JPopupMenu is insufficient.
+	 */
+	public static class PopupHandler implements AWTEventListener,WindowListener,ComponentListener
+		{
+		protected Popup pop;
+		protected Window invoker;
+		protected Component contents;
+		protected int lastX, lastY;
+
+		public PopupHandler(Window invoker, Component contents)
+			{
+			this.invoker = invoker;
+			this.contents = contents;
+			install();
+			}
+
+		public void setContents(Component contents)
+			{
+			this.contents = contents;
+			show(lastX,lastY);
+			}
+
+		protected void install()
+			{
+			long mask = AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_WHEEL_EVENT_MASK
+					| sun.awt.SunToolkit.GRAB_EVENT_MASK;
+			Toolkit.getDefaultToolkit().addAWTEventListener(this,mask);
+			invoker.addWindowListener(this);
+			invoker.addComponentListener(this);
+			}
+
+		public void dispose()
+			{
+			if (pop != null) pop.hide();
+			pop = null;
+			uninstall();
+			}
+
+		protected void uninstall()
+			{
+			Toolkit.getDefaultToolkit().removeAWTEventListener(this);
+			invoker.removeWindowListener(this);
+			invoker.removeComponentListener(this);
+			}
+
+		public void show(int x, int y)
+			{
+			lastX = x;
+			lastY = y;
+			if (pop != null) pop.hide();
+			pop = PopupFactory.getSharedInstance().getPopup(invoker,contents,x,y);
+			pop.show();
+			}
+
+		public void hide()
+			{
+			if (pop != null) pop.hide();
+			fireHide(pop != null);
+			pop = null;
+			}
+
+		public static interface HideListener extends EventListener
+			{
+			void hidePerformed(boolean wasVisible);
+			}
+
+		protected List<HideListener> hll = new ArrayList<HideListener>();
+
+		public void addHideListener(HideListener e)
+			{
+			hll.add(e);
+			}
+
+		public void removeHideListener(HideListener e)
+			{
+			hll.remove(e);
+			}
+
+		protected void fireHide(boolean wasVisible)
+			{
+			for (HideListener hl : hll)
+				hl.hidePerformed(wasVisible);
+			}
+
+		protected boolean isInPopup(Component src)
+			{
+			for (Component c = src; c != null; c = c.getParent())
+				if (c == contents)
+					return true;
+				else if (c instanceof java.applet.Applet || c instanceof Window) return false;
+			return false;
+			}
+
+		//events
+		public void eventDispatched(AWTEvent ev)
+			{
+			if (ev instanceof sun.awt.UngrabEvent)
+				{
+				// Popup should be canceled in case of ungrab event
+				hide();
+				return;
+				}
+			// We are interested in MouseEvents only
+			if (!(ev instanceof MouseEvent)) return;
+			MouseEvent me = (MouseEvent) ev;
+			Component src = me.getComponent();
+			switch (me.getID())
+				{
+				case MouseEvent.MOUSE_PRESSED:
+					if (isInPopup(src)) return;
+					hide();
+					// Ask UIManager about should we consume event that closes
+					// popup. This made to match native apps behaviour.
+					// Consume the event so that normal processing stops.
+					if (UIManager.getBoolean("PopupMenu.consumeEventOnClose")) me.consume();
+					break;
+				case MouseEvent.MOUSE_WHEEL:
+					if (isInPopup(src)) return;
+					hide();
+					break;
+				}
+			}
+
+		public void componentResized(ComponentEvent e)
+			{
+			hide();
+			}
+
+		public void componentMoved(ComponentEvent e)
+			{
+			hide();
+			}
+
+		public void componentShown(ComponentEvent e)
+			{
+			hide();
+			}
+
+		public void componentHidden(ComponentEvent e)
+			{
+			hide();
+			}
+
+		public void windowClosing(WindowEvent e)
+			{
+			hide();
+			}
+
+		public void windowClosed(WindowEvent e)
+			{
+			hide();
+			}
+
+		public void windowIconified(WindowEvent e)
+			{
+			hide();
+			}
+
+		public void windowDeactivated(WindowEvent e)
+			{
+			hide();
+			}
+
+		//Unused
+		public void windowOpened(WindowEvent e)
+			{ //Unused
+			}
+
+		public void windowDeiconified(WindowEvent e)
+			{ //Unused
+			}
+
+		public void windowActivated(WindowEvent e)
+			{ //Unused
+			}
 		}
 
 	public abstract static class Completion

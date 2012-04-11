@@ -11,6 +11,9 @@ package org.lateralgm.joshedit;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
+/**
+ * A class for handling syntax constructs for code completion and basic formatting.
+ */
 class SyntaxDesc
 {
 	public class Block

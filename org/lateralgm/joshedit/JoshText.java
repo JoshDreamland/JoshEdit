@@ -64,63 +64,117 @@ import org.lateralgm.joshedit.Selection.ST;
 
 //import sun.awt.dnd.SunDragSourceContextPeer;
 
+/**
+ * The main component class; instantiate this, and you're good to go.
+ */
 public class JoshText extends JComponent implements Scrollable,ComponentListener,ClipboardOwner,
 		FocusListener
 {
+	/** Make the compiler shut up. */
 	private static final long serialVersionUID = 1L;
 
-	// Settings
+	/** Any settings which affect the behavior of this JoshText. */
 	public static class Settings
 	{
-		public static boolean indentUseTabs = true; // True if the tab character is used, false to use spaces
-		public static int indentSizeInSpaces = 8; // The size with which tab characters are represented, in spaces (characters)
-		public static String indentRepString = "\t"; // The string which will be inserted into the code for indentation.
-		public static boolean smartBackspace = true; // True if backspace should clear indentation to tab marks
-		public static boolean highlight_line = true; // True if the caret's line is to be highlighted
+		/** True if the tab character is used, false to use spaces */
+		public static boolean indentUseTabs = true;
+		/** The size with which tab characters are represented, in spaces (characters) */
+		public static int indentSizeInSpaces = 8;
+		/** The string which will be inserted into the code for indentation. */
+		public static String indentRepString = "\t";
+		/** True if backspace should clear indentation to tab marks */
+		public static boolean smartBackspace = true;
+		/** True if the caret's line is to be highlighted */
+		public static boolean highlight_line = true;
+		/** True if tabs should be represented visually. */
+		public static boolean renderTabs;
 	}
 
 	// Components
+	/** The code contained in this JoshText; an array of lines. */
 	Code code;
+	/** Information about what is selected. */
 	Selection sel;
+	/** Information about our caret position */
 	Caret caret;
+	/** The listener that will handle text drag-and-drop. */
 	DragListener dragger;
-	public Highlighter highlighter = new CPPHighlighter();
+	
+	/** The Highlighter that will be polled for character formatting. */
+	public Highlighter highlighter = new URBANhighlighter();
+	/** All Markers which will be called to mark their lines or characters. */
 	public ArrayList<Marker> markers = new ArrayList<Marker>();
 
 	// Dimensions
-	private int monoAdvance, lineHeight, lineAscent, lineLeading;
+	/** The width of the largest UTF-8 character our font contains. */
+	private int monoAdvance;
+	/** The height of the largest UTF-8 character our font contains. */
+	private int lineHeight;
+	/** The largest height above the base line of any UTF-8 character our font contains. */
+	private int lineAscent;
+	/** The distance we need to keep between the baselines of each line of text. */
+	private int lineLeading;
 
-	// Our longest row, and how many other rows are this long
+	/** Our longest row, and how many other rows are this long */
 	private int maxRowSize; // This is the size of the longest row, not the index.
 
-	// Status bar messages
+	/** A queue of all messages that need displayed in our status bar.
+	 * There will probably only be one item on this queue at a time. */
 	Queue<String> infoMessages = new LinkedList<String>();
 
-	// Find/Replace
+	/** Find and Replace Navigator. */
 	public FindNavigator finder;
 
 	/**
-	 * These get painted before the text
+	 * A Marker is a class that can highlight the background of a particular line or
+	 * character at its own discretion. These get painted before the text so as to appear
+	 * in the background of the characters.
 	 */
 	public static interface Marker
 	{
+		/**
+		 * Called when it is time to render any and all backgrounds for this Marker.
+		 * @param g The graphics object to paint to.
+		 * @param i The insets of the canvas.
+		 * @param gm The string and glyph metrics for this code.
+		 * @param line_start The index of the first visible line.
+		 * @param line_end The index of the last visible line.
+		 */
 		void paint(Graphics g, Insets i, CodeMetrics gm, int line_start, int line_end);
 	}
 
+	/** An interface for passing glyph and string metrics associated with this editor. */
 	public static interface CodeMetrics
 	{
+		/** Get the width of a particular string from its start to a given end position.
+		 * @param str  The string whose width will be returned.
+		 * @param end  The index of the last character to consider in calculating the width.
+		 * @return The width of the given range of characters in the given string.
+		 */
 		int stringWidth(String str, int end);
-
-		int lineWidth(int y, int end);
-
+		
+		/** Get the width of the line of code with a given index from its start to a given end position.
+		 * @param line  The index of the line whose width will be returned.
+		 * @param end  The index of the last character to consider in calculating the width.
+		 * @return The width of the given range of characters in the given string.
+		 */
+		int lineWidth(int line, int end);
+		/**
+		 * Get the width of each glyph rendered, which will be the width of the
+		 * largest glyph in the UTF-8 character set.
+		 * @return Returns the width each glyph is given.
+		 */
 		int glyphWidth();
-
+		/**
+		 * @return Returns the height given to each line.
+		 */
 		int lineHeight();
 	}
 
+	/** Our own code metric information. */
 	CodeMetrics metrics = new CodeMetrics()
 	{
-		public int stringWidth(String l, int end)
+		@Override public int stringWidth(String l, int end)
 		{
 			end = Math.min(end,l.length());
 			int w = 0;
@@ -135,17 +189,17 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			return w;
 		}
 
-		public int lineWidth(int y, int end)
+		@Override public int lineWidth(int y, int end)
 		{
 			return stringWidth(code.getsb(y).toString(),end);
 		}
 
-		public int glyphWidth()
+		@Override public int glyphWidth()
 		{
 			return monoAdvance;
 		}
 
-		public int lineHeight()
+		@Override public int lineHeight()
 		{
 			return lineHeight;
 		}
@@ -157,11 +211,15 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	 */
 	public static final class ChType
 	{
+		/** This character is some generic symbol. */
 		public static final int NONE = 0;
+		/** This character is a word char, which includes underscores and numerals. */
 		public static final int WORD = 1;
+		/** This character is whitespace. */
 		public static final int WHITE = 2;
 	}
 
+	/** An array of character types by their ordinal. */
 	private static final char chType[] = new char[256];
 	static
 	{
@@ -182,13 +240,18 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		chType['\n'] = ChType.WHITE;
 	}
 
+	/** Code completion syntax descriptor. */
 	SyntaxDesc myLang;
 
+	/** Default constructor; delegates to JoshText(String[]). */
 	public JoshText()
 	{
 		this(null);
 	}
 
+	/** Construct a new JoshText with some code given as a String[] of lines.
+	 * @param lines An array of Strings; one String for each line.
+	 */
 	public JoshText(String[] lines)
 	{
 		// Drawing stuff
@@ -237,7 +300,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 
 		if (Settings.highlight_line) markers.add(new Marker()
 		{
-			public void paint(Graphics g, Insets i, CodeMetrics gm, int line_start, int line_end)
+			@Override public void paint(Graphics g, Insets i, CodeMetrics gm, int line_start, int line_end)
 			{
 				if (sel.row == caret.row)
 				{
@@ -256,7 +319,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		caret.addCaretListener(bm);
 		caret.addCaretListener(new CaretListener()
 		{
-			public void caretUpdate(CaretEvent e)
+			@Override public void caretUpdate(CaretEvent e)
 			{
 				if (!mas.isRunning()) doShowCaret();
 			}
@@ -268,6 +331,10 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		doCodeSize(true);
 	}
 
+	/**
+	 * Set the contents of this editor from an array of strings.
+	 * @param lines  An array of Strings making up the code, with one String per line.
+	 */
 	public void setText(String[] lines)
 	{
 		code.clear();
@@ -279,6 +346,11 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		fireLineChange(0,code.size());
 	}
 	
+	/** 
+	 * Get the text in this editor as a String[].
+	 * @return Return the text in this editor as an array of strings,
+	 * with one element in the array for each line.
+	 */
 	public String[] getLines()
 	{
 		String res[] = new String[code.size()];
@@ -287,6 +359,10 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		return res;
 	}
 
+	/**
+	 * Get the text in this editor as a String.
+	 * @return Returns the text in this editor as a single string.
+	 */
 	public String getText()
 	{
 		StringBuilder res = new StringBuilder();
@@ -295,32 +371,40 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		return res.toString();
 	}
 
-	/** Maps action names to their implementations */
+	// ==========================================================
+	// == Map action names to their implementations =============
+	// ==========================================================
+	/** Delete the current line, including the newline character. */
 	public AbstractAction aLineDel = new AbstractAction("LINEDEL")
 	{
 		private static final long serialVersionUID = 1L;
 
-		public void actionPerformed(ActionEvent e)
+		/** @see AbstractAction#actionPerformed(ActionEvent) */
+		@Override public void actionPerformed(ActionEvent e)
 		{
 			//delete the line where the caret is
 		}
 	};
+	/** Duplicate the current line, placing the copy beneath this one. */
 	public AbstractAction aLineDup = new AbstractAction("LINEDUP")
 	{
 		private static final long serialVersionUID = 1L;
 
-		public void actionPerformed(ActionEvent e)
+		/** @see AbstractAction#actionPerformed(ActionEvent) */
+		@Override public void actionPerformed(ActionEvent e)
 		{
 			UndoPatch up = new UndoPatch();
 			up.realize(up.startRow + sel.duplicate());
 			storeUndo(up,OPT.DUPLICATE);
 		}
 	};
+	/** Swap the currently selected lines, or this line and the line above it. */
 	public AbstractAction aLineSwap = new AbstractAction("LINESWAP")
 	{
 		private static final long serialVersionUID = 1L;
 
-		public void actionPerformed(ActionEvent e)
+		/** @see AbstractAction#actionPerformed(ActionEvent) */
+		@Override public void actionPerformed(ActionEvent e)
 		{
 			if (caret.row == sel.row)
 			{
@@ -347,11 +431,13 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			}
 		}
 	};
+	/** Un-swap the selected lines, or this line and the line below it. */
 	public AbstractAction aLineUnSwap = new AbstractAction("LINEUNSWAP")
 	{
 		private static final long serialVersionUID = 1L;
 
-		public void actionPerformed(ActionEvent e)
+		/** @see AbstractAction#actionPerformed(ActionEvent) */
+		@Override public void actionPerformed(ActionEvent e)
 		{
 			if (caret.row == sel.row)
 			{
@@ -378,11 +464,14 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			}
 		}
 	};
+	/** Select all: Place the caret at the end of the code,
+	 * and start the selection from the beginning. */
 	public AbstractAction aSelAll = new AbstractAction("SELALL")
 	{
 		private static final long serialVersionUID = 1L;
 
-		public void actionPerformed(ActionEvent e)
+		/** @see AbstractAction#actionPerformed(ActionEvent) */
+		@Override public void actionPerformed(ActionEvent e)
 		{
 			sel.row = sel.col = 0;
 			caret.row = code.size() - 1;
@@ -391,20 +480,25 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			sel.selectionChanged();
 		}
 	};
+	/** Copy the contents of the selection to the clipboard. */
 	public AbstractAction aCopy = new AbstractAction("COPY")
 	{
 		private static final long serialVersionUID = 1L;
 
-		public void actionPerformed(ActionEvent e)
+		/** @see AbstractAction#actionPerformed(ActionEvent) */
+		@Override public void actionPerformed(ActionEvent e)
 		{
 			sel.copy();
 		}
 	};
+	/** Cut the contents of the selection, removing them from
+	 * the code and storing them in the clipboard. */
 	public AbstractAction aCut = new AbstractAction("CUT")
 	{
 		private static final long serialVersionUID = 1L;
 
-		public void actionPerformed(ActionEvent e)
+		/** @see AbstractAction#actionPerformed(ActionEvent) */
+		@Override public void actionPerformed(ActionEvent e)
 		{
 			if (sel.isEmpty()) return;
 			sel.copy();
@@ -415,11 +509,13 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			repaint();
 		}
 	};
+	/** Paste the clipboard into the code, overwriting the selection if there is one. */
 	public AbstractAction aPaste = new AbstractAction("PASTE")
 	{
 		private static final long serialVersionUID = 1L;
 
-		public void actionPerformed(ActionEvent e)
+		/** @see AbstractAction#actionPerformed(ActionEvent) */
+		@Override public void actionPerformed(ActionEvent e)
 		{
 			UndoPatch up = new UndoPatch(Math.min(caret.row,sel.row),Math.max(
 					Math.max(caret.row,sel.row),
@@ -429,47 +525,57 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			repaint();
 		}
 	};
+	/** Undo the most recent action. */
 	public AbstractAction aUndo = new AbstractAction("UNDO")
 	{
 		private static final long serialVersionUID = 1L;
 
-		public void actionPerformed(ActionEvent e)
+		/** @see AbstractAction#actionPerformed(ActionEvent) */
+		@Override public void actionPerformed(ActionEvent e)
 		{
 			undo();
 		}
 	};
+	/** Redo the most recently undone action. */
 	public AbstractAction aRedo = new AbstractAction("REDO")
 	{
 		private static final long serialVersionUID = 1L;
 
-		public void actionPerformed(ActionEvent e)
+		/** @see AbstractAction#actionPerformed(ActionEvent) */
+		@Override public void actionPerformed(ActionEvent e)
 		{
 			redo();
 		}
 	};
+	/** Display the find dialog. */
 	public AbstractAction aFind = new AbstractAction("FIND")
 	{
 		private static final long serialVersionUID = 1L;
 
-		public void actionPerformed(ActionEvent e)
+		/** @see AbstractAction#actionPerformed(ActionEvent) */
+		@Override public void actionPerformed(ActionEvent e)
 		{
 			findDialog.setVisible(true);
 		}
 	};
+	/** Display the quick find dialog. */
 	public AbstractAction aQuickFind = new AbstractAction("QUICKFIND")
 	{
 		private static final long serialVersionUID = 1L;
 
-		public void actionPerformed(ActionEvent e)
+		/** @see AbstractAction#actionPerformed(ActionEvent) */
+		@Override public void actionPerformed(ActionEvent e)
 		{
 			finder.present();
 		}
 	};
+	/** Decrease the indent for all selected lines. */
 	public AbstractAction aUnindent = new AbstractAction("UNINDENT")
 	{
 		private static final long serialVersionUID = 1L;
 
-		public void actionPerformed(ActionEvent e)
+		/** @see AbstractAction#actionPerformed(ActionEvent) */
+		@Override public void actionPerformed(ActionEvent e)
 		{
 			UndoPatch up = new UndoPatch();
 			int erow;
@@ -483,6 +589,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		}
 	};
 
+	/** Map the AbstractActions declared in JoshText to keyboard hotkeys. */
 	private void mapActions()
 	{
 		ActionMap am = getActionMap();
@@ -492,8 +599,13 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			am.put(a.getValue(Action.NAME),a);
 	}
 
+	/** The global find dialog. */
 	FindDialog findDialog = FindDialog.getInstance();
 
+	/**
+	 * Removes a unit of indentation from the beginning of a given row.
+	 * @param row  The index of the row to unindent.
+	 */
 	void unindent(int row)
 	{
 		StringBuilder sb = code.get(row).sbuild;
@@ -552,8 +664,8 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		}
 	}
 
-	@Override
-	public void addNotify()
+	/** @see javax.swing.JComponent#addNotify() */
+	@Override public void addNotify()
 	{
 		super.addNotify();
 		getParent().addComponentListener(this);
@@ -627,6 +739,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		return KeyStroke.getKeyStroke(ch,modifiers);
 	}
 
+	/** Fit this component so that it can contain all code, but is not sized excessively. */
 	void fitToCode()
 	{
 		int insetY = lineLeading;
@@ -638,6 +751,10 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		repaint();
 	}
 
+	/**
+	 * Calculate the size of the code, and optionally fit the window to it.
+	 * @param rs  Whether or not to resize the window to these new dimensions.
+	 */
 	void doCodeSize(boolean rs)
 	{
 		maxRowSize = 0;
@@ -649,6 +766,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		}
 	}
 
+	/** Adjust the view such that it contains the caret. */
 	private void doShowCaret()
 	{
 		if (!(getParent() instanceof JViewport)) return;
@@ -670,7 +788,8 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 
 		if (rp.x != vr.x || rp.y != vr.y) p.setViewPosition(rp);
 	}
-
+	
+	
 	private void updateMouseAutoScroll(Point point)
 	{
 		// FIXME: This entire thing is some huge pile of fail.
@@ -698,37 +817,48 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			mas.stop();
 	}
 
+	/** Stop the auto-scroll mechanism. */
 	void removeMouseAutoScroll()
 	{
 		mas.stop();
 	}
 
+	/** Class for handling the auto scroll. */
 	class MouseAutoScroll
 	{
 		Point rp;
 		JViewport p;
 		private boolean running = false;
 
+		/** Default constructor. Creates a timer. */
 		MouseAutoScroll()
 		{
 			new Timer().scheduleAtFixedRate(doMouseAutoScroll,100,100);
 		}
 
+		/** Start the scroll mechanism. */
 		void start()
 		{
 			running = true;
 		}
-
+		
+		/** Stop the scroll mechanism. */
 		void stop()
 		{
 			running = false;
 		}
 
+		/**
+		 * Test if the scroll mechanism is active.
+		 * 
+		 * @return Whether the scroll mechanism is active.
+		 */
 		boolean isRunning()
 		{
 			return running;
 		}
 
+		/** Our timer task callback */
 		TimerTask doMouseAutoScroll = new TimerTask()
 		{
 			@Override
@@ -737,27 +867,39 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 				if (!running) return;
 				Point po = p.getViewPosition();
 				p.setViewPosition(new Point(po.x + rp.x * monoAdvance,po.y + rp.y * lineHeight));
-				//				doShowCaret();
+				//doShowCaret();
 				updateUI();
 			}
 		};
 	}
 
+
+	/** Our local auto scroll mechanism. */
 	private MouseAutoScroll mas = new MouseAutoScroll();
 
-	/** Returns the width encompassed by line with index 
-	 *  @param l when read @param pos characters in. */
+	/**
+	 * Get the width of a particular line up to a given position.
+	 * @param l The index of the line in question.
+	 * @param pos The number of characters from the start of the line to consider in the width.
+	 * @return The width of the specified portion of the line with the given index.
+	 */
 	int line_wid_at(int l, int pos)
 	{
 		return metrics.stringWidth(code.getsb(l).toString(),pos);
 	}
 
-	/** Returns the position in new line @param lTo when transitioned
-	 * vertically from line @param lFrom at position @param pos */
-	private int line_offset_from(int lTo, int wid)
+	/** 
+	 * Returns the index of the last character in the line with the given index
+	 * which fits in the given width.
+	 * 
+	 * @param line The line to get the offset in.
+	 * @param wid The width to be translated to a character index.
+	 * @return Returns the given width, translated to a character index.
+	 */
+	private int line_offset_from(int line, int wid)
 	{
 		int ret;
-		String l = code.getsb(lTo).toString();
+		String l = code.getsb(line).toString();
 		int w = 0, lw = 0;
 		for (ret = 0; ret < l.length() && w < wid; ret++)
 		{
@@ -774,14 +916,19 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		return Math.min(l.length(),ret);
 	}
 
-	/** Returns the column which begins the character
-	 *  in @param line at index @param ind */
-	int index_to_column(int line, int ind)
+	/**
+	 * Takes the nth character in the line with the given line index
+	 * and computes the column at which that character will be rendered.
+	 * @param line  The index of the line in question.
+	 * @param n The index of the character whose column will be returned.
+	 * @return The column number of the nth character on the line.
+	 */
+	int index_to_column(int line, int n)
 	{
 		int col = 0;
 		StringBuilder l = code.getsb(line);
-		ind = Math.min(ind,l.length());
-		for (int i = 0; i < ind; i++)
+		n = Math.min(n,l.length());
+		for (int i = 0; i < n; i++)
 			if (l.charAt(i) == '\t')
 			{
 				col += Settings.indentSizeInSpaces;
@@ -793,8 +940,16 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		return col;
 	}
 
-	/** Returns the column which begins the character
-	 *  in @param line at index @param ind */
+	/**
+	 * Takes a column number and a line with the given index, and returns the
+	 * index of the character in that line which will render at that column.
+	 * If the line does not reach the given column, then the length of the
+	 * line is returned.
+	 * 
+	 * @param line  The line index in question.
+	 * @param col The column the index of character at which will be returned.
+	 * @return The index of the character in the given line that renders at the given column.
+	 */
 	int column_to_index(int line, int col)
 	{
 		int ind = 0;
@@ -811,8 +966,19 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		return ind;
 	}
 
-	/** Returns the column which begins the character
-	 *  in @param line at index @param ind, ignoring bounds */
+	/**
+	 * Takes a column number and a line with the given index, and returns the
+	 * index of the character in that line which will render at that column.
+	 * If the line does not reach the given column, the result is the sum of
+	 * the length of the line and the number of columns between the column
+	 * index of the end of the line and the given column. This means that the
+	 * behavior is the same as it would be if the line were suffixed with an
+	 * infinite number of spaces.
+	 * 
+	 * @param line  The line index in question.
+	 * @param col The column the index of character at which will be returned.
+	 * @return The index of the character in the given line that renders at the given column.
+	 */
 	int column_to_index_unsafe(int line, int col)
 	{
 		int ind = 0;
@@ -831,6 +997,12 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		return ind;
 	}
 
+	/**
+	 * @param line The index of the line to check in.
+	 * @param col The column to look at inside the line.
+	 * @return Returns whether the given column in the line with the given
+	 * index lies within a tab character.
+	 */
 	boolean column_in_tab(int line, int col)
 	{
 		int ind = 0;
@@ -851,6 +1023,12 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		return false;
 	}
 
+	/**
+	 * Get the type of the character at the given position in the given character sequence. 
+	 * @param str The character sequence in question.
+	 * @param pos The position of the character whose type is returned
+	 * @return Returns the type of the character.
+	 */
 	public static int selGetKind(CharSequence str, int pos)
 	{
 		if (!(pos >= 0 && pos < str.length())) return ChType.WHITE;
@@ -858,7 +1036,14 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		if (ohfukku > 255) return ChType.WORD;
 		return chType[ohfukku];
 	}
-
+	
+	/**
+	 * Basically, returns whether selGetKind(str, pos) == otype. 
+	 * @param str The character sequence in question.
+	 * @param pos The position of the character whose type is checked.
+	 * @param otype The original type against which this character will be matched.
+	 * @return Returns whether the type of the described character matches the given original type.
+	 */
 	public static boolean selOfKind(CharSequence str, int pos, int otype)
 	{
 		if (!(pos >= 0 && pos < str.length())) return otype == ChType.WHITE;
@@ -867,16 +1052,32 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		return chType[ohfukku] == otype;
 	}
 
-	public FontMetrics getFontMetrics()
-	{
+	/**
+	 * Get font metric information for the active font.
+	 * @return Returns the FontMetrics of the current font.
+	 */
+	public FontMetrics getFontMetrics() {
 		return getFontMetrics(getFont());
 	}
 
-	public Dimension getMaxGlyphSize()
-	{
+	/**
+	 * Get the largest dimensions of any glyph that will be rendered with the current font.
+	 * @return Returns a Dimension representing the largest sizes glyphs in this font attain.
+	 */
+	public Dimension getMaxGlyphSize() {
 		return new Dimension(monoAdvance,lineHeight);
 	}
 
+	/**
+	 * Draw the given characters with full highlighting.
+	 * @param g The graphics object to render to.
+	 * @param a The characters to render.
+	 * @param sp The starting position in the given array.
+	 * @param ep The ending position in the given array.
+	 * @param xx The x coordinate at which to start render.
+	 * @param ty The y coordinate at which to start render
+	 * @return The new x coordinate from which to render.
+	 */
 	private int drawChars(Graphics g, char[] a, int sp, int ep, int xx, int ty)
 	{
 		Color c = g.getColor();
@@ -884,15 +1085,17 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		{
 			if (a[i] == '\t')
 			{
-				final int incby = Settings.indentSizeInSpaces * monoAdvance; //, xxp = xx;
+				final int incby = Settings.indentSizeInSpaces * monoAdvance, xxp = xx;
 				xx = ((xx + incby) / incby) * incby;
-				g.setColor(new Color(255,0,0));
-				/*g.drawLine(xxp + 2,ty - (lineHeight / 3),xx - 2,ty - (lineHeight / 3));
-				g.drawLine(xxp + 2,ty - (lineHeight / 3) - (lineHeight / 5),xxp + 2,ty - (lineHeight / 3)
-						+ (lineHeight / 5));
-				g.drawLine(xx - 2,ty - (lineHeight / 3) - (lineHeight / 5),xx - 2,ty - (lineHeight / 3)
-						+ (lineHeight / 5));*/
-				g.setColor(c);
+				if (Settings.renderTabs) {
+					g.setColor(new Color(255,0,0));
+					g.drawLine(xxp + 2,ty - (lineHeight / 3),xx - 2,ty - (lineHeight / 3));
+					g.drawLine(xxp + 2,ty - (lineHeight / 3) - (lineHeight / 5),xxp + 2,ty - (lineHeight / 3)
+							+ (lineHeight / 5));
+					g.drawLine(xx - 2,ty - (lineHeight / 3) - (lineHeight / 5),xx - 2,ty - (lineHeight / 3)
+							+ (lineHeight / 5));
+					g.setColor(c);
+				}
 				continue;
 			}
 			g.drawChars(a,i,1,xx,getInsets().top + ty);
@@ -902,6 +1105,12 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		return xx;
 	}
 
+	/** Paint the line with the given index to the given Graphics object, starting
+	 * at the given y-coordinate.
+	 * @param g The graphics object to paint to.
+	 * @param lineNum The index of the line to render.
+	 * @param ty The y-coordinate at which to render the baseline.
+	 */
 	private void drawLine(Graphics g, int lineNum, int ty)
 	{
 		g.setColor(getForeground());
@@ -953,8 +1162,8 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		}
 	}
 
-	@Override
-	public void paintComponent(Graphics g)
+	/** @see javax.swing.JComponent#paintComponent(java.awt.Graphics) */
+	@Override public void paintComponent(Graphics g)
 	{
 		Object map = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
 		if (map != null) ((Graphics2D) g).addRenderingHints((Map<?,?>) map);
@@ -981,6 +1190,10 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 
 	/**
 	 * A convenience repaint method which can convert a row/col pair into x/y space.
+	 * @param col The column at which to start the repaint.
+	 * @param row The row at which to start the repaint.
+	 * @param w The width of the region to repaint.
+	 * @param h The height of the region to repaint.
 	 * @param convert True to convert row/col into x/y space. False to treat as x/y.
 	 */
 	public void repaint(int col, int row, int w, int h, boolean convert)
@@ -998,7 +1211,10 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 
 	/**
 	 * Translates a mouse coordinate to a text coordinate (y = row, x = col).
+	 * @param m The mouse coordinates to translate.
 	 * @param bound Whether the coordinate should be trimmed to a valid column.
+	 * @return A point representing the text coordinate, where Point.x is the column,
+	 * and point.y is the row in the code.
 	 */
 	public Point mouseToPoint(Point m, boolean bound)
 	{
@@ -1018,6 +1234,12 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	 */
 	private boolean shouldHandleRelease = false;
 
+	/**
+	 * Handle a mouse event, such as clicks, double clicks, drags, for selection,
+	 * scrolling, and general mouse-related code manipulation.
+	 * 
+	 * @param e The mouse event to handle.
+	 */
 	protected void handleMouseEvent(MouseEvent e)
 	{
 		/// FIXME: Double-click-and-drag is supposed to wrap the start and
@@ -1676,7 +1898,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		{
 			addPropertyChangeListener("dropLocation",new PropertyChangeListener()
 			{
-				public void propertyChange(PropertyChangeEvent pce)
+				@Override public void propertyChange(PropertyChangeEvent pce)
 				{
 					repaintDropLocation(pce.getOldValue());
 					repaintDropLocation(pce.getNewValue());
@@ -1765,12 +1987,12 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 
 	//Scrollable
 
-	public Dimension getPreferredScrollableViewportSize()
+	@Override public Dimension getPreferredScrollableViewportSize()
 	{
 		return new Dimension(320,240);
 	}
 
-	public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction)
+	@Override public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction)
 	{
 		switch (orientation)
 		{
@@ -1783,7 +2005,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		}
 	}
 
-	public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction)
+	@Override public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction)
 	{
 		switch (orientation)
 		{
@@ -1796,12 +2018,12 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		}
 	}
 
-	public boolean getScrollableTracksViewportHeight()
+	@Override public boolean getScrollableTracksViewportHeight()
 	{
 		return false;
 	}
 
-	public boolean getScrollableTracksViewportWidth()
+	@Override public boolean getScrollableTracksViewportWidth()
 	{
 		return false;
 	}
@@ -1819,28 +2041,28 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	}
 
 	// Listen to parent component
-	public void componentResized(ComponentEvent e)
+	@Override public void componentResized(ComponentEvent e)
 	{
 		fireResize();
 	}
 
-	public void componentHidden(ComponentEvent e)
+	@Override public void componentHidden(ComponentEvent e)
 	{
 		repaint();
 	}
 
-	public void componentMoved(ComponentEvent e)
+	@Override public void componentMoved(ComponentEvent e)
 	{
 		repaint();
 	}
 
-	public void componentShown(ComponentEvent e)
+	@Override public void componentShown(ComponentEvent e)
 	{
 		repaint();
 	}
 
 	// Be a clipboard owner
-	public void lostOwnership(Clipboard arg0, Transferable arg1)
+	@Override public void lostOwnership(Clipboard arg0, Transferable arg1)
 	{
 		// WHOGIVESAFUCK.jpg
 	}
@@ -1859,7 +2081,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		MatchState matching;
 		int matchLine, matchPos;
 
-		public void paint(Graphics g, Insets i, CodeMetrics gm, int line_start, int line_end)
+		@Override public void paint(Graphics g, Insets i, CodeMetrics gm, int line_start, int line_end)
 		{
 			Color c = g.getColor();
 			if (matching == MatchState.MATCHING)
@@ -2032,7 +2254,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			return false;
 		}
 
-		public void caretUpdate(CaretEvent ce)
+		@Override public void caretUpdate(CaretEvent ce)
 		{
 			matching = MatchState.NOT_MATCHING;
 			StringBuilder sb = code.getsb(caret.row);
@@ -2369,12 +2591,12 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		return true;
 	}
 
-	public void focusGained(FocusEvent arg0)
+	@Override public void focusGained(FocusEvent arg0)
 	{
 		FindDialog.getInstance().selectedJoshText = this;
 	}
 
-	public void focusLost(FocusEvent arg0)
+	@Override public void focusLost(FocusEvent arg0)
 	{ //Unused
 	}
 

@@ -12,11 +12,11 @@ import assemblernator.Instruction;
  * @author Josh Ventura
  * @date Apr 8, 2012; 7:35:51 PM
  */
-public class URBANhighlighter extends GenericHighlighter implements Highlighter {
+public class URBANTokenMarker extends DefaultTokenMarker {
 	/**
 	 * Construct and add syntax rules.
 	 */
-	public URBANhighlighter() {
+	public URBANTokenMarker() {
 		super();
 		schemes.add(new BlockDescriptor("Comment", "(?<=;)", "[\r\n]", true, false,
 				(char) 0, new Color(165, 165, 165), Font.ITALIC));
@@ -41,7 +41,7 @@ public class URBANhighlighter extends GenericHighlighter implements Highlighter 
 		char[] ca = "{[()]}!%^&*-/+=?:~<>.,;".toCharArray();
 		for (int i = 0; i < ca.length; i++)
 			css.chars.add(ca[i]);
-		hlChars.add(css);
+		tmChars.add(css);
 
 		otherTokens.add(new SimpleToken("Numeric literal", "[0-9]+[FfUuLlDd]*",
 				0, new Color(0, 225, 175)));

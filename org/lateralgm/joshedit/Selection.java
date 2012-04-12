@@ -22,9 +22,9 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 
 import org.lateralgm.joshedit.JoshText.CodeMetrics;
-import org.lateralgm.joshedit.JoshText.Marker;
+import org.lateralgm.joshedit.JoshText.Highlighter;
 
-public class Selection implements Marker
+public class Selection implements Highlighter
 	{
 	enum ST
 		{
@@ -591,12 +591,12 @@ public class Selection implements Marker
 		return false;
 		}
 
-	public static class SimpleMarker implements Marker
+	public static class SimpleHighlighter implements Highlighter
 		{
 		protected static final Color DEF_COL = new Color(200,200,220);
 		protected int y, x1, x2;
 
-		public SimpleMarker(int y, int x1, int x2)
+		public SimpleHighlighter(int y, int x1, int x2)
 			{
 			this.y = y;
 			this.x1 = x1;
@@ -612,13 +612,13 @@ public class Selection implements Marker
 			}
 		}
 
-	public static class SortedRegionMarker implements Marker
+	public static class SortedRegionHighlighter implements Highlighter
 		{
 		SortedRegion r;
 		ST type;
 		static final Color DEF_COL = new Color(200,200,220);
 
-		public SortedRegionMarker(SortedRegion r, ST type)
+		public SortedRegionHighlighter(SortedRegion r, ST type)
 			{
 			this.r = r;
 			this.type = type;
@@ -641,7 +641,7 @@ public class Selection implements Marker
 						* gw,(r.getMaxY() - r.getMinY() + 1) * gh);
 			else if (r.getMaxY() == r.getMinY())
 				{
-				new SimpleMarker(r.getMinY(),r.getMinX(),r.getMaxX()).paint(g,i,cm,line_start,line_end);
+				new SimpleHighlighter(r.getMinY(),r.getMinX(),r.getMaxX()).paint(g,i,cm,line_start,line_end);
 				/*				int xx = line_wid_at(r.getMinY(),r.getMinX());
 								g.fillRect(i.left + xx,i.top + r.getMinY() * gh,line_wid_at(r.getMaxY(),r.getMaxX()) - xx,
 										gh);*/
@@ -668,7 +668,7 @@ public class Selection implements Marker
 	public void paint(Graphics g, Insets i, CodeMetrics cm, int line_start, int line_end)
 		{
 		if (isEmpty()) return;
-		new SortedRegionMarker(getSortedRegion(),type).paint(g,i,cm,line_start,line_end);
+		new SortedRegionHighlighter(getSortedRegion(),type).paint(g,i,cm,line_start,line_end);
 		}
 
 	public void changeType(ST t)

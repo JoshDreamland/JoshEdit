@@ -12,15 +12,15 @@ import java.util.ArrayList;
 import org.lateralgm.joshedit.JoshText.LineChangeListener;
 
 /**
- * An interface for getting highlight styles for a given line.
+ * An interface for getting marker styles for a given line.
  */
-public interface Highlighter extends LineChangeListener {
+public interface TokenMarker extends LineChangeListener {
 	/**
-	 * A storage class for information about a given highlighted block.
+	 * A storage class for information about a given marked block.
 	 * 
 	 * @author Josh Ventura
 	 */
-	class HighlighterInfo {
+	class TokenMarkerInfo {
 		/** The font style flags to use, such as BOLD or ITALIC. */
 		int fontStyle;
 		/** The font color to use. */
@@ -44,7 +44,7 @@ public interface Highlighter extends LineChangeListener {
 		 * @param hash
 		 *            The block hash to assign.
 		 */
-		public HighlighterInfo(int fs, Color col, int start, int end, int hash) {
+		public TokenMarkerInfo(int fs, Color col, int start, int end, int hash) {
 			fontStyle = fs;
 			color = col;
 			startPos = start;
@@ -60,19 +60,19 @@ public interface Highlighter extends LineChangeListener {
 		 * @param col
 		 *            The font color to use when rendering this block.
 		 */
-		public HighlighterInfo(int fs, Color col) {
+		public TokenMarkerInfo(int fs, Color col) {
 			this(fs, col, 0, 0, 0);
 		}
 	}
 
 	/**
-	 * Return an array of line highlight colors with their positions
+	 * Return an array of line mark colors with their positions
 	 * 
 	 * @param jline
 	 *            The JoshText line to parse.
-	 * @return An array of line highlight colors with their positions
+	 * @return An array of line mark colors with their positions
 	 */
-	ArrayList<HighlighterInfo> getStyles(Line jline);
+	ArrayList<TokenMarkerInfo> getStyles(Line jline);
 
 	/**
 	 * Format the code according to some specification in some grammar.

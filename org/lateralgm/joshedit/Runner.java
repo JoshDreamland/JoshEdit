@@ -176,9 +176,9 @@ public class Runner
 			JoshText.Settings.indentSizeInSpaces = spaces;
 		}
 
-		public void setTokenMarker(Highlighter hl)
+		public void setTokenMarker(TokenMarker hl)
 		{
-			text.highlighter = hl;
+			text.marker = hl;
 		}
 	}
 

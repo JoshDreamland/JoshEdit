@@ -9,9 +9,9 @@ package org.lateralgm.joshedit;
 import java.awt.Color;
 import java.awt.Font;
 
-public class GMLHighlighter extends GenericHighlighter
+public class GMLTokenMarker extends DefaultTokenMarker
 {
-	public GMLHighlighter()
+	public GMLTokenMarker()
 	{
 		super();
 		schemes.add(new BlockDescriptor("Formal Comment","/\\*!","(?<=\\*)/",true,false,(char) 0,
@@ -47,7 +47,7 @@ public class GMLHighlighter extends GenericHighlighter
 		char[] ca = "{[()]}!%^&*-/+=?:~<>.,;".toCharArray();
 		for (int i = 0; i < ca.length; i++)
 			css.chars.add(ca[i]);
-		hlChars.add(css);
+		tmChars.add(css);
 		
 		otherTokens.add(new SimpleToken("Numeric literal","[0-9]+",0,new Color(255,0,255)));
 		otherTokens.add(new SimpleToken("Hex literal","\\$[0-9A-Fa-f]+",0,new Color(255,100,100)));

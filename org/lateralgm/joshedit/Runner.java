@@ -175,6 +175,11 @@ public class Runner
 		{
 			JoshText.Settings.indentSizeInSpaces = spaces;
 		}
+
+		public void setTokenMarker(Highlighter hl)
+		{
+			text.highlighter = hl;
+		}
 	}
 
 	public static void showCodeWindow(boolean closeExit)

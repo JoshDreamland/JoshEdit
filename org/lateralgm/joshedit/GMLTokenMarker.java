@@ -41,7 +41,7 @@ public class GMLTokenMarker extends DefaultTokenMarker
 		kws.words.add("for");
 		kws.words.add("until");
 		kws.words.add("with"); //FIXME: Just remove these and make LGM add them from its properties file
-		hlKeywords.add(kws);
+		tmKeywords.add(kws);
 
 		CharSymbolSet css = new CharSymbolSet("Operators and Separators",new Color(255,0,0),0);
 		char[] ca = "{[()]}!%^&*-/+=?:~<>.,;".toCharArray();

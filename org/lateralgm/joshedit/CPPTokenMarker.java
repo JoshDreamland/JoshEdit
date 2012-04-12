@@ -37,7 +37,7 @@ public class CPPTokenMarker extends DefaultTokenMarker
 		String[] cppkws = {"if","else","do","while","for","new","delete","this","and","or","not"};
 		for (int i = 0; i < cppkws.length; i++)
 			kws.words.add(cppkws[i]);
-		hlKeywords.add(kws);
+		tmKeywords.add(kws);
 
 		CharSymbolSet css = new CharSymbolSet("Operators and Separators",new Color(255,0,0),0);
 		char[] ca = "{[()]}!%^&*-/+=?:~<>.,;".toCharArray();

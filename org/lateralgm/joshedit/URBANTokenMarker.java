@@ -28,13 +28,13 @@ public class URBANTokenMarker extends DefaultTokenMarker {
 		for (Entry<String, Instruction> i : Assembler.instructions.entrySet()) {
 			kws.words.add(i.getKey().toLowerCase());
 		}
-		hlKeywords.add(kws);
+		tmKeywords.add(kws);
 
 		kws = new KeywordSet("OperandKeywords", new Color(0, 0, 255), 0, false);
 		for (String i : Assembler.keyWords) {
 			kws.words.add(i.toLowerCase());
 		}
-		hlKeywords.add(kws);
+		tmKeywords.add(kws);
 
 		CharSymbolSet css = new CharSymbolSet("Operators and Separators",
 				new Color(255, 0, 0), 0);

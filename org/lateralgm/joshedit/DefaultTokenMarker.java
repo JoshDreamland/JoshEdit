@@ -135,7 +135,7 @@ public class DefaultTokenMarker implements TokenMarker
 	}
 
 	/** All keyword sets to mark. */
-	public ArrayList<KeywordSet> hlKeywords = new ArrayList<KeywordSet>();
+	public ArrayList<KeywordSet> tmKeywords = new ArrayList<KeywordSet>();
 
 	/** A keyword set used to specify formatting for any identifier which is not in a keyword set. */
 	public KeywordSet default_kws = null; // Set this to non-null to mark regular identifiers
@@ -222,9 +222,9 @@ public class DefaultTokenMarker implements TokenMarker
 			TOKEN,
 			/** This scheme is from a block of some sort. */
 			BLOCK,
-			/** This scheme is from a keyword set; an entry in a member of hlKeywords. */
+			/** This scheme is from a keyword set; an entry in a member of tmKeywords. */
 			KEYWORD,
-			/** This scheme is from a symbol set; an entry in a member of hlSymbols. */
+			/** This scheme is from a symbol set; an entry in a member of tmSymbols. */
 			SYMBOL,
 			/** This entry is a generic identifier which we are marking anyway. */
 			DEFKEYWORD,
@@ -301,14 +301,14 @@ public class DefaultTokenMarker implements TokenMarker
 		while (invalid_line < line_count - 1)
 		{
 			ArrayList<TokenMarkerInfo> styles = getStyles(code.get(invalid_line));
-			TokenMarkerInfoEx hli = (TokenMarkerInfoEx) styles.get(styles.size()-1);
+			TokenMarkerInfoEx tmi = (TokenMarkerInfoEx) styles.get(styles.size()-1);
 			invalid_line++;
 			if (code.get(invalid_line).attr < 1)
 				code.get(invalid_line).attr = 0;
 			else
 				code.get(invalid_line).attr &= ~LINE_ATTRIBS.LA_SCHEMEBLOCK; // Remove all scheme info
-			if (hli.schemeInfo.type == SchemeType.UNTERMBLOCK) // If we're in a block scheme, note so.
-				code.get(invalid_line).attr |= hli.schemeInfo.id << LINE_ATTRIBS.LA_SCHEMEBITOFFSET;
+			if (tmi.schemeInfo.type == SchemeType.UNTERMBLOCK) // If we're in a block scheme, note so.
+				code.get(invalid_line).attr |= tmi.schemeInfo.id << LINE_ATTRIBS.LA_SCHEMEBITOFFSET;
 		}
 		invalid_line = -1;
 	}
@@ -447,11 +447,11 @@ public class DefaultTokenMarker implements TokenMarker
 				{
 					boolean fnd = false;
 					String f = line.substring(i,lookingat.end());
-					for (int sn = 0; sn < hlKeywords.size(); sn++)
-						if (hlKeywords.get(sn).words.contains( f.toLowerCase()))
+					for (int sn = 0; sn < tmKeywords.size(); sn++)
+						if (tmKeywords.get(sn).words.contains( f.toLowerCase()))
 						{
-							res.add(bi++,new TokenMarkerInfoEx(hlKeywords.get(sn).fontStyle,
-									hlKeywords.get(sn).color,lookingat.start(),lookingat.end(),0,
+							res.add(bi++,new TokenMarkerInfoEx(tmKeywords.get(sn).fontStyle,
+									tmKeywords.get(sn).color,lookingat.start(),lookingat.end(),0,
 									new SchemeInfo(SchemeType.KEYWORD,sn)));
 							fnd = true;
 							break;

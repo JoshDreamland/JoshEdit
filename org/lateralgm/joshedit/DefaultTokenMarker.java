@@ -40,7 +40,7 @@ public class DefaultTokenMarker implements TokenMarker
 	 * 
 	 * @author Josh Ventura
 	 */
-	class BlockDescriptor
+	public class BlockDescriptor
 	{
 		/** Human-readable name for this scheme. */
 		String name;
@@ -82,10 +82,24 @@ public class DefaultTokenMarker implements TokenMarker
 			color = markColor;
 			fontStyle = font_style;
 		}
+
+		/**
+		 * Convenience constructor for when multiline is true and the end marker cannot be escaped.
+		 * @param block_name  The name of this block type.
+		 * @param begin_regex The regular expression matching the start of the block.
+		 * @param end_regex   The regular expression matching the end of the block.
+		 * @param markColor The font color with which this block will be rendered.
+		 * @param font_style The font style with which this block will be rendered.
+		 */
+		public BlockDescriptor(String block_name, String begin_regex, String end_regex,
+				Color markColor, int font_style)
+		{
+			this(block_name,begin_regex,end_regex,true,false,(char)0,markColor,font_style);
+		}
 	}
 
 	/** Array of all block types to mark. */
-	ArrayList<BlockDescriptor> schemes = new ArrayList<BlockDescriptor>();
+	public ArrayList<BlockDescriptor> schemes = new ArrayList<BlockDescriptor>();
 
 	/**
 	 * A class for representing a set of keywords to mark.
@@ -144,16 +158,16 @@ public class DefaultTokenMarker implements TokenMarker
 	 * A class representing a set of symbols to mark.
 	 * @author Josh Ventura
 	 */
-	class CharSymbolSet
+	protected class CharSymbolSet
 	{
 		/** The name of this group of characters */
-		String name;
+		public String name;
 		/** A set of characters marked according to this rule. */
-		Set<Character> chars;
+		public Set<Character> chars;
 		/** The color with which this will be rendered, or NULL to use the default. */
-		Color color;
+		public Color color;
 		/** The font style with which these symbols will be rendered. (Font.BOLD, etc). */
-		int fontStyle;
+		public int fontStyle;
 
 		/**
 		 * Construct a new symbol set to mark, with basic information.
@@ -172,25 +186,25 @@ public class DefaultTokenMarker implements TokenMarker
 	}
 
 	/** List of all symbol sets to mark */
-	ArrayList<CharSymbolSet> tmChars = new ArrayList<CharSymbolSet>();
+	public ArrayList<CharSymbolSet> tmChars = new ArrayList<CharSymbolSet>();
 
 	/** This is the pattern we will use to isolate identifiers. **/
-	Pattern identifier_pattern = Pattern.compile("[a-z_A-Z]([a-z_A-Z0-9]*)");
+	public Pattern identifier_pattern = Pattern.compile("[a-z_A-Z]([a-z_A-Z0-9]*)");
 
 	/** This is a class for specifying anything else we want to skip or mark.
 	 *  You should use this, for example, to specify how to identify numeric literals
 	 *  and, at your option, how to color them differently.
 	**/
-	class SimpleToken
+	public class SimpleToken
 	{
 		/** The name of this token */
-		String name;
+		public String name;
 		/** The pattern that constitutes the token */
-		Pattern pattern;
+		public Pattern pattern;
 		/** The font style with which the token is mark */
-		int fontStyle;
+		public int fontStyle;
 		/** The color with which the token will be marked, or NULL to use the default */
-		Color color;
+		public Color color;
 
 		/**
 		 * @param token_name The name of this token or token type.
@@ -208,9 +222,9 @@ public class DefaultTokenMarker implements TokenMarker
 	}
 
 	/** A list of all other tokens to mark. */
-	ArrayList<SimpleToken> otherTokens = new ArrayList<DefaultTokenMarker.SimpleToken>();
+	public ArrayList<SimpleToken> otherTokens = new ArrayList<DefaultTokenMarker.SimpleToken>();
 	
-	/** Class for storing extre info about a scheme. */
+	/** Class for storing extra info about a scheme. */
 	static final class SchemeInfo
 	{
 		/** Enumeration of all possible scheme types. */

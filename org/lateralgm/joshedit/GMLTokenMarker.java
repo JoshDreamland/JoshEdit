@@ -8,39 +8,24 @@ package org.lateralgm.joshedit;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.util.Collections;
 
 public class GMLTokenMarker extends DefaultTokenMarker
 {
 	public GMLTokenMarker()
 	{
 		super();
-		schemes.add(new BlockDescriptor("Formal Comment","/\\*!","(?<=\\*)/",true,false,(char) 0,
-				new Color(128,128,255),Font.BOLD));
-		schemes.add(new BlockDescriptor("Lazy Formal Comment","/\\*(?=\\*)","(?<=\\*)/",true,false,
-				(char) 0,new Color(128,128,255),Font.BOLD));
-		schemes.add(new BlockDescriptor("Comment","/(?=\\*)","\\*/",true,false,(char) 0,new Color(13,
-				165,13),Font.ITALIC));
-		schemes.add(new BlockDescriptor("Formal C++ Comment","//!","$",true,false,(char) 0,new Color(
-				128,128,255),Font.BOLD));
-		schemes.add(new BlockDescriptor("Lazy Formal C++ Comment","///","$",true,false,(char) 0,
-				new Color(128,128,255),Font.BOLD));
-		schemes.add(new BlockDescriptor("C++ Comment","//","$",true,false,(char) 0,
-				new Color(13,165,13),Font.ITALIC));
-		schemes.add(new BlockDescriptor("Double Quote String","\"","\"",true,false,(char) 0,new Color(
-				0,0,255),0));
-		schemes.add(new BlockDescriptor("Double Quote String","'","'",true,false,(char) 0,new Color(0,
-				0,255),0));
-		//schemes.add(new BlockDescriptor("Double Quote String","","$",true,false,(char) 0,new Color(0,
-		//		255,255)));
+		schemes.add(new BlockDescriptor("Javadoc","/\\*\\*","\\*/",new Color(128,128,255),Font.BOLD));
+		schemes.add(new BlockDescriptor("Block Comment","/(?=\\*)","\\*/",new Color(13,165,13),
+				Font.ITALIC));
+		schemes.add(new BlockDescriptor("Doc Line Comment","///","$",new Color(128,128,255),Font.BOLD));
+		schemes.add(new BlockDescriptor("Line Comment","//","$",new Color(13,165,13),Font.ITALIC));
+		schemes.add(new BlockDescriptor("Double Quote String","\"","\"",new Color(0,0,255),0));
+		schemes.add(new BlockDescriptor("Single Quote String","'","'",new Color(0,0,255),0));
+
 		KeywordSet kws = new KeywordSet("Statements",new Color(0,0,128),Font.BOLD);
-		kws.words.add("if");
-		kws.words.add("then");
-		kws.words.add("else");
-		kws.words.add("do");
-		kws.words.add("while");
-		kws.words.add("for");
-		kws.words.add("until");
-		kws.words.add("with"); //FIXME: Just remove these and make LGM add them from its properties file
+		 //FIXME: Just remove these and make LGM add them from its properties file
+		Collections.addAll(kws.words,new String[] {"if","then","else","do","while","for","until","with"});
 		tmKeywords.add(kws);
 
 		CharSymbolSet css = new CharSymbolSet("Operators and Separators",new Color(255,0,0),0);
@@ -48,7 +33,7 @@ public class GMLTokenMarker extends DefaultTokenMarker
 		for (int i = 0; i < ca.length; i++)
 			css.chars.add(ca[i]);
 		tmChars.add(css);
-		
+
 		otherTokens.add(new SimpleToken("Numeric literal","[0-9]+",0,new Color(255,0,255)));
 		otherTokens.add(new SimpleToken("Hex literal","\\$[0-9A-Fa-f]+",0,new Color(255,100,100)));
 	}

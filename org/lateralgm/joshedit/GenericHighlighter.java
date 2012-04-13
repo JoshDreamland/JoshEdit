@@ -40,7 +40,7 @@ public class GenericHighlighter implements Highlighter
 	 * 
 	 * @author Josh Ventura
 	 */
-	class BlockDescriptor
+	public class BlockDescriptor
 	{
 		/** Human-readable name for this scheme. */
 		String name;
@@ -85,7 +85,7 @@ public class GenericHighlighter implements Highlighter
 	}
 
 	/** Array of all block types to highlight. */
-	ArrayList<BlockDescriptor> schemes = new ArrayList<BlockDescriptor>();
+	public ArrayList<BlockDescriptor> schemes = new ArrayList<BlockDescriptor>();
 
 	/**
 	 * A class for representing a set of keywords to highlight.
@@ -144,16 +144,16 @@ public class GenericHighlighter implements Highlighter
 	 * A class representing a set of symbols to highlight.
 	 * @author Josh Ventura
 	 */
-	class CharSymbolSet
+	protected class CharSymbolSet
 	{
 		/** The name of this group of characters */
-		String name;
+		public String name;
 		/** A set of characters highlighted according to this rule. */
-		Set<Character> chars;
+		public Set<Character> chars;
 		/** The color with which this will be rendered, or NULL to use the default. */
-		Color color;
+		public Color color;
 		/** The font style with which these symbols will be rendered. (Font.BOLD, etc). */
-		int fontStyle;
+		public int fontStyle;
 
 		/**
 		 * Construct a new symbol set to highlight, with basic information.
@@ -172,25 +172,25 @@ public class GenericHighlighter implements Highlighter
 	}
 
 	/** List of all symbol sets to highlight */
-	ArrayList<CharSymbolSet> hlChars = new ArrayList<CharSymbolSet>();
+	public ArrayList<CharSymbolSet> hlChars = new ArrayList<CharSymbolSet>();
 
 	/** This is the pattern we will use to isolate identifiers. **/
-	Pattern identifier_pattern = Pattern.compile("[a-z_A-Z]([a-z_A-Z0-9]*)");
+	public Pattern identifier_pattern = Pattern.compile("[a-z_A-Z]([a-z_A-Z0-9]*)");
 
 	/** This is a class for specifying anything else we want to skip or highlight.
 	 *  You should use this, for example, to specify how to identify numeric literals
 	 *  and, at your option, how to color them differently.
 	**/
-	class SimpleToken
+	public class SimpleToken
 	{
 		/** The name of this token */
-		String name;
+		public String name;
 		/** The pattern that constitutes the token */
-		Pattern pattern;
+		public Pattern pattern;
 		/** The font style with which the token is highlighted */
-		int fontStyle;
+		public int fontStyle;
 		/** The color with which the token will be highlighted, or NULL to use the default */
-		Color color;
+		public Color color;
 
 		/**
 		 * @param token_name The name of this token or token type.
@@ -208,9 +208,9 @@ public class GenericHighlighter implements Highlighter
 	}
 
 	/** A list of all other tokens to highlight. */
-	ArrayList<SimpleToken> otherTokens = new ArrayList<GenericHighlighter.SimpleToken>();
+	public ArrayList<SimpleToken> otherTokens = new ArrayList<GenericHighlighter.SimpleToken>();
 	
-	/** Class for storing extre info about a scheme. */
+	/** Class for storing extra info about a scheme. */
 	static final class SchemeInfo
 	{
 		/** Enumeration of all possible scheme types. */

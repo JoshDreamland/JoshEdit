@@ -8,6 +8,8 @@
 
 package org.lateralgm.joshedit;
 
+import guinator.URBANhighlighter;
+
 import java.awt.AWTEvent;
 import java.awt.Color;
 import java.awt.Container;
@@ -122,7 +124,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	 * There will probably only be one item on this queue at a time. */
 	Queue<String> infoMessages = new LinkedList<String>();
 
-	/** Find and Replace Navigator. */
+	/** Find and Replace Navigator; eg, QuickFind. */
 	public FindNavigator finder;
 
 	/**
@@ -357,6 +359,15 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		for (int i = 0; i < code.size(); i++)
 			res[i] = code.get(i).sbuild.toString();
 		return res;
+	}
+	
+	/** 
+	 * Get the number of lines in the current code..
+	 * @return The number of lines in the current code.
+	 */
+	public int getLineCount()
+	{
+		return code.size();
 	}
 
 	/**
@@ -883,7 +894,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	 * @param pos The number of characters from the start of the line to consider in the width.
 	 * @return The width of the specified portion of the line with the given index.
 	 */
-	int line_wid_at(int l, int pos)
+	public int line_wid_at(int l, int pos)
 	{
 		return metrics.stringWidth(code.getsb(l).toString(),pos);
 	}
@@ -896,7 +907,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	 * @param wid The width to be translated to a character index.
 	 * @return Returns the given width, translated to a character index.
 	 */
-	private int line_offset_from(int line, int wid)
+	public int line_offset_from(int line, int wid)
 	{
 		int ret;
 		String l = code.getsb(line).toString();
@@ -923,7 +934,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	 * @param n The index of the character whose column will be returned.
 	 * @return The column number of the nth character on the line.
 	 */
-	int index_to_column(int line, int n)
+	public int index_to_column(int line, int n)
 	{
 		int col = 0;
 		StringBuilder l = code.getsb(line);
@@ -950,7 +961,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	 * @param col The column the index of character at which will be returned.
 	 * @return The index of the character in the given line that renders at the given column.
 	 */
-	int column_to_index(int line, int col)
+	public int column_to_index(int line, int col)
 	{
 		int ind = 0;
 		StringBuilder l = code.getsb(line);
@@ -979,7 +990,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	 * @param col The column the index of character at which will be returned.
 	 * @return The index of the character in the given line that renders at the given column.
 	 */
-	int column_to_index_unsafe(int line, int col)
+	public int column_to_index_unsafe(int line, int col)
 	{
 		int ind = 0;
 		StringBuilder l = code.getsb(line);
@@ -1003,7 +1014,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	 * @return Returns whether the given column in the line with the given
 	 * index lies within a tab character.
 	 */
-	boolean column_in_tab(int line, int col)
+	public boolean column_in_tab(int line, int col)
 	{
 		int ind = 0;
 		StringBuilder l = code.getsb(line);

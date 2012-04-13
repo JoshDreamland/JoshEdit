@@ -230,8 +230,7 @@ public class CompletionMenu
 
 		protected void install()
 			{
-			long mask = AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_WHEEL_EVENT_MASK
-					| sun.awt.SunToolkit.GRAB_EVENT_MASK;
+			long mask = AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_WHEEL_EVENT_MASK;
 			Toolkit.getDefaultToolkit().addAWTEventListener(this,mask);
 			invoker.addWindowListener(this);
 			invoker.addComponentListener(this);
@@ -302,12 +301,6 @@ public class CompletionMenu
 		//events
 		public void eventDispatched(AWTEvent ev)
 			{
-			if (ev instanceof sun.awt.UngrabEvent)
-				{
-				// Popup should be canceled in case of ungrab event
-				hide();
-				return;
-				}
 			// We are interested in MouseEvents only
 			if (!(ev instanceof MouseEvent)) return;
 			MouseEvent me = (MouseEvent) ev;

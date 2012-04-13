@@ -11,7 +11,7 @@ import java.awt.Font;
 
 public class GMLHighlighter extends GenericHighlighter
 {
-	public GMLHighlighter(JoshText jt)
+	public GMLHighlighter()
 	{
 		super();
 		schemes.add(new BlockDescriptor("Formal Comment","/\\*!","(?<=\\*)/",true,false,(char) 0,

@@ -64,8 +64,6 @@ import org.lateralgm.joshedit.FindDialog.FindNavigator;
 import org.lateralgm.joshedit.Highlighter.HighlighterInfo;
 import org.lateralgm.joshedit.Selection.ST;
 
-//import sun.awt.dnd.SunDragSourceContextPeer;
-
 /**
  * The main component class; instantiate this, and you're good to go.
  */
@@ -1877,11 +1875,9 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			if ((dx > motionThreshold) || (dy > motionThreshold))
 			{
 				TransferHandler th = JoshText.this.getTransferHandler();
+				int act = e.isControlDown() ? TransferHandler.COPY : TransferHandler.MOVE;
 				dragStarted = true;
-				th.exportAsDrag(
-						JoshText.this,
-						dndArmedEvent,
-						th.COPY);
+				th.exportAsDrag(JoshText.this,dndArmedEvent,act);
 				dndArmedEvent = null;
 			}
 			e.consume();

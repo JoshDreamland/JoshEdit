@@ -9,7 +9,6 @@
 package org.lateralgm.joshedit;
 
 import java.awt.BorderLayout;
-import java.awt.Font;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -73,7 +72,7 @@ public class Runner
 		}
 
 	public static class JoshTextPanel extends JPanel
-		{
+	{
 		private static final long serialVersionUID = 1L;
 
 		public JScrollPane scroller;
@@ -176,12 +175,12 @@ public class Runner
 		{
 			JoshText.Settings.indentSizeInSpaces = spaces;
 		}
-		
-		public void setFont(Font f)
+
+		public void setTokenMarker(Highlighter hl)
 		{
-			text.setFont(f);
+			text.highlighter = hl;
 		}
-		}
+	}
 
 	public static void showCodeWindow(boolean closeExit)
 		{

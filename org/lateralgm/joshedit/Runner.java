@@ -185,6 +185,17 @@ public class Runner
 		{
 			text.setTokenMarker(tm);
 		}
+
+		public void setSelection(int row, int col, int row2, int col2)
+		{
+			text.sel.row = row;
+			text.sel.col = col;
+			text.caret.row = row2;
+			text.caret.col = col2;
+			text.caret.colw = text.line_wid_at(row,col);
+			text.caret.positionChanged();
+			text.sel.selectionChanged();
+		}
 	}
 
 	public static void showCodeWindow(boolean closeExit)

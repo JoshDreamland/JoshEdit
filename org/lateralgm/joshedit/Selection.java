@@ -188,6 +188,7 @@ public class Selection implements Highlighter
 		return 0;
 		}
 
+	/** Stores the selection in the SystemSelection, e.g. for middle-click. */
 	public void selectionChanged()
 		{
 		if (isEmpty()) return;

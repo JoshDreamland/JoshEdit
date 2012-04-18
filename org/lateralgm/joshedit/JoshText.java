@@ -3,8 +3,7 @@
  * 
  * This file is part of JoshEdit. JoshEdit is free software.
  * You can use, modify, and distribute it under the terms of
- * the GNU General Public License, version 3 or later. 
- */
+ * the GNU General Public License, version 3 or later. */
 
 package org.lateralgm.joshedit;
 
@@ -65,18 +64,19 @@ import org.lateralgm.joshedit.Selection.ST;
 /**
  * The main component class; instantiate this, and you're good to go.
  */
-public class JoshText extends JComponent implements Scrollable,ComponentListener,ClipboardOwner,
-		FocusListener
-{
+public class JoshText extends JComponent implements Scrollable,
+		ComponentListener, ClipboardOwner, FocusListener {
 	/** Make the compiler shut up. */
 	private static final long serialVersionUID = 1L;
 
 	/** Any settings which affect the behavior of this JoshText. */
-	public static class Settings
-	{
+	public static class Settings {
 		/** True if the tab character is used, false to use spaces */
 		public static boolean indentUseTabs = true;
-		/** The size with which tab characters are represented, in spaces (characters) */
+		/**
+		 * The size with which tab characters are represented, in spaces
+		 * (characters)
+		 */
 		public static int indentSizeInSpaces = 8;
 		/** The string which will be inserted into the code for indentation. */
 		public static String indentRepString = "\t";
@@ -97,10 +97,13 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	Caret caret;
 	/** The listener that will handle text drag-and-drop. */
 	DragListener dragger;
-	
+
 	/** The TokenMarker that will be polled for character formatting. */
 	private TokenMarker marker;
-	/** All Highlighters which will be called to highlight their lines or characters. */
+	/**
+	 * All Highlighters which will be called to highlight their lines or
+	 * characters.
+	 */
 	public ArrayList<Highlighter> highlighters = new ArrayList<Highlighter>();
 
 	// Dimensions
@@ -108,16 +111,22 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	private int monoAdvance;
 	/** The height of the largest UTF-8 character our font contains. */
 	private int lineHeight;
-	/** The largest height above the base line of any UTF-8 character our font contains. */
+	/**
+	 * The largest height above the base line of any UTF-8 character our font
+	 * contains.
+	 */
 	private int lineAscent;
 	/** The distance we need to keep between the baselines of each line of text. */
 	private int lineLeading;
 
 	/** Our longest row, and how many other rows are this long */
-	private int maxRowSize; // This is the size of the longest row, not the index.
+	private int maxRowSize; // This is the size of the longest row, not the
+							// index.
 
-	/** A queue of all messages that need displayed in our status bar.
-	 * There will probably only be one item on this queue at a time. */
+	/**
+	 * A queue of all messages that need displayed in our status bar.
+	 * There will probably only be one item on this queue at a time.
+	 */
 	Queue<String> infoMessages = new LinkedList<String>();
 
 	/** Find and Replace Navigator; eg, QuickFind. */
@@ -127,41 +136,67 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	 * A Highlighter is a class that gets painted before the text
 	 * so as to appear in the background of the characters.
 	 */
-	public static interface Highlighter
-	{
+	public static interface Highlighter {
 		/**
-		 * Called when it is time to render any and all backgrounds for this Highlighter.
-		 * @param g The graphics object to paint to.
-		 * @param i The insets of the canvas.
-		 * @param gm The string and glyph metrics for this code.
-		 * @param line_start The index of the first visible line.
-		 * @param line_end The index of the last visible line.
+		 * Called when it is time to render any and all backgrounds for this
+		 * Highlighter.
+		 * 
+		 * @param g
+		 *            The graphics object to paint to.
+		 * @param i
+		 *            The insets of the canvas.
+		 * @param gm
+		 *            The string and glyph metrics for this code.
+		 * @param line_start
+		 *            The index of the first visible line.
+		 * @param line_end
+		 *            The index of the last visible line.
 		 */
-		void paint(Graphics g, Insets i, CodeMetrics gm, int line_start, int line_end);
+		void paint(Graphics g, Insets i, CodeMetrics gm, int line_start,
+				int line_end);
 	}
 
-	/** An interface for passing glyph and string metrics associated with this editor. */
-	public static interface CodeMetrics
-	{
-		/** Get the width of a particular string from its start to a given end position.
-		 * @param str  The string whose width will be returned.
-		 * @param end  The index of the last character to consider in calculating the width.
-		 * @return The width of the given range of characters in the given string.
+	/**
+	 * An interface for passing glyph and string metrics associated with this
+	 * editor.
+	 */
+	public static interface CodeMetrics {
+		/**
+		 * Get the width of a particular string from its start to a given end
+		 * position.
+		 * 
+		 * @param str
+		 *            The string whose width will be returned.
+		 * @param end
+		 *            The index of the last character to consider in calculating
+		 *            the width.
+		 * @return The width of the given range of characters in the given
+		 *         string.
 		 */
 		int stringWidth(String str, int end);
-		
-		/** Get the width of the line of code with a given index from its start to a given end position.
-		 * @param line  The index of the line whose width will be returned.
-		 * @param end  The index of the last character to consider in calculating the width.
-		 * @return The width of the given range of characters in the given string.
+
+		/**
+		 * Get the width of the line of code with a given index from its start
+		 * to a given end position.
+		 * 
+		 * @param line
+		 *            The index of the line whose width will be returned.
+		 * @param end
+		 *            The index of the last character to consider in calculating
+		 *            the width.
+		 * @return The width of the given range of characters in the given
+		 *         string.
 		 */
 		int lineWidth(int line, int end);
+
 		/**
 		 * Get the width of each glyph rendered, which will be the width of the
 		 * largest glyph in the UTF-8 character set.
+		 * 
 		 * @return Returns the width each glyph is given.
 		 */
 		int glyphWidth();
+
 		/**
 		 * @return Returns the height given to each line.
 		 */
@@ -169,15 +204,12 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	}
 
 	/** Our own code metric information. */
-	CodeMetrics metrics = new CodeMetrics()
-	{
-		@Override public int stringWidth(String l, int end)
-		{
-			end = Math.min(end,l.length());
+	CodeMetrics metrics = new CodeMetrics() {
+		@Override public int stringWidth(String l, int end) {
+			end = Math.min(end, l.length());
 			int w = 0;
 			for (int i = 0; i < end; i++)
-				if (l.charAt(i) == '\t')
-				{
+				if (l.charAt(i) == '\t') {
 					final int wf = monoAdvance * Settings.indentSizeInSpaces;
 					w = ((w + wf) / wf) * wf;
 				}
@@ -186,18 +218,15 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			return w;
 		}
 
-		@Override public int lineWidth(int y, int end)
-		{
-			return stringWidth(code.getsb(y).toString(),end);
+		@Override public int lineWidth(int y, int end) {
+			return stringWidth(code.getsb(y).toString(), end);
 		}
 
-		@Override public int glyphWidth()
-		{
+		@Override public int glyphWidth() {
 			return monoAdvance;
 		}
 
-		@Override public int lineHeight()
-		{
+		@Override public int lineHeight() {
 			return lineHeight;
 		}
 	};
@@ -206,11 +235,13 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	 * Character "type", such as letter (1), whitespace (2), symbol (0), etc.
 	 * Used for word selection and backspacing.
 	 */
-	public static final class ChType
-	{
+	public static final class ChType {
 		/** This character is some generic symbol. */
 		public static final int NONE = 0;
-		/** This character is a word char, which includes underscores and numerals. */
+		/**
+		 * This character is a word char, which includes underscores and
+		 * numerals.
+		 */
 		public static final int WORD = 1;
 		/** This character is whitespace. */
 		public static final int WHITE = 2;
@@ -218,8 +249,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 
 	/** An array of character types by their ordinal. */
 	private static final char chType[] = new char[256];
-	static
-	{
+	static {
 		for (int i = 0; i < 256; i++)
 			chType[i] = ChType.NONE;
 
@@ -241,19 +271,20 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	SyntaxDesc myLang;
 
 	/** Default constructor; delegates to JoshText(String[]). */
-	public JoshText()
-	{
+	public JoshText() {
 		this(null);
 	}
 
-	/** Construct a new JoshText with some code given as a String[] of lines.
-	 * @param lines An array of Strings; one String for each line.
+	/**
+	 * Construct a new JoshText with some code given as a String[] of lines.
+	 * 
+	 * @param lines
+	 *            An array of Strings; one String for each line.
 	 */
-	public JoshText(String[] lines)
-	{
+	public JoshText(String[] lines) {
 		// Drawing stuff
-		setPreferredSize(new Dimension(320,240));
-		setFont(new Font(Font.MONOSPACED,Font.PLAIN,12));
+		setPreferredSize(new Dimension(320, 240));
+		setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
 		setBackground(Color.WHITE);
 		setForeground(Color.BLACK);
 		setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
@@ -271,8 +302,8 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		Bindings.readMappings(getInputMap());
 
 		// Events
-		enableEvents(AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK
-				| AWTEvent.KEY_EVENT_MASK);
+		enableEvents(AWTEvent.MOUSE_EVENT_MASK
+				| AWTEvent.MOUSE_MOTION_EVENT_MASK | AWTEvent.KEY_EVENT_MASK);
 
 		// Managing our code
 		code = new Code();
@@ -289,36 +320,36 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		monoAdvance = fm.getWidths()['M'];
 
 		caret = new Caret(this);
-		sel = new Selection(code,this,caret);
+		sel = new Selection(code, this, caret);
 		dragger = new DragListener();
 
 		myLang = new SyntaxDesc();
 		myLang.set_language("Shitbag");
 
-		if (Settings.highlight_line) highlighters.add(new Highlighter()
-		{
-			@Override public void paint(Graphics g, Insets i, CodeMetrics gm, int line_start, int line_end)
-			{
-				if (sel.row == caret.row)
-				{
-					Color rc = g.getColor();
-					g.setColor(new Color(230,240,255));
-					Rectangle clip = g.getClipBounds();
-					g.fillRect(i.left + clip.x,i.top + caret.row * gm.lineHeight(),clip.width,gm.lineHeight());
-					g.setColor(rc);
+		if (Settings.highlight_line)
+			highlighters.add(new Highlighter() {
+				@Override public void paint(Graphics g, Insets i,
+						CodeMetrics gm, int line_start, int line_end) {
+					if (sel.row == caret.row) {
+						Color rc = g.getColor();
+						g.setColor(new Color(230, 240, 255));
+						Rectangle clip = g.getClipBounds();
+						g.fillRect(i.left + clip.x,
+								i.top + caret.row * gm.lineHeight(),
+								clip.width, gm.lineHeight());
+						g.setColor(rc);
+					}
 				}
-			}
-		});
+			});
 		highlighters.add(sel);
 
 		BracketHighlighter bm = new BracketHighlighter();
 		highlighters.add(bm);
 		caret.addCaretListener(bm);
-		caret.addCaretListener(new CaretListener()
-		{
-			@Override public void caretUpdate(CaretEvent e)
-			{
-				if (!mas.isRunning()) doShowCaret();
+		caret.addCaretListener(new CaretListener() {
+			@Override public void caretUpdate(CaretEvent e) {
+				if (!mas.isRunning())
+					doShowCaret();
 			}
 		});
 
@@ -327,47 +358,50 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 
 	/**
 	 * Set the contents of this editor from an array of strings.
-	 * @param lines  An array of Strings making up the code, with one String per line.
+	 * 
+	 * @param lines
+	 *            An array of Strings making up the code, with one String per
+	 *            line.
 	 */
-	public void setText(String[] lines)
-	{
+	public void setText(String[] lines) {
 		code.clear();
 		if (lines == null || lines.length == 0)
 			code.add(new StringBuilder());
 		else
 			for (String line : lines)
 				code.add(line);
-		fireLineChange(0,code.size());
+		fireLineChange(0, code.size());
 	}
-	
-	/** 
+
+	/**
 	 * Get the text in this editor as a String[].
+	 * 
 	 * @return Return the text in this editor as an array of strings,
-	 * with one element in the array for each line.
+	 *         with one element in the array for each line.
 	 */
-	public String[] getLines()
-	{
+	public String[] getLines() {
 		String res[] = new String[code.size()];
 		for (int i = 0; i < code.size(); i++)
 			res[i] = code.get(i).sbuild.toString();
 		return res;
 	}
-	
-	/** 
+
+
+	/**
 	 * Get the number of lines in the current code..
+	 * 
 	 * @return The number of lines in the current code.
 	 */
-	public int getLineCount()
-	{
+	public int getLineCount() {
 		return code.size();
 	}
 
 	/**
 	 * Get the text in this editor as a String.
+	 * 
 	 * @return Returns the text in this editor as a single string.
 	 */
-	public String getText()
-	{
+	public String getText() {
 		StringBuilder res = new StringBuilder();
 		for (int i = 0; i < code.size(); i++)
 			res.append(code.get(i).sbuild.toString() + "\n");
@@ -375,119 +409,170 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	}
 
 	/**
-	 * Applies a TokenMarker that will be polled for character formatting
-	 * @param tm the TokenMarker to apply
+	 * Basically like htmlSpecialChars in PHP.
+	 * 
+	 * @param x The not HTML-ready string.
+	 * @return The HTML-ready string.
 	 */
-	public void setTokenMarker(TokenMarker tm)
-	{
-		if (marker != null) removeLineChangeListener(marker);
+	public static String htmlSpecialChars(String x) {
+		x = x.replace("/", "&#47;").replace("\\", "&#92;");
+		x = x.replace("&", "&amp;").replace("\"", "&quot;");
+		x = x.replace("<", "&lt;").replace(">", "&gt;");
+		return x;
+	}
+
+	/**
+	 * Export the current code as HTML.
+	 * 
+	 * @return The contents of the editor, with tokens marked up in HTML.
+	 */
+	public String getHTML() {
+		StringBuilder res = new StringBuilder(code.size() * 100);
+
+		for (int i = 0; i < code.size(); i++) {
+			Line l = code.get(i);
+			StringBuilder lsb = l.sbuild;
+			int from = 0;
+			ArrayList<TokenMarkerInfo> tmall = marker.getStyles(l);
+			for (TokenMarkerInfo ti : tmall) {
+				if (ti.startPos > from)
+					res.append(htmlSpecialChars(lsb
+							.substring(from, ti.startPos)));
+				if (ti.startPos < ti.endPos) {
+					res.append("<span style=\"");
+					if ((ti.fontStyle & Font.BOLD) != 0)
+						res.append("font-weight:bold;");
+					if ((ti.fontStyle & Font.ITALIC) != 0)
+						res.append("font-style:italic;");
+					if (ti.color != null)
+						res.append("color:#"
+								+ Integer.toHexString(ti.color.getRGB())
+										.substring(2) + ";");
+					res.append("\">");
+					res.append(htmlSpecialChars(lsb.substring(ti.startPos,
+							ti.endPos)));
+					res.append("</span>");
+				}
+				from = ti.endPos;
+			}
+			res.append("\n");
+		}
+
+		return res.toString();
+	}
+
+	/**
+	 * Applies a TokenMarker that will be polled for character formatting
+	 * 
+	 * @param tm
+	 *            the TokenMarker to apply
+	 */
+	public void setTokenMarker(TokenMarker tm) {
+		if (marker != null)
+			removeLineChangeListener(marker);
 		marker = tm;
 		addLineChangeListener(marker);
-		fireLineChange(0,code.size());
+		fireLineChange(0, code.size());
 	}
-	
+
 	// ==========================================================
 	// == Map action names to their implementations =============
 	// ==========================================================
 	/** Delete the current line, including the newline character. */
-	public AbstractAction aLineDel = new AbstractAction("LINEDEL")
-	{
+	public AbstractAction aLineDel = new AbstractAction("LINEDEL") {
 		private static final long serialVersionUID = 1L;
 
 		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override public void actionPerformed(ActionEvent e)
-		{
-			//delete the line where the caret is
+		@Override public void actionPerformed(ActionEvent e) {
+			// delete the line where the caret is
 		}
 	};
 	/** Duplicate the current line, placing the copy beneath this one. */
-	public AbstractAction aLineDup = new AbstractAction("LINEDUP")
-	{
+	public AbstractAction aLineDup = new AbstractAction("LINEDUP") {
 		private static final long serialVersionUID = 1L;
 
 		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override public void actionPerformed(ActionEvent e)
-		{
+		@Override public void actionPerformed(ActionEvent e) {
 			UndoPatch up = new UndoPatch();
 			up.realize(up.startRow + sel.duplicate());
-			storeUndo(up,OPT.DUPLICATE);
+			storeUndo(up, OPT.DUPLICATE);
 		}
 	};
 	/** Swap the currently selected lines, or this line and the line above it. */
-	public AbstractAction aLineSwap = new AbstractAction("LINESWAP")
-	{
+	public AbstractAction aLineSwap = new AbstractAction("LINESWAP") {
 		private static final long serialVersionUID = 1L;
 
 		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override public void actionPerformed(ActionEvent e)
-		{
-			if (caret.row == sel.row)
-			{
-				if (caret.row == 0) return;
-				UndoPatch up = new UndoPatch(caret.row - 1,caret.row);
+		@Override public void actionPerformed(ActionEvent e) {
+			if (caret.row == sel.row) {
+				if (caret.row == 0)
+					return;
+				UndoPatch up = new UndoPatch(caret.row - 1, caret.row);
 				StringBuilder swb = code.getsb(caret.row - 1);
 				code.get(caret.row - 1).sbuild = code.get(caret.row).sbuild;
 				code.get(caret.row).sbuild = swb;
 				up.realize(caret.row);
-				storeUndo(up,OPT.SWAP);
-				if (sel.type != ST.RECT) caret.col = line_offset_from(caret.row,caret.colw);
+				storeUndo(up, OPT.SWAP);
+				if (sel.type != ST.RECT)
+					caret.col = line_offset_from(caret.row, caret.colw);
 			}
-			else
-			{
+			else {
 				UndoPatch up = new UndoPatch();
-				int srow = Math.min(sel.row,caret.row), erow = Math.max(sel.row,caret.row);
+				int srow = Math.min(sel.row, caret.row), erow = Math.max(
+						sel.row, caret.row);
 				StringBuilder swb = code.getsb(srow);
 				for (int i = srow; i < erow; i++)
 					code.get(i).sbuild = code.get(i + 1).sbuild;
 				code.get(erow).sbuild = swb;
 				up.realize(erow);
-				if (sel.type != ST.RECT) caret.col = line_offset_from(caret.row,caret.colw);
-				storeUndo(up,OPT.SWAP);
+				if (sel.type != ST.RECT)
+					caret.col = line_offset_from(caret.row, caret.colw);
+				storeUndo(up, OPT.SWAP);
 			}
 		}
 	};
 	/** Un-swap the selected lines, or this line and the line below it. */
-	public AbstractAction aLineUnSwap = new AbstractAction("LINEUNSWAP")
-	{
+	public AbstractAction aLineUnSwap = new AbstractAction("LINEUNSWAP") {
 		private static final long serialVersionUID = 1L;
 
 		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override public void actionPerformed(ActionEvent e)
-		{
-			if (caret.row == sel.row)
-			{
-				if (caret.row >= code.size() - 1) return;
-				UndoPatch up = new UndoPatch(caret.row,caret.row + 1);
+		@Override public void actionPerformed(ActionEvent e) {
+			if (caret.row == sel.row) {
+				if (caret.row >= code.size() - 1)
+					return;
+				UndoPatch up = new UndoPatch(caret.row, caret.row + 1);
 				StringBuilder swb = code.getsb(caret.row + 1);
 				code.get(caret.row + 1).sbuild = code.get(caret.row).sbuild;
 				code.get(caret.row).sbuild = swb;
 				up.realize(caret.row);
-				storeUndo(up,OPT.UNSWAP);
-				if (sel.type != ST.RECT) caret.col = line_offset_from(caret.row,caret.colw);
+				storeUndo(up, OPT.UNSWAP);
+				if (sel.type != ST.RECT)
+					caret.col = line_offset_from(caret.row, caret.colw);
 			}
-			else
-			{
+			else {
 				UndoPatch up = new UndoPatch();
-				int srow = Math.min(sel.row,caret.row), erow = Math.max(sel.row,caret.row);
+				int srow = Math.min(sel.row, caret.row), erow = Math.max(
+						sel.row, caret.row);
 				StringBuilder swb = code.getsb(erow);
 				for (int i = erow; i > srow; i--)
 					code.get(i).sbuild = code.get(i - 1).sbuild;
 				code.get(srow).sbuild = swb;
 				up.realize(erow);
-				storeUndo(up,OPT.UNSWAP);
-				if (sel.type != ST.RECT) caret.col = line_offset_from(caret.row,caret.colw);
+				storeUndo(up, OPT.UNSWAP);
+				if (sel.type != ST.RECT)
+					caret.col = line_offset_from(caret.row, caret.colw);
 			}
 		}
 	};
-	/** Select all: Place the caret at the end of the code,
-	 * and start the selection from the beginning. */
-	public AbstractAction aSelAll = new AbstractAction("SELALL")
-	{
+	/**
+	 * Select all: Place the caret at the end of the code,
+	 * and start the selection from the beginning.
+	 */
+	public AbstractAction aSelAll = new AbstractAction("SELALL") {
 		private static final long serialVersionUID = 1L;
 
 		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override public void actionPerformed(ActionEvent e)
-		{
+		@Override public void actionPerformed(ActionEvent e) {
 			sel.row = sel.col = 0;
 			caret.row = code.size() - 1;
 			caret.col = code.getsb(caret.row).length();
@@ -496,122 +581,115 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		}
 	};
 	/** Copy the contents of the selection to the clipboard. */
-	public AbstractAction aCopy = new AbstractAction("COPY")
-	{
+	public AbstractAction aCopy = new AbstractAction("COPY") {
 		private static final long serialVersionUID = 1L;
 
 		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override public void actionPerformed(ActionEvent e)
-		{
+		@Override public void actionPerformed(ActionEvent e) {
 			sel.copy();
 		}
 	};
-	/** Cut the contents of the selection, removing them from
-	 * the code and storing them in the clipboard. */
-	public AbstractAction aCut = new AbstractAction("CUT")
-	{
+	/**
+	 * Cut the contents of the selection, removing them from
+	 * the code and storing them in the clipboard.
+	 */
+	public AbstractAction aCut = new AbstractAction("CUT") {
 		private static final long serialVersionUID = 1L;
 
 		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override public void actionPerformed(ActionEvent e)
-		{
-			if (sel.isEmpty()) return;
+		@Override public void actionPerformed(ActionEvent e) {
+			if (sel.isEmpty())
+				return;
 			sel.copy();
 			UndoPatch up = new UndoPatch();
 			sel.deleteSel();
-			up.realize(Math.max(caret.row,sel.row));
-			storeUndo(up,OPT.DELETE);
+			up.realize(Math.max(caret.row, sel.row));
+			storeUndo(up, OPT.DELETE);
 			repaint();
 		}
 	};
-	/** Paste the clipboard into the code, overwriting the selection if there is one. */
-	public AbstractAction aPaste = new AbstractAction("PASTE")
-	{
+	/**
+	 * Paste the clipboard into the code, overwriting the selection if there is
+	 * one.
+	 */
+	public AbstractAction aPaste = new AbstractAction("PASTE") {
 		private static final long serialVersionUID = 1L;
 
 		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override public void actionPerformed(ActionEvent e)
-		{
-			UndoPatch up = new UndoPatch(Math.min(caret.row,sel.row),Math.max(
-					Math.max(caret.row,sel.row),
-					Math.min(code.size() - 1,Math.min(caret.row,sel.row) + sel.getPasteRipple() - 1)));
+		@Override public void actionPerformed(ActionEvent e) {
+			UndoPatch up = new UndoPatch(Math.min(caret.row, sel.row),
+					Math.max(
+							Math.max(caret.row, sel.row),
+							Math.min(
+									code.size() - 1,
+									Math.min(caret.row, sel.row)
+											+ sel.getPasteRipple() - 1)));
 			up.realize(sel.paste());
-			storeUndo(up,OPT.PASTE);
+			storeUndo(up, OPT.PASTE);
 			repaint();
 		}
 	};
 	/** Undo the most recent action. */
-	public AbstractAction aUndo = new AbstractAction("UNDO")
-	{
+	public AbstractAction aUndo = new AbstractAction("UNDO") {
 		private static final long serialVersionUID = 1L;
 
 		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override public void actionPerformed(ActionEvent e)
-		{
+		@Override public void actionPerformed(ActionEvent e) {
 			undo();
 		}
 	};
 	/** Redo the most recently undone action. */
-	public AbstractAction aRedo = new AbstractAction("REDO")
-	{
+	public AbstractAction aRedo = new AbstractAction("REDO") {
 		private static final long serialVersionUID = 1L;
 
 		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override public void actionPerformed(ActionEvent e)
-		{
+		@Override public void actionPerformed(ActionEvent e) {
 			redo();
 		}
 	};
 	/** Display the find dialog. */
-	public AbstractAction aFind = new AbstractAction("FIND")
-	{
+	public AbstractAction aFind = new AbstractAction("FIND") {
 		private static final long serialVersionUID = 1L;
 
 		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override public void actionPerformed(ActionEvent e)
-		{
+		@Override public void actionPerformed(ActionEvent e) {
 			findDialog.setVisible(true);
 		}
 	};
 	/** Display the quick find dialog. */
-	public AbstractAction aQuickFind = new AbstractAction("QUICKFIND")
-	{
+	public AbstractAction aQuickFind = new AbstractAction("QUICKFIND") {
 		private static final long serialVersionUID = 1L;
 
 		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override public void actionPerformed(ActionEvent e)
-		{
+		@Override public void actionPerformed(ActionEvent e) {
 			finder.present();
 		}
 	};
 	/** Decrease the indent for all selected lines. */
-	public AbstractAction aUnindent = new AbstractAction("UNINDENT")
-	{
+	public AbstractAction aUnindent = new AbstractAction("UNINDENT") {
 		private static final long serialVersionUID = 1L;
 
 		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override public void actionPerformed(ActionEvent e)
-		{
+		@Override public void actionPerformed(ActionEvent e) {
 			UndoPatch up = new UndoPatch();
 			int erow;
-			for (int row = erow = Math.min(sel.row,caret.row); row <= sel.row || row <= caret.row; row++)
-			{
+			for (int row = erow = Math.min(sel.row, caret.row); row <= sel.row
+					|| row <= caret.row; row++) {
 				unindent(row);
 				erow = row;
 			}
 			up.realize(erow);
-			storeUndo(up,OPT.INDENT);
+			storeUndo(up, OPT.INDENT);
 		}
 	};
 
 	/** Map the AbstractActions declared in JoshText to keyboard hotkeys. */
-	private void mapActions()
-	{
+	private void mapActions() {
 		ActionMap am = getActionMap();
-		Action acts[] = { aLineDel,aLineDup,aLineSwap,aLineUnSwap,aSelAll,aCopy,aCut,aPaste,aUndo,
-				aRedo,aFind,aQuickFind,aUnindent };
+		Action acts[] = { aLineDel, aLineDup, aLineSwap, aLineUnSwap, aSelAll,
+				aCopy, aCut, aPaste, aUndo, aRedo, aFind, aQuickFind, aUnindent };
 		for (Action a : acts)
-			am.put(a.getValue(Action.NAME),a);
+			am.put(a.getValue(Action.NAME), a);
 	}
 
 	/** The global find dialog. */
@@ -619,16 +697,15 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 
 	/**
 	 * Removes a unit of indentation from the beginning of a given row.
-	 * @param row  The index of the row to unindent.
+	 * 
+	 * @param row
+	 *            The index of the row to unindent.
 	 */
-	void unindent(int row)
-	{
+	void unindent(int row) {
 		StringBuilder sb = code.get(row).sbuild;
 		int wc = 0, cc = 0;
-		while (cc < sb.length() && Character.isWhitespace(sb.charAt(cc)))
-		{
-			if (sb.charAt(cc) == '\t')
-			{
+		while (cc < sb.length() && Character.isWhitespace(sb.charAt(cc))) {
+			if (sb.charAt(cc) == '\t') {
 				wc = ((wc + Settings.indentSizeInSpaces) / Settings.indentSizeInSpaces)
 						* Settings.indentSizeInSpaces;
 			}
@@ -636,42 +713,42 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 				wc++;
 			cc++;
 		}
-		if (wc > 0)
-		{
-			int kspaces = ((wc - 1) / Settings.indentSizeInSpaces) * Settings.indentSizeInSpaces;
-			for (int atspaces = 0, lastspaces, i = 0; i < cc; i++)
-			{
+		if (wc > 0) {
+			int kspaces = ((wc - 1) / Settings.indentSizeInSpaces)
+					* Settings.indentSizeInSpaces;
+			for (int atspaces = 0, lastspaces, i = 0; i < cc; i++) {
 				lastspaces = atspaces;
 				if (sb.charAt(i) == '\t')
 					atspaces = ((atspaces + Settings.indentSizeInSpaces) / Settings.indentSizeInSpaces)
 							* Settings.indentSizeInSpaces;
 				else
 					atspaces++;
-				if (atspaces == kspaces)
-				{
-					if (sel.type != ST.RECT)
-					{
-						if (sel.row == row) sel.col -= cc - i - 1;
-						if (caret.row == row) caret.col -= cc - i - 1;
+				if (atspaces == kspaces) {
+					if (sel.type != ST.RECT) {
+						if (sel.row == row)
+							sel.col -= cc - i - 1;
+						if (caret.row == row)
+							caret.col -= cc - i - 1;
 					}
 					for (i++; i < cc; cc--)
-						sb.delete(i,i + 1);
+						sb.delete(i, i + 1);
 					break;
 				}
-				if (atspaces > kspaces)
-				{
-					if (sel.type != ST.RECT)
-					{
-						if (sel.row == row) sel.col -= cc - i;
-						if (caret.row == row) caret.col -= cc - i;
+				if (atspaces > kspaces) {
+					if (sel.type != ST.RECT) {
+						if (sel.row == row)
+							sel.col -= cc - i;
+						if (caret.row == row)
+							caret.col -= cc - i;
 					}
 					for (; i < cc; cc--)
-						sb.delete(i,i + 1);
-					for (i = lastspaces; i < kspaces; i++)
-					{
-						if (sel.row == row) sel.col++;
-						if (caret.row == row) caret.col++;
-						sb.insert(i," ");
+						sb.delete(i, i + 1);
+					for (i = lastspaces; i < kspaces; i++) {
+						if (sel.row == row)
+							sel.col++;
+						if (caret.row == row)
+							caret.col++;
+						sb.insert(i, " ");
 					}
 					break;
 				}
@@ -680,8 +757,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	}
 
 	/** @see javax.swing.JComponent#addNotify() */
-	@Override public void addNotify()
-	{
+	@Override public void addNotify() {
 		super.addNotify();
 		getParent().addComponentListener(this);
 	}
@@ -691,139 +767,154 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	 * form <i>modifiers</i>+<i>shortcut</i> where <i>modifiers</i>
 	 * is any combination of A for Alt, C for Control, S for Shift,
 	 * G for AltGr, or M for Meta, and <i>shortcut</i> is either a
-	 * single character or a keycode name from the <code>KeyEvent</code>
-	 * class, without the <code>VK_</code> prefix.
-	 * @param s A string description of the key stroke.
+	 * single character or a keycode name from the <code>KeyEvent</code> class,
+	 * without the <code>VK_</code> prefix.
+	 * 
+	 * @param s
+	 *            A string description of the key stroke.
 	 * @return The resulting composed KeyStroke.
-	 * @throws IllegalArgumentException if the key cannot be parsed for some reason.
+	 * @throws IllegalArgumentException
+	 *             if the key cannot be parsed for some reason.
 	 */
-	public static KeyStroke key(String s) throws IllegalArgumentException
-	{
-		if (s == null) return null;
+	public static KeyStroke key(String s) throws IllegalArgumentException {
+		if (s == null)
+			return null;
 		int index = s.indexOf('+');
 		String key = s.substring(index + 1);
-		if (key.length() == 0) throw new IllegalArgumentException("Invalid key stroke: " + s);
+		if (key.length() == 0)
+			throw new IllegalArgumentException("Invalid key stroke: " + s);
 
 		// Parse modifiers
 		int modifiers = 0;
-		if (index != -1)
-		{
-			for (int i = 0; i < index; i++)
-			{
-				switch (Character.toUpperCase(s.charAt(i)))
-				{
-					case 'A':
-						modifiers |= InputEvent.ALT_DOWN_MASK;
-						break;
-					case 'C':
-						modifiers |= InputEvent.CTRL_DOWN_MASK;
-						break;
-					case 'G':
-						modifiers |= InputEvent.ALT_GRAPH_MASK;
-						break;
-					case 'M':
-						modifiers |= InputEvent.META_DOWN_MASK;
-						break;
-					case 'S':
-						modifiers |= InputEvent.SHIFT_DOWN_MASK;
-						break;
+		if (index != -1) {
+			for (int i = 0; i < index; i++) {
+				switch (Character.toUpperCase(s.charAt(i))) {
+				case 'A':
+					modifiers |= InputEvent.ALT_DOWN_MASK;
+					break;
+				case 'C':
+					modifiers |= InputEvent.CTRL_DOWN_MASK;
+					break;
+				case 'G':
+					modifiers |= InputEvent.ALT_GRAPH_MASK;
+					break;
+				case 'M':
+					modifiers |= InputEvent.META_DOWN_MASK;
+					break;
+				case 'S':
+					modifiers |= InputEvent.SHIFT_DOWN_MASK;
+					break;
 				}
 			}
 		}
 
 		// Handle basic ordinal (single character) key
-		if (key.length() == 1)
-		{
+		if (key.length() == 1) {
 			char ch = Character.toUpperCase(key.charAt(0));
-			if (modifiers == 0) return KeyStroke.getKeyStroke(ch);
-			return KeyStroke.getKeyStroke(ch,modifiers);
+			if (modifiers == 0)
+				return KeyStroke.getKeyStroke(ch);
+			return KeyStroke.getKeyStroke(ch, modifiers);
 		}
 
 		// Otherwise use Reflection to parse the key
 		int ch;
 
-		try
-		{
+		try {
 			ch = KeyEvent.class.getField("VK_".concat(key)).getInt(null);
-		}
-		catch (Exception e)
-		{
-			throw new IllegalArgumentException("Invalid key stroke: " + s,e);
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Invalid key stroke: " + s, e);
 		}
 
-		return KeyStroke.getKeyStroke(ch,modifiers);
+		return KeyStroke.getKeyStroke(ch, modifiers);
 	}
 
-	/** Fit this component so that it can contain all code, but is not sized excessively. */
-	void fitToCode()
-	{
+	/**
+	 * Fit this component so that it can contain all code, but is not sized
+	 * excessively.
+	 */
+	void fitToCode() {
 		int insetY = lineLeading;
-		int w = (maxRowSize + 1) * monoAdvance + getInsets().left + 1; //extra char + pixel for overwrite caret
+		int w = (maxRowSize + 1) * monoAdvance + getInsets().left + 1; // extra
+																		// char
+																		// +
+																		// pixel
+																		// for
+																		// overwrite
+																		// caret
 		int h = code.size() * lineHeight + insetY;
-		setMinimumSize(new Dimension(w,h));
-		setMaximumSize(new Dimension(Integer.MAX_VALUE,Integer.MAX_VALUE));
+		setMinimumSize(new Dimension(w, h));
+		setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
 		fireResize();
 		repaint();
 	}
 
 	/**
 	 * Calculate the size of the code, and optionally fit the window to it.
-	 * @param rs  Whether or not to resize the window to these new dimensions.
+	 * 
+	 * @param rs
+	 *            Whether or not to resize the window to these new dimensions.
 	 */
-	void doCodeSize(boolean rs)
-	{
+	void doCodeSize(boolean rs) {
 		maxRowSize = 0;
 		for (int i = 0; i < code.size(); i++)
-			if (code.getsb(i).length() > maxRowSize) maxRowSize = code.getsb(i).length();
-		if (rs)
-		{
+			if (code.getsb(i).length() > maxRowSize)
+				maxRowSize = code.getsb(i).length();
+		if (rs) {
 			fitToCode();
 		}
 	}
 
 	/** Adjust the view such that it contains the caret. */
-	private void doShowCaret()
-	{
-		if (!(getParent() instanceof JViewport)) return;
+	private void doShowCaret() {
+		if (!(getParent() instanceof JViewport))
+			return;
 
 		JViewport p = ((JViewport) getParent());
 		Rectangle vr = p.getViewRect();
 
-		Rectangle cr = new Rectangle(caret.col * monoAdvance,caret.row * lineHeight,monoAdvance,
-				lineHeight);
-		Point rp = new Point(vr.x,vr.y);
+		Rectangle cr = new Rectangle(caret.col * monoAdvance, caret.row
+				* lineHeight, monoAdvance, lineHeight);
+		Point rp = new Point(vr.x, vr.y);
 
 		if (cr.y + cr.height > vr.y + vr.height)
 			rp.y = cr.y + cr.height - vr.height;
-		else if (cr.y < vr.y) rp.y = Math.max(0,cr.y);
+		else if (cr.y < vr.y)
+			rp.y = Math.max(0, cr.y);
 
 		if (cr.x + cr.width > vr.x + vr.width)
 			rp.x = cr.x + cr.width - vr.width + 5 * monoAdvance;
-		else if (cr.x < vr.x) rp.x = Math.max(0,cr.x - 5 * monoAdvance);
+		else if (cr.x < vr.x)
+			rp.x = Math.max(0, cr.x - 5 * monoAdvance);
 
-		if (rp.x != vr.x || rp.y != vr.y) p.setViewPosition(rp);
+		if (rp.x != vr.x || rp.y != vr.y)
+			p.setViewPosition(rp);
 	}
-	
-	
-	private void updateMouseAutoScroll(Point point)
-	{
+
+
+	private void updateMouseAutoScroll(Point point) {
 		// FIXME: This entire thing is some huge pile of fail.
 		// It scrolls too slowly and causes viewport issues.
-		if (!(getParent() instanceof JViewport)) return;
+		if (!(getParent() instanceof JViewport))
+			return;
 
 		JViewport p = ((JViewport) getParent());
 		Rectangle vr = p.getViewRect();
-		Point rp = new Point(0,0);
+		Point rp = new Point(0, 0);
 
 		if (point.x > vr.x + vr.width)
-			rp.x += Math.pow(3,Math.max(0,Math.log10(point.x - vr.x - vr.width) - 1));
-		if (point.x < vr.x) rp.x -= Math.pow(3,Math.max(0,Math.log10(vr.x - point.x) - 1));
+			rp.x += Math.pow(3,
+					Math.max(0, Math.log10(point.x - vr.x - vr.width) - 1));
+		if (point.x < vr.x)
+			rp.x -= Math.pow(3, Math.max(0, Math.log10(vr.x - point.x) - 1));
 		if (point.y > vr.y + vr.height)
-			rp.y += Math.pow(5,Math.max(0,Math.log10(point.y - vr.y - vr.height) - 1));
-		if (point.y < vr.y) rp.y -= Math.pow(5,Math.max(0,Math.log10(vr.y - point.y) - 1));
+			rp.y += Math.pow(5,
+					Math.max(0, Math.log10(point.y - vr.y - vr.height) - 1));
+		if (point.y < vr.y)
+			rp.y -= Math.pow(5, Math.max(0, Math.log10(vr.y - point.y) - 1));
 
-		rp.x = Math.max(0,Math.min(maxRowSize,rp.x));
-		rp.y = Math.max(0,Math.min(code.size() * lineHeight - vr.height,rp.y));
+		rp.x = Math.max(0, Math.min(maxRowSize, rp.x));
+		rp.y = Math
+				.max(0, Math.min(code.size() * lineHeight - vr.height, rp.y));
 		mas.p = p;
 		mas.rp = rp;
 		if (rp.x != 0 || rp.y != 0)
@@ -833,33 +924,28 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	}
 
 	/** Stop the auto-scroll mechanism. */
-	void removeMouseAutoScroll()
-	{
+	void removeMouseAutoScroll() {
 		mas.stop();
 	}
 
 	/** Class for handling the auto scroll. */
-	class MouseAutoScroll
-	{
+	class MouseAutoScroll {
 		Point rp;
 		JViewport p;
 		private boolean running = false;
 
 		/** Default constructor. Creates a timer. */
-		MouseAutoScroll()
-		{
-			new Timer().scheduleAtFixedRate(doMouseAutoScroll,100,100);
+		MouseAutoScroll() {
+			new Timer().scheduleAtFixedRate(doMouseAutoScroll, 100, 100);
 		}
 
 		/** Start the scroll mechanism. */
-		void start()
-		{
+		void start() {
 			running = true;
 		}
-		
+
 		/** Stop the scroll mechanism. */
-		void stop()
-		{
+		void stop() {
 			running = false;
 		}
 
@@ -868,21 +954,19 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		 * 
 		 * @return Whether the scroll mechanism is active.
 		 */
-		boolean isRunning()
-		{
+		boolean isRunning() {
 			return running;
 		}
 
 		/** Our timer task callback */
-		TimerTask doMouseAutoScroll = new TimerTask()
-		{
-			@Override
-			public void run()
-			{
-				if (!running) return;
+		TimerTask doMouseAutoScroll = new TimerTask() {
+			@Override public void run() {
+				if (!running)
+					return;
 				Point po = p.getViewPosition();
-				p.setViewPosition(new Point(po.x + rp.x * monoAdvance,po.y + rp.y * lineHeight));
-				//doShowCaret();
+				p.setViewPosition(new Point(po.x + rp.x * monoAdvance, po.y
+						+ rp.y * lineHeight));
+				// doShowCaret();
 				updateUI();
 			}
 		};
@@ -894,58 +978,63 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 
 	/**
 	 * Get the width of a particular line up to a given position.
-	 * @param l The index of the line in question.
-	 * @param pos The number of characters from the start of the line to consider in the width.
-	 * @return The width of the specified portion of the line with the given index.
+	 * 
+	 * @param l
+	 *            The index of the line in question.
+	 * @param pos
+	 *            The number of characters from the start of the line to
+	 *            consider in the width.
+	 * @return The width of the specified portion of the line with the given
+	 *         index.
 	 */
-	public int line_wid_at(int l, int pos)
-	{
-		return metrics.stringWidth(code.getsb(l).toString(),pos);
+	public int line_wid_at(int l, int pos) {
+		return metrics.stringWidth(code.getsb(l).toString(), pos);
 	}
 
-	/** 
+	/**
 	 * Returns the index of the last character in the line with the given index
 	 * which fits in the given width.
 	 * 
-	 * @param line The line to get the offset in.
-	 * @param wid The width to be translated to a character index.
+	 * @param line
+	 *            The line to get the offset in.
+	 * @param wid
+	 *            The width to be translated to a character index.
 	 * @return Returns the given width, translated to a character index.
 	 */
-	public int line_offset_from(int line, int wid)
-	{
+	public int line_offset_from(int line, int wid) {
 		int ret;
 		String l = code.getsb(line).toString();
 		int w = 0, lw = 0;
-		for (ret = 0; ret < l.length() && w < wid; ret++)
-		{
+		for (ret = 0; ret < l.length() && w < wid; ret++) {
 			lw = w;
-			if (l.charAt(ret) == '\t')
-			{
+			if (l.charAt(ret) == '\t') {
 				final int wf = monoAdvance * Settings.indentSizeInSpaces;
 				w = ((w + wf) / wf) * wf;
 			}
 			else
 				w += monoAdvance;
 		}
-		if (Math.abs(lw - wid) < Math.abs(w - wid)) return Math.min(l.length(),ret - 1);
-		return Math.min(l.length(),ret);
+		if (Math.abs(lw - wid) < Math.abs(w - wid))
+			return Math.min(l.length(), ret - 1);
+		return Math.min(l.length(), ret);
 	}
 
 	/**
 	 * Takes the nth character in the line with the given line index
 	 * and computes the column at which that character will be rendered.
-	 * @param line  The index of the line in question.
-	 * @param n The index of the character whose column will be returned.
+	 * 
+	 * @param line
+	 *            The index of the line in question.
+	 * @param n
+	 *            The index of the character whose column will be returned.
 	 * @return The column number of the nth character on the line.
 	 */
-	public int index_to_column(int line, int n)
-	{
+	public int index_to_column(int line, int n) {
 		int col = 0;
 		StringBuilder l = code.getsb(line);
-		n = Math.min(n,l.length());
+		n = Math.min(n, l.length());
 		for (int i = 0; i < n; i++)
-			if (l.charAt(i) == '\t')
-			{
+			if (l.charAt(i) == '\t') {
 				col += Settings.indentSizeInSpaces;
 				col /= Settings.indentSizeInSpaces;
 				col *= Settings.indentSizeInSpaces;
@@ -961,17 +1050,18 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	 * If the line does not reach the given column, then the length of the
 	 * line is returned.
 	 * 
-	 * @param line  The line index in question.
-	 * @param col The column the index of character at which will be returned.
-	 * @return The index of the character in the given line that renders at the given column.
+	 * @param line
+	 *            The line index in question.
+	 * @param col
+	 *            The column the index of character at which will be returned.
+	 * @return The index of the character in the given line that renders at the
+	 *         given column.
 	 */
-	public int column_to_index(int line, int col)
-	{
+	public int column_to_index(int line, int col) {
 		int ind = 0;
 		StringBuilder l = code.getsb(line);
 		for (int i = 0; i < col && ind < l.length(); ind++)
-			if (l.charAt(ind) == '\t')
-			{
+			if (l.charAt(ind) == '\t') {
 				i += Settings.indentSizeInSpaces;
 				i /= Settings.indentSizeInSpaces;
 				i *= Settings.indentSizeInSpaces;
@@ -990,18 +1080,19 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	 * behavior is the same as it would be if the line were suffixed with an
 	 * infinite number of spaces.
 	 * 
-	 * @param line  The line index in question.
-	 * @param col The column the index of character at which will be returned.
-	 * @return The index of the character in the given line that renders at the given column.
+	 * @param line
+	 *            The line index in question.
+	 * @param col
+	 *            The column the index of character at which will be returned.
+	 * @return The index of the character in the given line that renders at the
+	 *         given column.
 	 */
-	public int column_to_index_unsafe(int line, int col)
-	{
+	public int column_to_index_unsafe(int line, int col) {
 		int ind = 0;
 		StringBuilder l = code.getsb(line);
 		int i;
 		for (i = 0; i < col && ind < l.length(); ind++)
-			if (l.charAt(ind) == '\t')
-			{
+			if (l.charAt(ind) == '\t') {
 				i += Settings.indentSizeInSpaces;
 				i /= Settings.indentSizeInSpaces;
 				i *= Settings.indentSizeInSpaces;
@@ -1013,24 +1104,24 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	}
 
 	/**
-	 * @param line The index of the line to check in.
-	 * @param col The column to look at inside the line.
+	 * @param line
+	 *            The index of the line to check in.
+	 * @param col
+	 *            The column to look at inside the line.
 	 * @return Returns whether the given column in the line with the given
-	 * index lies within a tab character.
+	 *         index lies within a tab character.
 	 */
-	public boolean column_in_tab(int line, int col)
-	{
+	public boolean column_in_tab(int line, int col) {
 		int ind = 0;
 		StringBuilder l = code.getsb(line);
 		int i;
-		for (i = 0; i < col && ind < l.length(); ind++)
-		{
-			if (l.charAt(ind) == '\t')
-			{
+		for (i = 0; i < col && ind < l.length(); ind++) {
+			if (l.charAt(ind) == '\t') {
 				i += Settings.indentSizeInSpaces;
 				i /= Settings.indentSizeInSpaces;
 				i *= Settings.indentSizeInSpaces;
-				if (i > col) return true;
+				if (i > col)
+					return true;
 			}
 			else
 				i++;
@@ -1039,36 +1130,49 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	}
 
 	/**
-	 * Get the type of the character at the given position in the given character sequence. 
-	 * @param str The character sequence in question.
-	 * @param pos The position of the character whose type is returned
+	 * Get the type of the character at the given position in the given
+	 * character sequence.
+	 * 
+	 * @param str
+	 *            The character sequence in question.
+	 * @param pos
+	 *            The position of the character whose type is returned
 	 * @return Returns the type of the character.
 	 */
-	public static int selGetKind(CharSequence str, int pos)
-	{
-		if (!(pos >= 0 && pos < str.length())) return ChType.WHITE;
+	public static int selGetKind(CharSequence str, int pos) {
+		if (!(pos >= 0 && pos < str.length()))
+			return ChType.WHITE;
 		int ohfukku = str.charAt(pos);
-		if (ohfukku > 255) return ChType.WORD;
+		if (ohfukku > 255)
+			return ChType.WORD;
 		return chType[ohfukku];
 	}
-	
+
 	/**
-	 * Basically, returns whether selGetKind(str, pos) == otype. 
-	 * @param str The character sequence in question.
-	 * @param pos The position of the character whose type is checked.
-	 * @param otype The original type against which this character will be matched.
-	 * @return Returns whether the type of the described character matches the given original type.
+	 * Basically, returns whether selGetKind(str, pos) == otype.
+	 * 
+	 * @param str
+	 *            The character sequence in question.
+	 * @param pos
+	 *            The position of the character whose type is checked.
+	 * @param otype
+	 *            The original type against which this character will be
+	 *            matched.
+	 * @return Returns whether the type of the described character matches the
+	 *         given original type.
 	 */
-	public static boolean selOfKind(CharSequence str, int pos, int otype)
-	{
-		if (!(pos >= 0 && pos < str.length())) return otype == ChType.WHITE;
+	public static boolean selOfKind(CharSequence str, int pos, int otype) {
+		if (!(pos >= 0 && pos < str.length()))
+			return otype == ChType.WHITE;
 		int ohfukku = str.charAt(pos);
-		if (ohfukku > 255) return otype == ChType.WORD;
+		if (ohfukku > 255)
+			return otype == ChType.WORD;
 		return chType[ohfukku] == otype;
 	}
 
 	/**
 	 * Get font metric information for the active font.
+	 * 
 	 * @return Returns the FontMetrics of the current font.
 	 */
 	public FontMetrics getFontMetrics() {
@@ -1076,58 +1180,73 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	}
 
 	/**
-	 * Get the largest dimensions of any glyph that will be rendered with the current font.
-	 * @return Returns a Dimension representing the largest sizes glyphs in this font attain.
+	 * Get the largest dimensions of any glyph that will be rendered with the
+	 * current font.
+	 * 
+	 * @return Returns a Dimension representing the largest sizes glyphs in this
+	 *         font attain.
 	 */
 	public Dimension getMaxGlyphSize() {
-		return new Dimension(monoAdvance,lineHeight);
+		return new Dimension(monoAdvance, lineHeight);
 	}
 
 	/**
 	 * Draw the given characters with full highlighting.
-	 * @param g The graphics object to render to.
-	 * @param a The characters to render.
-	 * @param sp The starting position in the given array.
-	 * @param ep The ending position in the given array.
-	 * @param xx The x coordinate at which to start render.
-	 * @param ty The y coordinate at which to start render
+	 * 
+	 * @param g
+	 *            The graphics object to render to.
+	 * @param a
+	 *            The characters to render.
+	 * @param sp
+	 *            The starting position in the given array.
+	 * @param ep
+	 *            The ending position in the given array.
+	 * @param xx
+	 *            The x coordinate at which to start render.
+	 * @param ty
+	 *            The y coordinate at which to start render
 	 * @return The new x coordinate from which to render.
 	 */
-	private int drawChars(Graphics g, char[] a, int sp, int ep, int xx, int ty)
-	{
+	private int drawChars(Graphics g, char[] a, int sp, int ep, int xx, int ty) {
 		Color c = g.getColor();
-		for (int i = sp; i < ep; i++)
-		{
-			if (a[i] == '\t')
-			{
+		for (int i = sp; i < ep; i++) {
+			if (a[i] == '\t') {
 				final int incby = Settings.indentSizeInSpaces * monoAdvance, xxp = xx;
 				xx = ((xx + incby) / incby) * incby;
 				if (Settings.renderTabs) {
-					g.setColor(new Color(255,0,0));
-					g.drawLine(xxp + 2,ty - (lineHeight / 3),xx - 2,ty - (lineHeight / 3));
-					g.drawLine(xxp + 2,ty - (lineHeight / 3) - (lineHeight / 5),xxp + 2,ty - (lineHeight / 3)
+					g.setColor(new Color(255, 0, 0));
+					g.drawLine(xxp + 2, ty - (lineHeight / 3), xx - 2, ty
+							- (lineHeight / 3));
+					g.drawLine(xxp + 2, ty - (lineHeight / 3)
+							- (lineHeight / 5), xxp + 2, ty - (lineHeight / 3)
 							+ (lineHeight / 5));
-					g.drawLine(xx - 2,ty - (lineHeight / 3) - (lineHeight / 5),xx - 2,ty - (lineHeight / 3)
-							+ (lineHeight / 5));
+					g.drawLine(xx - 2,
+							ty - (lineHeight / 3) - (lineHeight / 5), xx - 2,
+							ty - (lineHeight / 3) + (lineHeight / 5));
 					g.setColor(c);
 				}
 				continue;
 			}
-			g.drawChars(a,i,1,xx,getInsets().top + ty);
+			g.drawChars(a, i, 1, xx, getInsets().top + ty);
 			xx += monoAdvance;
 			g.setColor(c);
 		}
 		return xx;
 	}
 
-	/** Paint the line with the given index to the given Graphics object, starting
+	/**
+	 * Paint the line with the given index to the given Graphics object,
+	 * starting
 	 * at the given y-coordinate.
-	 * @param g The graphics object to paint to.
-	 * @param lineNum The index of the line to render.
-	 * @param ty The y-coordinate at which to render the baseline.
+	 * 
+	 * @param g
+	 *            The graphics object to paint to.
+	 * @param lineNum
+	 *            The index of the line to render.
+	 * @param ty
+	 *            The y-coordinate at which to render the baseline.
 	 */
-	private void drawLine(Graphics g, int lineNum, int ty)
-	{
+	private void drawLine(Graphics g, int lineNum, int ty) {
 		g.setColor(getForeground());
 		Font drawingFont = getFont();
 		g.setFont(drawingFont);
@@ -1138,108 +1257,120 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		char[] a = line.toString().toCharArray();
 		Color c = g.getColor();
 
-		if (marker == null)
-		{
-			drawChars(g,a,0,a.length,xx,ty);
+		if (marker == null) {
+			drawChars(g, a, 0, a.length, xx, ty);
 		}
-		else
-		{
-			ArrayList<TokenMarkerInfo> tmall = marker.getStyles(code.get(lineNum));
-			/*DEBUG SHIT: This is annoying to write, so I'm going to commit it once.
-			if (lineNum == 10)
-			{
-				System.out.print("[ ");
-				for (TokenMarkerInfoEx tm : tmall)
-					System.out.print(tm.startPos + "-" + tm.endPos + " ");
-				System.out.println("]");
-			}*/
+		else {
+			ArrayList<TokenMarkerInfo> tmall = marker.getStyles(code
+					.get(lineNum));
+			/* DEBUG SHIT: This is annoying to write, so I'm going to commit it
+			 * once.
+			 * if (lineNum == 10)
+			 * {
+			 * System.out.print("[ ");
+			 * for (TokenMarkerInfoEx tm : tmall)
+			 * System.out.print(tm.startPos + "-" + tm.endPos + " ");
+			 * System.out.println("]");
+			 * } */
 			int pos = 0;
-			for (TokenMarkerInfo tm : tmall)
-			{
-				// Start by printing normal characters until we reach styleBlock.startPos
-				xx = drawChars(g,a,pos,tm.startPos,xx,ty);
+			for (TokenMarkerInfo tm : tmall) {
+				// Start by printing normal characters until we reach
+				// styleBlock.startPos
+				xx = drawChars(g, a, pos, tm.startPos, xx, ty);
 				// Print the remaining characters in the styleBlock range
 				if (tm.color != null)
 					g.setColor(tm.color);
 				else
 					g.setColor(c);
-				if (tm.fontStyle != fontFlags)
-				{
+				if (tm.fontStyle != fontFlags) {
 					fontFlags = tm.fontStyle;
 					drawingFont = getFont().deriveFont(fontFlags);
 					g.setFont(drawingFont);
 				}
-				xx = drawChars(g,a,tm.startPos,tm.endPos,xx,ty);
+				xx = drawChars(g, a, tm.startPos, tm.endPos, xx, ty);
 				pos = tm.endPos;
-				g.setFont(getFont());
+				// g.setFont(getFont());
 				g.setColor(c);
 			}
 		}
 	}
 
 	/** @see javax.swing.JComponent#paintComponent(java.awt.Graphics) */
-	@Override public void paintComponent(Graphics g)
-	{
-		Object map = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
-		if (map != null) ((Graphics2D) g).addRenderingHints((Map<?,?>) map);
+	@Override public void paintComponent(Graphics g) {
+		Object map = Toolkit.getDefaultToolkit().getDesktopProperty(
+				"awt.font.desktophints"); //$NON-NLS-1$
+		if (map != null)
+			((Graphics2D) g).addRenderingHints((Map<?, ?>) map);
 
 		Rectangle clip = g.getClipBounds();
 
 		// Fill background
 		g.setColor(getBackground());
-		g.fillRect(clip.x,clip.y,clip.width,clip.height);
+		g.fillRect(clip.x, clip.y, clip.width, clip.height);
 
 		for (Highlighter a : highlighters)
-			a.paint(g,getInsets(),metrics,0,code.size());
+			a.paint(g, getInsets(), metrics, 0, code.size());
 
 		// Draw each line
 		final int insetY = lineLeading + lineAscent;
 		int lineNum = clip.y / lineHeight;
 
-		for (int ty = lineNum * lineHeight + insetY; ty < clip.y + clip.height + lineHeight
+		for (int ty = lineNum * lineHeight + insetY; ty < clip.y + clip.height
+				+ lineHeight
 				&& lineNum < code.size(); ty += lineHeight)
-			drawLine(g,lineNum++,ty);
+			drawLine(g, lineNum++, ty);
 
-		if (isFocusOwner()) caret.paint(g,sel);
+		if (isFocusOwner())
+			caret.paint(g, sel);
 	}
 
 	/**
-	 * A convenience repaint method which can convert a row/col pair into x/y space.
-	 * @param col The column at which to start the repaint.
-	 * @param row The row at which to start the repaint.
-	 * @param w The width of the region to repaint.
-	 * @param h The height of the region to repaint.
-	 * @param convert True to convert row/col into x/y space. False to treat as x/y.
+	 * A convenience repaint method which can convert a row/col pair into x/y
+	 * space.
+	 * 
+	 * @param col
+	 *            The column at which to start the repaint.
+	 * @param row
+	 *            The row at which to start the repaint.
+	 * @param w
+	 *            The width of the region to repaint.
+	 * @param h
+	 *            The height of the region to repaint.
+	 * @param convert
+	 *            True to convert row/col into x/y space. False to treat as x/y.
 	 */
-	public void repaint(int col, int row, int w, int h, boolean convert)
-	{
-		if (convert)
-		{
+	public void repaint(int col, int row, int w, int h, boolean convert) {
+		if (convert) {
 			Dimension g = getMaxGlyphSize();
 			col *= g.width;
 			row *= g.height;
 		}
-		repaint(col,row,w,h);
+		repaint(col, row, w, h);
 	}
 
-	//Input handling
+	// Input handling
 
 	/**
 	 * Translates a mouse coordinate to a text coordinate (y = row, x = col).
-	 * @param m The mouse coordinates to translate.
-	 * @param bound Whether the coordinate should be trimmed to a valid column.
-	 * @return A point representing the text coordinate, where Point.x is the column,
-	 * and point.y is the row in the code.
+	 * 
+	 * @param m
+	 *            The mouse coordinates to translate.
+	 * @param bound
+	 *            Whether the coordinate should be trimmed to a valid column.
+	 * @return A point representing the text coordinate, where Point.x is the
+	 *         column,
+	 *         and point.y is the row in the code.
 	 */
-	public Point mouseToPoint(Point m, boolean bound)
-	{
+	public Point mouseToPoint(Point m, boolean bound) {
 		Point p = m;
 		int row = p.y / lineHeight;
-		row = Math.max(Math.min(row,code.size() - 1),0);
-		int col = bound ? line_offset_from(row,p.x) : (int) Math.round(p.x / (double) monoAdvance);
-		if (!bound) return new Point(Math.max(col,0),row);
-		col = Math.max(Math.min(col,code.getsb(row).length()),0);
-		return new Point(col,row);
+		row = Math.max(Math.min(row, code.size() - 1), 0);
+		int col = bound ? line_offset_from(row, p.x) : (int) Math.round(p.x
+				/ (double) monoAdvance);
+		if (!bound)
+			return new Point(Math.max(col, 0), row);
+		col = Math.max(Math.min(col, code.getsb(row).length()), 0);
+		return new Point(col, row);
 	}
 
 	/**
@@ -1250,63 +1381,69 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	private boolean shouldHandleRelease = false;
 
 	/**
-	 * Handle a mouse event, such as clicks, double clicks, drags, for selection,
+	 * Handle a mouse event, such as clicks, double clicks, drags, for
+	 * selection,
 	 * scrolling, and general mouse-related code manipulation.
 	 * 
-	 * @param e The mouse event to handle.
+	 * @param e
+	 *            The mouse event to handle.
 	 */
-	protected void handleMouseEvent(MouseEvent e)
-	{
-		/// FIXME: Double-click-and-drag is supposed to wrap the start and
-		/// end caret positions to word endings.
+	protected void handleMouseEvent(MouseEvent e) {
+		// / FIXME: Double-click-and-drag is supposed to wrap the start and
+		// / end caret positions to word endings.
 
-		if (e.getID() == MouseEvent.MOUSE_PRESSED) requestFocusInWindow();
-		//		if ((e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) != 0
-		//				&& (e.getID() == MouseEvent.MOUSE_PRESSED)) dragger.query();
+		if (e.getID() == MouseEvent.MOUSE_PRESSED)
+			requestFocusInWindow();
+		// if ((e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) != 0
+		// && (e.getID() == MouseEvent.MOUSE_PRESSED)) dragger.query();
 
-		if (SwingUtilities.isLeftMouseButton(e))
-		{
-			switch (e.getID())
-			{
-				case MouseEvent.MOUSE_ENTERED:
+		if (SwingUtilities.isLeftMouseButton(e)) {
+			switch (e.getID()) {
+			case MouseEvent.MOUSE_ENTERED:
+				return;
+			case MouseEvent.MOUSE_PRESSED:
+				dragger.mousePressed(e);
+				if (e.isConsumed())
+					shouldHandleRelease = true;
+				break;
+			case MouseEvent.MOUSE_RELEASED:
+				dragger.mouseReleased(e);
+				removeMouseAutoScroll();
+				break;
+			case MouseEvent.MOUSE_DRAGGED:
+				if (!hasFocus())
 					return;
-				case MouseEvent.MOUSE_PRESSED:
-					dragger.mousePressed(e);
-					if (e.isConsumed()) shouldHandleRelease = true;
-					break;
-				case MouseEvent.MOUSE_RELEASED:
-					dragger.mouseReleased(e);
-					removeMouseAutoScroll();
-					break;
-				case MouseEvent.MOUSE_DRAGGED:
-					if (!hasFocus()) return;
-					dragger.mouseDragged(e);
-					break;
+				dragger.mouseDragged(e);
+				break;
 			}
-			if (e.isConsumed() || e.getID() == MouseEvent.MOUSE_EXITED) return;
+			if (e.isConsumed() || e.getID() == MouseEvent.MOUSE_EXITED)
+				return;
 
 			if ((e.getModifiers() & (InputEvent.ALT_MASK | InputEvent.CTRL_MASK)) != 0)
 				sel.changeType(ST.RECT);
 			else
 				sel.changeType(ST.NORM);
 
-			Point sp = new Point(caret.col,caret.row);
-			Point p = mouseToPoint(e.getPoint(),sel.type != ST.RECT);
+			Point sp = new Point(caret.col, caret.row);
+			Point p = mouseToPoint(e.getPoint(), sel.type != ST.RECT);
 			caret.col = p.x;
 			caret.row = p.y;
-			caret.colw = sel.type == ST.RECT ? caret.col * monoAdvance : line_wid_at(caret.row,caret.col);
+			caret.colw = sel.type == ST.RECT ? caret.col * monoAdvance
+					: line_wid_at(caret.row, caret.col);
 
 			if (e.getClickCount() == 2)
 				sel.special.setHandler(sel.wordSelHandler);
 			else if (e.getClickCount() == 3)
 				sel.special.setHandler(sel.lineSelHandler);
-			else if (e.getID() == MouseEvent.MOUSE_PRESSED) sel.special.valid = false;
+			else if (e.getID() == MouseEvent.MOUSE_PRESSED)
+				sel.special.valid = false;
 
 			updateMouseAutoScroll(e.getPoint());
 
-			if (sel.special.valid) sel.special.adjust();
+			if (sel.special.valid)
+				sel.special.adjust();
 
-			//cleanup (deselect, flash, repaint)
+			// cleanup (deselect, flash, repaint)
 			if (!sel.special.valid
 					&& (e.getModifiers() & Event.SHIFT_MASK) == 0
 					&& (e.getID() == MouseEvent.MOUSE_PRESSED || (e.getID() == MouseEvent.MOUSE_RELEASED && shouldHandleRelease)))
@@ -1314,23 +1451,24 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			shouldHandleRelease = false;
 			caret.flashOn();
 
-			if (sp.x != caret.col || sp.y != caret.row)
-			{
+			if (sp.x != caret.col || sp.y != caret.row) {
 				caret.positionChanged();
 				undoCanMerge = false;
 			}
-			if (e.getID() == MouseEvent.MOUSE_RELEASED) sel.selectionChanged();
+			if (e.getID() == MouseEvent.MOUSE_RELEASED)
+				sel.selectionChanged();
 
 			repaint();
 			return;
 		}
-		else if (SwingUtilities.isMiddleMouseButton(e))
-		{
-			if (e.getID() != MouseEvent.MOUSE_PRESSED) return;
-			Point p = mouseToPoint(e.getPoint(),true);
+		else if (SwingUtilities.isMiddleMouseButton(e)) {
+			if (e.getID() != MouseEvent.MOUSE_PRESSED)
+				return;
+			Point p = mouseToPoint(e.getPoint(), true);
 			ST sto = sel.type;
 			sel.type = ST.NORM;
-			UndoPatch up = new UndoPatch(p.y,Math.min(code.size() - 1,p.y + sel.getMiddlePasteRipple()));
+			UndoPatch up = new UndoPatch(p.y, Math.min(code.size() - 1, p.y
+					+ sel.getMiddlePasteRipple()));
 			up.cbefore.selt = sto;
 			sel.col = caret.col = p.x;
 			sel.row = caret.row = p.y;
@@ -1338,782 +1476,735 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			final int mcr = sel.middleClickPaste();
 			doCodeSize(true);
 			up.realize(mcr);
-			storeUndo(up,OPT.PASTE);
+			storeUndo(up, OPT.PASTE);
 			repaint();
 		}
 	}
 
-	@Override
-	protected void processMouseEvent(MouseEvent e)
-	{
+	@Override protected void processMouseEvent(MouseEvent e) {
 		super.processMouseEvent(e);
 		handleMouseEvent(e);
 	}
 
-	@Override
-	protected void processMouseMotionEvent(MouseEvent e)
-	{
+	@Override protected void processMouseMotionEvent(MouseEvent e) {
 		super.processMouseMotionEvent(e);
 		handleMouseEvent(e);
 	}
 
-	protected void processKeyTyped(KeyEvent e)
-	{
-		final Point sc = new Point(caret.col,caret.row);
-		switch (e.getKeyChar())
-		{
-			case KeyEvent.VK_ENTER:
-				if (sel.type == Selection.ST.NORM)
-				{
-					UndoPatch up = new UndoPatch();
-					sel.deleteSel();
-					StringBuilder nr = code.getsb(caret.row);
+	protected void processKeyTyped(KeyEvent e) {
+		final Point sc = new Point(caret.col, caret.row);
+		switch (e.getKeyChar()) {
+		case KeyEvent.VK_ENTER:
+			if (sel.type == Selection.ST.NORM) {
+				UndoPatch up = new UndoPatch();
+				sel.deleteSel();
+				StringBuilder nr = code.getsb(caret.row);
 
-					int offset = 0;
-					StringBuilder ins = new StringBuilder();
+				int offset = 0;
+				StringBuilder ins = new StringBuilder();
 
-					for (int i = 0; i < nr.length(); i++)
-						if (Character.isWhitespace(nr.charAt(i)))
-						{
-							offset++;
-							ins.append(nr.charAt(i));
+				for (int i = 0; i < nr.length(); i++)
+					if (Character.isWhitespace(nr.charAt(i))) {
+						offset++;
+						ins.append(nr.charAt(i));
+					}
+					else
+						break;
+
+				int iind = myLang.hasIndentAfter(nr.toString());
+				if (iind != -1) {
+					String ind = myLang.getIndent(iind);
+					ins.append(ind);
+					offset += ind.length();
+				}
+				code.add(++caret.row, ins + nr.substring(caret.col));
+				nr.delete(caret.col, nr.length());
+				sel.col = caret.col = offset;
+				caret.colw = line_wid_at(caret.row, caret.col);
+				up.realize(caret.row);
+				storeUndo(up, OPT.ENTER);
+			}
+			// RECT falls to here
+			sel.deselect(true);
+			break;
+		case KeyEvent.VK_BACK_SPACE:
+			switch (sel.type) {
+			case NORM: {
+				UndoPatch up = new UndoPatch();
+				int otype = selGetKind(code.getsb(caret.row), caret.col - 1);
+				if (!sel.deleteSel()) {
+					if (Settings.smartBackspace
+							&& otype == ChType.WHITE
+							&& caret.col > 0
+							&& all_white(code.getsb(caret.row).substring(0,
+									caret.col))) {
+						unindent(caret.row);
+						caret.col = sel.col;
+						up.realize(caret.row);
+						storeUndo(up, OPT.BACKSPACE);
+						break;
+					}
+					//
+					do {
+						if (caret.col > 0) {
+							code.getsb(caret.row).delete(caret.col - 1,
+									caret.col);
+							--caret.col;
+						}
+						else if (caret.row > 0) {
+							StringBuilder s1 = code.getsb(caret.row - 1);
+							StringBuilder s2 = code.getsb(caret.row);
+							code.remove(caret.row--);
+							up.prefix_row(code.get(caret.row));
+							caret.col = s1.length();
+							s1.append(s2);
 						}
 						else
 							break;
-
-					int iind = myLang.hasIndentAfter(nr.toString());
-					if (iind != -1)
-					{
-						String ind = myLang.getIndent(iind);
-						ins.append(ind);
-						offset += ind.length();
-					}
-					code.add(++caret.row,ins + nr.substring(caret.col));
-					nr.delete(caret.col,nr.length());
-					sel.col = caret.col = offset;
-					caret.colw = line_wid_at(caret.row,caret.col);
-					up.realize(caret.row);
-					storeUndo(up,OPT.ENTER);
+					} while (e.isControlDown()
+							&& selOfKind(code.getsb(caret.row), caret.col - 1,
+									otype));
 				}
-				//RECT falls to here
-				sel.deselect(true);
+				caret.colw = line_wid_at(caret.row, caret.col);
+				sel.deselect(false);
+				up.realize(caret.row);
+				storeUndo(up, OPT.BACKSPACE);
 				break;
-			case KeyEvent.VK_BACK_SPACE:
-				switch (sel.type)
-				{
-					case NORM:
-					{
-						UndoPatch up = new UndoPatch();
-						int otype = selGetKind(code.getsb(caret.row),caret.col - 1);
-						if (!sel.deleteSel())
-						{
-							if (Settings.smartBackspace && otype == ChType.WHITE && caret.col > 0
-									&& all_white(code.getsb(caret.row).substring(0,caret.col)))
-							{
-								unindent(caret.row);
-								caret.col = sel.col;
-								up.realize(caret.row);
-								storeUndo(up,OPT.BACKSPACE);
-								break;
-							}
-							// 	 
-							do
-							{
-								if (caret.col > 0)
-								{
-									code.getsb(caret.row).delete(caret.col - 1,caret.col);
-									--caret.col;
-								}
-								else if (caret.row > 0)
-								{
-									StringBuilder s1 = code.getsb(caret.row - 1);
-									StringBuilder s2 = code.getsb(caret.row);
-									code.remove(caret.row--);
-									up.prefix_row(code.get(caret.row));
-									caret.col = s1.length();
-									s1.append(s2);
-								}
+			}
+			case RECT: {
+				UndoPatch up = new UndoPatch();
+				int otype = selGetKind(code.getsb(caret.row), caret.col - 1);
+				if (!sel.deleteSel()) {
+					if (e.isControlDown()) {
+						// Control-Backspace on multiple lines.
+						// We'll handle this by determining the smallest
+						// word/pattern we
+						// can control-backspace over, and running with it on
+						// all lines.
+
+						// Nab the smallest distance
+						int mindist = -1;
+						for (int y = Math.min(sel.row, caret.row); y <= Math
+								.max(sel.row, caret.row); y++) {
+							int actcol = column_to_index(y, caret.col);
+							StringBuilder sb = code.getsb(y);
+							otype = selGetKind(sb, actcol - 1);
+							int mcol = actcol, mydist = 0;
+							do {
+								if (mcol > 0)
+									if (mcol < sb.length()) {
+										if (sb.charAt(mcol--) == '\t') {
+											mydist += Settings.indentSizeInSpaces;
+											mydist /= Settings.indentSizeInSpaces;
+											mydist *= Settings.indentSizeInSpaces;
+										}
+										else
+											mydist += 1;
+									}
+									else {
+										mydist++;
+										mcol--;
+									}
 								else
 									break;
-							}
-							while (e.isControlDown() && selOfKind(code.getsb(caret.row),caret.col - 1,otype));
+							} while (selOfKind(code.getsb(y), mcol - 1, otype));
+							if (mindist == -1 || mydist < mindist)
+								mindist = mydist;
 						}
-						caret.colw = line_wid_at(caret.row,caret.col);
-						sel.deselect(false);
-						up.realize(caret.row);
-						storeUndo(up,OPT.BACKSPACE);
-						break;
+						int cs = caret.col - mindist, ce = caret.col;
+						sel.col = caret.col = cs;
+						caret.colw = line_wid_at(caret.row, caret.col);
+						for (int y = Math.min(sel.row, caret.row); y <= Math
+								.max(sel.row, caret.row); y++)
+							code.getsb(y).delete(column_to_index(y, cs),
+									column_to_index(y, ce));
 					}
-					case RECT:
-					{
-						UndoPatch up = new UndoPatch();
-						int otype = selGetKind(code.getsb(caret.row),caret.col - 1);
-						if (!sel.deleteSel())
-						{
-							if (e.isControlDown())
-							{
-								// Control-Backspace on multiple lines.
-								// We'll handle this by determining the smallest word/pattern we
-								// can control-backspace over, and running with it on all lines.
-
-								// Nab the smallest distance
-								int mindist = -1;
-								for (int y = Math.min(sel.row,caret.row); y <= Math.max(sel.row,caret.row); y++)
-								{
-									int actcol = column_to_index(y,caret.col);
-									StringBuilder sb = code.getsb(y);
-									otype = selGetKind(sb,actcol - 1);
-									int mcol = actcol, mydist = 0;
-									do
-									{
-										if (mcol > 0)
-											if (mcol < sb.length())
-											{
-												if (sb.charAt(mcol--) == '\t')
-												{
-													mydist += Settings.indentSizeInSpaces;
-													mydist /= Settings.indentSizeInSpaces;
-													mydist *= Settings.indentSizeInSpaces;
-												}
-												else
-													mydist += 1;
-											}
-											else
-											{
-												mydist++;
-												mcol--;
-											}
-										else
-											break;
-									}
-									while (selOfKind(code.getsb(y),mcol - 1,otype));
-									if (mindist == -1 || mydist < mindist) mindist = mydist;
-								}
-								int cs = caret.col - mindist, ce = caret.col;
-								sel.col = caret.col = cs;
-								caret.colw = line_wid_at(caret.row,caret.col);
-								for (int y = Math.min(sel.row,caret.row); y <= Math.max(sel.row,caret.row); y++)
-									code.getsb(y).delete(column_to_index(y,cs),column_to_index(y,ce));
-							}
-							else if (caret.col > 0)
-							{
-								for (int y = Math.min(sel.row,caret.row); y <= Math.max(sel.row,caret.row); y++)
-									code.getsb(y).delete(column_to_index(y,caret.col - 1),
-											column_to_index(y,caret.col));
-								sel.col = --caret.col;
-								caret.colw = caret.col * monoAdvance;
-							}
-						}
-						up.realize(Math.max(caret.row,sel.row));
-						storeUndo(up,OPT.BACKSPACE);
-						break;
+					else if (caret.col > 0) {
+						for (int y = Math.min(sel.row, caret.row); y <= Math
+								.max(sel.row, caret.row); y++)
+							code.getsb(y).delete(
+									column_to_index(y, caret.col - 1),
+									column_to_index(y, caret.col));
+						sel.col = --caret.col;
+						caret.colw = caret.col * monoAdvance;
 					}
 				}
+				up.realize(Math.max(caret.row, sel.row));
+				storeUndo(up, OPT.BACKSPACE);
 				break;
-			case KeyEvent.VK_DELETE:
-				switch (sel.type)
-				{
-					case NORM:
-					{
-						UndoPatch up = new UndoPatch();
-						int otype = selGetKind(code.getsb(caret.row),caret.col);
-						if (!sel.deleteSel()) do
-						{
-							if (caret.col < code.getsb(caret.row).length())
-								code.getsb(caret.row).delete(caret.col,caret.col + 1);
-							else if (caret.row + 1 < code.size())
-							{
-								StringBuilder s1 = code.getsb(caret.row);
-								StringBuilder s2 = code.getsb(caret.row + 1);
-								code.remove(caret.row + 1);
-								s1.append(s2);
-							}
+			}
+			}
+			break;
+		case KeyEvent.VK_DELETE:
+			switch (sel.type) {
+			case NORM: {
+				UndoPatch up = new UndoPatch();
+				int otype = selGetKind(code.getsb(caret.row), caret.col);
+				if (!sel.deleteSel())
+					do {
+						if (caret.col < code.getsb(caret.row).length())
+							code.getsb(caret.row).delete(caret.col,
+									caret.col + 1);
+						else if (caret.row + 1 < code.size()) {
+							StringBuilder s1 = code.getsb(caret.row);
+							StringBuilder s2 = code.getsb(caret.row + 1);
+							code.remove(caret.row + 1);
+							s1.append(s2);
+						}
+						else
+							break;
+					} while (e.isControlDown()
+							&& selOfKind(code.getsb(caret.row), caret.col,
+									otype));
+				up.realize(caret.row);
+				storeUndo(up, OPT.DELETE);
+				break;
+			}
+			case RECT: {
+				UndoPatch up = new UndoPatch();
+				int otype = selGetKind(code.getsb(caret.row), caret.col);
+				if (!sel.deleteSel()) {
+					for (int y = Math.min(sel.row, caret.row); y <= Math.max(
+							sel.row, caret.row); y++) {
+						int dcol = column_to_index(y, caret.col);
+						otype = selGetKind(code.getsb(y), dcol);
+						do {
+							if (dcol < code.getsb(y).length())
+								code.getsb(y).delete(dcol, dcol + 1);
 							else
 								break;
-						}
-						while (e.isControlDown() && selOfKind(code.getsb(caret.row),caret.col,otype));
-						up.realize(caret.row);
-						storeUndo(up,OPT.DELETE);
-						break;
-					}
-					case RECT:
-					{
-						UndoPatch up = new UndoPatch();
-						int otype = selGetKind(code.getsb(caret.row),caret.col);
-						if (!sel.deleteSel())
-						{
-							for (int y = Math.min(sel.row,caret.row); y <= Math.max(sel.row,caret.row); y++)
-							{
-								int dcol = column_to_index(y,caret.col);
-								otype = selGetKind(code.getsb(y),dcol);
-								do
-								{
-									if (dcol < code.getsb(y).length())
-										code.getsb(y).delete(dcol,dcol + 1);
-									else
-										break;
-								}
-								while (e.isControlDown() && selOfKind(code.getsb(y),dcol,otype));
-							}
-						}
-						up.realize(caret.row);
-						storeUndo(up,OPT.DELETE);
-						break;
+						} while (e.isControlDown()
+								&& selOfKind(code.getsb(y), dcol, otype));
 					}
 				}
+				up.realize(caret.row);
+				storeUndo(up, OPT.DELETE);
 				break;
-			case KeyEvent.VK_TAB:
-				if (!sel.isEmpty())
-				{
-					UndoPatch up = new UndoPatch();
-					String tab = Settings.indentRepString;
-					int yx = Math.max(sel.row,caret.row);
-					for (int y = Math.min(sel.row,caret.row); y <= yx; y++)
-						code.getsb(y).insert(0,tab);
-					sel.col += tab.length();
-					caret.col += tab.length();
-					up.realize(Math.max(sel.row,caret.row));
-					storeUndo(up,OPT.INDENT);
+			}
+			}
+			break;
+		case KeyEvent.VK_TAB:
+			if (!sel.isEmpty()) {
+				UndoPatch up = new UndoPatch();
+				String tab = Settings.indentRepString;
+				int yx = Math.max(sel.row, caret.row);
+				for (int y = Math.min(sel.row, caret.row); y <= yx; y++)
+					code.getsb(y).insert(0, tab);
+				sel.col += tab.length();
+				caret.col += tab.length();
+				up.realize(Math.max(sel.row, caret.row));
+				storeUndo(up, OPT.INDENT);
+				break;
+			}
+			UndoPatch up = new UndoPatch();
+			sel.insert(Settings.indentRepString);
+			up.realize(caret.row);
+			storeUndo(up, OPT.TYPED);
+			break;
+		case '\u0018': // cancel (not sure why it's VK_FINAL instead of
+						// VK_CANCEL)
+		case KeyEvent.VK_ESCAPE: // escape (in paramString, this is \u001B,
+									// which is VK_ESCAPE
+		case KeyEvent.CHAR_UNDEFINED:
+			// these cases are taken from KeyEvent.paramString
+			break;
+		default:
+			if (e.isControlDown() || e.isAltDown()) {
+				switch (e.getKeyCode()) {
+				// Handle bindings. Usually this is handled by registering key
+				// bindings,
+				// in which case it is usually consumed before it gets here.
+				default:
 					break;
 				}
-				UndoPatch up = new UndoPatch();
-				sel.insert(Settings.indentRepString);
-				up.realize(caret.row);
-				storeUndo(up,OPT.TYPED);
-				break;
-			case '\u0018': //cancel (not sure why it's VK_FINAL instead of VK_CANCEL)
-			case KeyEvent.VK_ESCAPE: //escape (in paramString, this is \u001B, which is VK_ESCAPE
-			case KeyEvent.CHAR_UNDEFINED:
-				//these cases are taken from KeyEvent.paramString
-				break;
-			default:
-				if (e.isControlDown() || e.isAltDown())
-				{
-					switch (e.getKeyCode())
-					{
-					// Handle bindings. Usually this is handled by registering key bindings,
-					// in which case it is usually consumed before it gets here.
-						default:
-							break;
-					}
-				}
-				else
-				{
-					UndoPatch up2 = new UndoPatch();
-					sel.insert(e.getKeyChar());
-					up2.realize(caret.row);
-					storeUndo(up2,e.getKeyChar() == ' ' ? OPT.SPACE : OPT.TYPED);
-				}
-				break;
+			}
+			else {
+				UndoPatch up2 = new UndoPatch();
+				sel.insert(e.getKeyChar());
+				up2.realize(caret.row);
+				storeUndo(up2, e.getKeyChar() == ' ' ? OPT.SPACE : OPT.TYPED);
+			}
+			break;
 		}
-		if (sc.x != caret.col || sc.y != caret.row) caret.positionChanged();
+		if (sc.x != caret.col || sc.y != caret.row)
+			caret.positionChanged();
 		doCodeSize(true);
-		//		doShowCursor();
+		// doShowCursor();
 	}
 
-	private static boolean all_white(String str)
-	{
+	private static boolean all_white(String str) {
 		for (int i = 0; i < str.length(); i++)
-			if (!Character.isWhitespace(str.charAt(i))) return false;
+			if (!Character.isWhitespace(str.charAt(i)))
+				return false;
 		return true;
 	}
 
-	protected void processKeyPressed(KeyEvent e)
-	{
-		//Note to developers: please consume keys that you use.
-		//This way, containers don't still see them as usable
-		//(e.g. arrow keys triggering the scrollbar)
-		Point sc = new Point(caret.col,caret.row);
-		switch (e.getKeyCode())
-		{
-			case KeyEvent.VK_INSERT:
-				caret.insert ^= true;
-				e.consume();
-				break;
-			case KeyEvent.VK_LEFT:
-				int otype = selGetKind(code.getsb(caret.row),caret.col - 1);
-				do
-				{
-					if (caret.col > 0)
-						--caret.col;
-					else if (caret.row > 0 && sel.type != ST.RECT)
-					{
-						caret.row--;
+	protected void processKeyPressed(KeyEvent e) {
+		// Note to developers: please consume keys that you use.
+		// This way, containers don't still see them as usable
+		// (e.g. arrow keys triggering the scrollbar)
+		Point sc = new Point(caret.col, caret.row);
+		switch (e.getKeyCode()) {
+		case KeyEvent.VK_INSERT:
+			caret.insert ^= true;
+			e.consume();
+			break;
+		case KeyEvent.VK_LEFT:
+			int otype = selGetKind(code.getsb(caret.row), caret.col - 1);
+			do {
+				if (caret.col > 0)
+					--caret.col;
+				else if (caret.row > 0 && sel.type != ST.RECT) {
+					caret.row--;
+					caret.col = code.getsb(caret.row).length();
+				}
+				else
+					break;
+			} while (e.isControlDown()
+					&& selOfKind(code.getsb(caret.row), caret.col - 1, otype));
+			undoCanMerge = false;
+
+			caret.colw = line_wid_at(caret.row, caret.col);
+			if (e.isAltDown())
+				sel.changeType(ST.RECT);
+			else if (e.isShiftDown())
+				sel.changeType(ST.NORM);
+			else
+				sel.deselect(true);
+			doCodeSize(false);
+			e.consume();
+			break;
+		case KeyEvent.VK_RIGHT:
+			otype = selGetKind(code.getsb(caret.row), caret.col);
+			do {
+				if (sel.type == ST.RECT
+						|| caret.col < code.getsb(caret.row).length())
+					++caret.col;
+				else if (caret.row + 1 < code.size() && sel.type != ST.RECT) {
+					caret.row++;
+					caret.col = 0;
+				}
+				else
+					break;
+			} while (e.isControlDown()
+					&& selOfKind(code.getsb(caret.row), caret.col, otype));
+			undoCanMerge = false;
+			caret.colw = line_wid_at(caret.row, caret.col);
+			if (e.isAltDown())
+				sel.changeType(ST.RECT);
+			else if (e.isShiftDown())
+				sel.changeType(ST.NORM);
+			else
+				sel.deselect(true);
+			e.consume();
+			break;
+		case KeyEvent.VK_UP:
+			if (caret.row > 0) {
+				if (sel.type == ST.RECT)
+					--caret.row;
+				else {
+					caret.col = line_offset_from(--caret.row, caret.colw);
+					if (caret.col > code.getsb(caret.row).length())
 						caret.col = code.getsb(caret.row).length();
-					}
-					else
-						break;
 				}
-				while (e.isControlDown() && selOfKind(code.getsb(caret.row),caret.col - 1,otype));
-				undoCanMerge = false;
-
-				caret.colw = line_wid_at(caret.row,caret.col);
-				if (e.isAltDown())
-					sel.changeType(ST.RECT);
-				else if (e.isShiftDown())
-					sel.changeType(ST.NORM);
-				else
-					sel.deselect(true);
-				doCodeSize(false);
-				e.consume();
-				break;
-			case KeyEvent.VK_RIGHT:
-				otype = selGetKind(code.getsb(caret.row),caret.col);
-				do
-				{
-					if (sel.type == ST.RECT || caret.col < code.getsb(caret.row).length())
-						++caret.col;
-					else if (caret.row + 1 < code.size() && sel.type != ST.RECT)
-					{
-						caret.row++;
-						caret.col = 0;
-					}
-					else
-						break;
+			}
+			else
+				caret.colw = caret.col = 0;
+			undoCanMerge = false;
+			if (e.isAltDown())
+				sel.changeType(ST.RECT);
+			else if (e.isShiftDown())
+				sel.changeType(ST.NORM);
+			else
+				sel.deselect(true);
+			e.consume();
+			break;
+		case KeyEvent.VK_DOWN:
+			if (caret.row + 1 < code.size()) {
+				if (sel.type == ST.RECT)
+					++caret.row;
+				else {
+					caret.col = line_offset_from(++caret.row, caret.colw);
+					if (caret.col > code.getsb(caret.row).length())
+						caret.col = code.getsb(caret.row).length();
 				}
-				while (e.isControlDown() && selOfKind(code.getsb(caret.row),caret.col,otype));
-				undoCanMerge = false;
-				caret.colw = line_wid_at(caret.row,caret.col);
-				if (e.isAltDown())
-					sel.changeType(ST.RECT);
-				else if (e.isShiftDown())
-					sel.changeType(ST.NORM);
-				else
-					sel.deselect(true);
-				e.consume();
-				break;
-			case KeyEvent.VK_UP:
-				if (caret.row > 0)
-				{
-					if (sel.type == ST.RECT)
-						--caret.row;
-					else
-					{
-						caret.col = line_offset_from(--caret.row,caret.colw);
-						if (caret.col > code.getsb(caret.row).length())
-							caret.col = code.getsb(caret.row).length();
-					}
-				}
-				else
-					caret.colw = caret.col = 0;
-				undoCanMerge = false;
-				if (e.isAltDown())
-					sel.changeType(ST.RECT);
-				else if (e.isShiftDown())
-					sel.changeType(ST.NORM);
-				else
-					sel.deselect(true);
-				e.consume();
-				break;
-			case KeyEvent.VK_DOWN:
-				if (caret.row + 1 < code.size())
-				{
-					if (sel.type == ST.RECT)
-						++caret.row;
-					else
-					{
-						caret.col = line_offset_from(++caret.row,caret.colw);
-						if (caret.col > code.getsb(caret.row).length())
-							caret.col = code.getsb(caret.row).length();
-					}
-				}
-				else
-					caret.colw = line_wid_at(caret.row,caret.col = code.getsb(caret.row).length());
-				undoCanMerge = false;
-				if (e.isAltDown())
-					sel.changeType(ST.RECT);
-				else if (e.isShiftDown())
-					sel.changeType(ST.NORM);
-				else
-					sel.deselect(true);
-				e.consume();
-				break;
-			case KeyEvent.VK_END:
-				if (e.isControlDown()) caret.row = code.size() - 1;
-				caret.colw = line_wid_at(caret.row,caret.col = code.getsb(caret.row).length());
-				if (e.isAltDown())
-					sel.changeType(ST.RECT);
-				else if (!e.isShiftDown()) sel.deselect(true);
-				e.consume();
-				break;
-			case KeyEvent.VK_HOME:
-				if (e.isControlDown()) caret.row = 0;
-				int P = 0;
-				while (P < code.getsb(caret.row).length()
-						&& Character.isWhitespace(code.getsb(caret.row).charAt(P)))
-					P++;
-				if (caret.col == P) P = 0;
-				caret.colw = P;
-				caret.col = P;
-				if (e.isAltDown())
-					sel.changeType(ST.RECT);
-				else if (e.isShiftDown())
-					sel.changeType(ST.NORM);
-				else
-					sel.deselect(true);
-				e.consume();
-				break;
-			case KeyEvent.VK_PAGE_UP:
-				int height = (getParent() instanceof JViewport) ? getParent().getHeight() : getHeight();
-				caret.row = Math.max(0,caret.row - height / lineHeight);
-				if (sel.type != ST.RECT) caret.col = Math.min(caret.col,code.getsb(caret.row).length());
-				//FIXME: If parent is viewport, also scroll that a screenfull
-				if (!e.isShiftDown()) sel.deselect(true);
-				e.consume();
-				break;
-			case KeyEvent.VK_PAGE_DOWN:
-				height = (getParent() instanceof JViewport) ? getParent().getHeight() : getHeight();
-				caret.row = Math.min(code.size() - 1,caret.row + height / lineHeight);
-				if (sel.type != ST.RECT) caret.col = Math.min(caret.col,code.getsb(caret.row).length());
-				//FIXME: If parent is viewport, also scroll that a screenfull
-				if (!e.isShiftDown()) sel.deselect(true);
-				e.consume();
-				break;
+			}
+			else
+				caret.colw = line_wid_at(caret.row,
+						caret.col = code.getsb(caret.row).length());
+			undoCanMerge = false;
+			if (e.isAltDown())
+				sel.changeType(ST.RECT);
+			else if (e.isShiftDown())
+				sel.changeType(ST.NORM);
+			else
+				sel.deselect(true);
+			e.consume();
+			break;
+		case KeyEvent.VK_END:
+			if (e.isControlDown())
+				caret.row = code.size() - 1;
+			caret.colw = line_wid_at(caret.row,
+					caret.col = code.getsb(caret.row).length());
+			if (e.isAltDown())
+				sel.changeType(ST.RECT);
+			else if (!e.isShiftDown())
+				sel.deselect(true);
+			e.consume();
+			break;
+		case KeyEvent.VK_HOME:
+			if (e.isControlDown())
+				caret.row = 0;
+			int P = 0;
+			while (P < code.getsb(caret.row).length()
+					&& Character.isWhitespace(code.getsb(caret.row).charAt(P)))
+				P++;
+			if (caret.col == P)
+				P = 0;
+			caret.colw = P;
+			caret.col = P;
+			if (e.isAltDown())
+				sel.changeType(ST.RECT);
+			else if (e.isShiftDown())
+				sel.changeType(ST.NORM);
+			else
+				sel.deselect(true);
+			e.consume();
+			break;
+		case KeyEvent.VK_PAGE_UP:
+			int height = (getParent() instanceof JViewport) ? getParent()
+					.getHeight() : getHeight();
+			caret.row = Math.max(0, caret.row - height / lineHeight);
+			if (sel.type != ST.RECT)
+				caret.col = Math.min(caret.col, code.getsb(caret.row).length());
+			// FIXME: If parent is viewport, also scroll that a screenfull
+			if (!e.isShiftDown())
+				sel.deselect(true);
+			e.consume();
+			break;
+		case KeyEvent.VK_PAGE_DOWN:
+			height = (getParent() instanceof JViewport) ? getParent()
+					.getHeight() : getHeight();
+			caret.row = Math.min(code.size() - 1, caret.row + height
+					/ lineHeight);
+			if (sel.type != ST.RECT)
+				caret.col = Math.min(caret.col, code.getsb(caret.row).length());
+			// FIXME: If parent is viewport, also scroll that a screenfull
+			if (!e.isShiftDown())
+				sel.deselect(true);
+			e.consume();
+			break;
 		}
-		if (sc.x != caret.col || sc.y != caret.row) caret.positionChanged();
+		if (sc.x != caret.col || sc.y != caret.row)
+			caret.positionChanged();
 		fitToCode();
-		//		doShowCursor();
+		// doShowCursor();
 	}
 
-	@Override
-	protected void processComponentKeyEvent(KeyEvent e)
-	{
+	@Override protected void processComponentKeyEvent(KeyEvent e) {
 		caret.flashOn();
-		switch (e.getID())
-		{
-			case KeyEvent.KEY_TYPED:
-				processKeyTyped(e);
-				break;
-			case KeyEvent.KEY_PRESSED:
-				processKeyPressed(e);
-				break;
+		switch (e.getID()) {
+		case KeyEvent.KEY_TYPED:
+			processKeyTyped(e);
+			break;
+		case KeyEvent.KEY_PRESSED:
+			processKeyPressed(e);
+			break;
 		}
 	}
 
-	//Line Change Listeners
+	// Line Change Listeners
 	/**
 	 * A LineChange is invoked whenever characters are added/removed
 	 * from lines, whether the line exists or is created. For only
 	 * listening to whether lines are added/removed, use Code.CodeListener.
 	 */
-	public interface LineChangeListener extends EventListener
-	{
+	public interface LineChangeListener extends EventListener {
 		void linesChanged(Code code, int start, int end);
 	}
 
-	public void addLineChangeListener(LineChangeListener listener)
-	{
-		listenerList.add(LineChangeListener.class,listener);
+	public void addLineChangeListener(LineChangeListener listener) {
+		listenerList.add(LineChangeListener.class, listener);
 	}
 
-	public void removeLineChangeListener(LineChangeListener listener)
-	{
-		listenerList.remove(LineChangeListener.class,listener);
+	public void removeLineChangeListener(LineChangeListener listener) {
+		listenerList.remove(LineChangeListener.class, listener);
 	}
 
-	protected void fireLineChange(int start, int end)
-	{
+	protected void fireLineChange(int start, int end) {
 		// Guaranteed to return a non-null array
 		Object[] listeners = listenerList.getListenerList();
 		// Process the listeners last to first, notifying
 		// those that are interested in this event
 		for (int i = listeners.length - 2; i >= 0; i -= 2)
-			if (listeners[i] == LineChangeListener.class)
-			{
+			if (listeners[i] == LineChangeListener.class) {
 				// Lazily create the event:
 				// if (e == null)
 				// e = new ListSelectionEvent(this, firstIndex, lastIndex);
-				((LineChangeListener) listeners[i + 1]).linesChanged(code,start,end);
+				((LineChangeListener) listeners[i + 1]).linesChanged(code,
+						start, end);
 			}
 	}
 
-	//Inner classes (mostly drag and drop)
+	// Inner classes (mostly drag and drop)
 
 	/**
 	 * Listens for mouse events for the purposes of detecting drag gestures.
 	 * BasicTextUI will maintain one of these per AppContext.
 	 */
-	class DragListener
-	{
+	class DragListener {
 		private boolean dragStarted;
 		private int motionThreshold;
 		private MouseEvent dndArmedEvent;
 
-		public DragListener()
-		{
+		public DragListener() {
 			motionThreshold = getDefaultThreshold();
 		}
 
-		public int getDefaultThreshold()
-		{
-			Integer ti = (Integer) Toolkit.getDefaultToolkit().getDesktopProperty(
-					"DnD.gestureMotionThreshold");
+		public int getDefaultThreshold() {
+			Integer ti = (Integer) Toolkit.getDefaultToolkit()
+					.getDesktopProperty("DnD.gestureMotionThreshold");
 			return ti == null ? 5 : ti.intValue();
 		}
 
-		public void mousePressed(MouseEvent e)
-		{
+		public void mousePressed(MouseEvent e) {
 			dragStarted = false;
-			if (isDragPossible(e.getPoint()))
-			{
+			if (isDragPossible(e.getPoint())) {
 				dndArmedEvent = e;
 				e.consume();
 			}
 		}
 
-		public void mouseReleased(MouseEvent e)
-		{
-			if (dragStarted) e.consume();
+		public void mouseReleased(MouseEvent e) {
+			if (dragStarted)
+				e.consume();
 			dndArmedEvent = null;
 		}
 
-		public void mouseDragged(MouseEvent e)
-		{
-			if (dragStarted)
-			{
+		public void mouseDragged(MouseEvent e) {
+			if (dragStarted) {
 				e.consume();
 				return;
 			}
-			if (dndArmedEvent == null) return;
+			if (dndArmedEvent == null)
+				return;
 
 			int dx = Math.abs(e.getX() - dndArmedEvent.getX());
 			int dy = Math.abs(e.getY() - dndArmedEvent.getY());
-			if ((dx > motionThreshold) || (dy > motionThreshold))
-			{
+			if ((dx > motionThreshold) || (dy > motionThreshold)) {
 				TransferHandler th = JoshText.this.getTransferHandler();
-				int act = e.isControlDown() ? TransferHandler.COPY : TransferHandler.MOVE;
+				int act = e.isControlDown() ? TransferHandler.COPY
+						: TransferHandler.MOVE;
 				dragStarted = true;
-				th.exportAsDrag(JoshText.this,dndArmedEvent,act);
+				th.exportAsDrag(JoshText.this, dndArmedEvent, act);
 				dndArmedEvent = null;
 			}
 			e.consume();
 		}
 
 		/** Determines if the press event is located over a selection */
-		protected boolean isDragPossible(Point mousePt)
-		{
-			Point p = mouseToPoint(mousePt,false);
-			return sel.contains(p.y,p.x);
+		protected boolean isDragPossible(Point mousePt) {
+			Point p = mouseToPoint(mousePt, false);
+			return sel.contains(p.y, p.x);
 		}
 
-		public void query()
-		{
+		public void query() {
 			System.out.println(dragStarted + "," + dndArmedEvent);
 		}
 	}
 
-	//TransferHandler
-	class JoshTextTransferHandler extends TransferHandler
-	{
+	// TransferHandler
+	class JoshTextTransferHandler extends TransferHandler {
 		private static final long serialVersionUID = 1L;
 
-		public JoshTextTransferHandler()
-		{
-			addPropertyChangeListener("dropLocation",new PropertyChangeListener()
-			{
-				@Override public void propertyChange(PropertyChangeEvent pce)
-				{
-					repaintDropLocation(pce.getOldValue());
-					repaintDropLocation(pce.getNewValue());
-				}
-			});
+		public JoshTextTransferHandler() {
+			addPropertyChangeListener("dropLocation",
+					new PropertyChangeListener() {
+						@Override public void propertyChange(
+								PropertyChangeEvent pce) {
+							repaintDropLocation(pce.getOldValue());
+							repaintDropLocation(pce.getNewValue());
+						}
+					});
 		}
 
-		public void repaintDropLocation(Object drop)
-		{
-			if (drop == null || !(drop instanceof DropLocation)) repaint();
+		public void repaintDropLocation(Object drop) {
+			if (drop == null || !(drop instanceof DropLocation))
+				repaint();
 			DropLocation loc = (DropLocation) drop;
 			loc.getDropPoint();
 		}
 
-		@Override
-		public int getSourceActions(JComponent c)
-		{
+		@Override public int getSourceActions(JComponent c) {
 			return COPY_OR_MOVE;
 		}
 
-		@Override
-		protected Transferable createTransferable(JComponent c)
-		{
-			if (!(c instanceof JoshText)) return null;
+		@Override protected Transferable createTransferable(JComponent c) {
+			if (!(c instanceof JoshText))
+				return null;
 			JoshText j = (JoshText) c;
-			if (j.sel.isEmpty()) return null;
+			if (j.sel.isEmpty())
+				return null;
 			return new StringSelection(j.sel.getSelectedTextForCopy());
 		}
 
-		@Override
-		protected void exportDone(JComponent source, Transferable data, int action)
-		{
+		@Override protected void exportDone(JComponent source,
+				Transferable data, int action) {
 			UndoPatch up = new UndoPatch();
-			if (action == MOVE && source instanceof JoshText)
-			{
+			if (action == MOVE && source instanceof JoshText) {
 				((JoshText) source).sel.deleteSel();
-				up.realize(Math.max(caret.row,sel.row));
-				storeUndo(up,OPT.DELETE);
+				up.realize(Math.max(caret.row, sel.row));
+				storeUndo(up, OPT.DELETE);
 			}
 			repaint();
 		}
 
-		@Override
-		public boolean canImport(TransferSupport info)
-		{
+		@Override public boolean canImport(TransferSupport info) {
 			return info.isDataFlavorSupported(DataFlavor.stringFlavor);
-			//			if (info.isDrop()) dropPoint = mouseToPoint(info.getDropLocation().getDropPoint(),true);
-			//			return true;
+			// if (info.isDrop()) dropPoint =
+			// mouseToPoint(info.getDropLocation().getDropPoint(),true);
+			// return true;
 		}
 
-		@Override
-		public boolean importData(TransferSupport info)
-		{
+		@Override public boolean importData(TransferSupport info) {
 			Transferable t = info.getTransferable();
 			String data;
-			try
-			{
+			try {
 				data = (String) t.getTransferData(DataFlavor.stringFlavor);
-			}
-			catch (Exception e)
-			{
+			} catch (Exception e) {
 				return false;
 			}
 			UndoPatch up = new UndoPatch();
-			if (info.isDrop())
-			{
-				Point p = mouseToPoint(info.getDropLocation().getDropPoint(),true);
+			if (info.isDrop()) {
+				Point p = mouseToPoint(info.getDropLocation().getDropPoint(),
+						true);
 				caret.row = p.y;
 				caret.col = p.x;
 				sel.deselect(false);
 				sel.type = ST.NORM;
 				up.startRow = caret.row;
-				up.reconstruct(p.y,Math.min(code.size() - 1,p.y + sel.getInsertRipple(data)));
+				up.reconstruct(
+						p.y,
+						Math.min(code.size() - 1,
+								p.y + sel.getInsertRipple(data)));
 			}
 			int er = 0;
 			if (data.length() > 0 && data.charAt(data.length() - 1) == 0)
-				er = Math.max(1,sel.insertRect(data.substring(0,data.length() - 1))) - 1;
+				er = Math.max(1,
+						sel.insertRect(data.substring(0, data.length() - 1))) - 1;
 			else
 				sel.insert(data);
 			up.realize(caret.row + er);
-			storeUndo(up,OPT.PASTE);
+			storeUndo(up, OPT.PASTE);
 			repaint();
 			return true;
 		}
 	}
 
-	//Scrollable
+	// Scrollable
 
-	@Override public Dimension getPreferredScrollableViewportSize()
-	{
-		return new Dimension(320,240);
+	@Override public Dimension getPreferredScrollableViewportSize() {
+		return new Dimension(320, 240);
 	}
 
-	@Override public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction)
-	{
-		switch (orientation)
-		{
-			case SwingConstants.VERTICAL:
-				return getFontMetrics(getFont()).getHeight();
-			case SwingConstants.HORIZONTAL:
-				return monoAdvance;
-			default:
-				throw new IllegalArgumentException("Invalid orientation: " + orientation);
+	@Override public int getScrollableUnitIncrement(Rectangle visibleRect,
+			int orientation, int direction) {
+		switch (orientation) {
+		case SwingConstants.VERTICAL:
+			return getFontMetrics(getFont()).getHeight();
+		case SwingConstants.HORIZONTAL:
+			return monoAdvance;
+		default:
+			throw new IllegalArgumentException("Invalid orientation: "
+					+ orientation);
 		}
 	}
 
-	@Override public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction)
-	{
-		switch (orientation)
-		{
-			case SwingConstants.VERTICAL:
-				return visibleRect.height;
-			case SwingConstants.HORIZONTAL:
-				return visibleRect.width;
-			default:
-				throw new IllegalArgumentException("Invalid orientation: " + orientation);
+	@Override public int getScrollableBlockIncrement(Rectangle visibleRect,
+			int orientation, int direction) {
+		switch (orientation) {
+		case SwingConstants.VERTICAL:
+			return visibleRect.height;
+		case SwingConstants.HORIZONTAL:
+			return visibleRect.width;
+		default:
+			throw new IllegalArgumentException("Invalid orientation: "
+					+ orientation);
 		}
 	}
 
-	@Override public boolean getScrollableTracksViewportHeight()
-	{
+	@Override public boolean getScrollableTracksViewportHeight() {
 		return false;
 	}
 
-	@Override public boolean getScrollableTracksViewportWidth()
-	{
+	@Override public boolean getScrollableTracksViewportWidth() {
 		return false;
 	}
 
-	void fireResize()
-	{
+	void fireResize() {
 		Container a = getParent();
-		if (a == null) return;
+		if (a == null)
+			return;
 		int w = a.getWidth(), h = a.getHeight();
 		Dimension ps = getMinimumSize();
-		ps.width = Math.max(ps.width,w);
-		ps.height = Math.max(ps.height,h);
+		ps.width = Math.max(ps.width, w);
+		ps.height = Math.max(ps.height, h);
 		setPreferredSize(ps);
 		setSize(ps);
 	}
 
 	// Listen to parent component
-	@Override public void componentResized(ComponentEvent e)
-	{
+	@Override public void componentResized(ComponentEvent e) {
 		fireResize();
 	}
 
-	@Override public void componentHidden(ComponentEvent e)
-	{
+	@Override public void componentHidden(ComponentEvent e) {
 		repaint();
 	}
 
-	@Override public void componentMoved(ComponentEvent e)
-	{
+	@Override public void componentMoved(ComponentEvent e) {
 		repaint();
 	}
 
-	@Override public void componentShown(ComponentEvent e)
-	{
+	@Override public void componentShown(ComponentEvent e) {
 		repaint();
 	}
 
 	// Be a clipboard owner
-	@Override public void lostOwnership(Clipboard arg0, Transferable arg1)
-	{
+	@Override public void lostOwnership(Clipboard arg0, Transferable arg1) {
 		// WHOGIVESAFUCK.jpg
 	}
 
-	//-----------------------------------------------------------------
-	//----- Mark Matching Brackets ------------------------------------
-	//-----------------------------------------------------------------
+	// -----------------------------------------------------------------
+	// ----- Mark Matching Brackets ------------------------------------
+	// -----------------------------------------------------------------
 
-	static enum MatchState
-	{
-		NOT_MATCHING,NO_MATCH,MATCHING
+	static enum MatchState {
+		NOT_MATCHING, NO_MATCH, MATCHING
 	}
 
-	class BracketHighlighter implements Highlighter,CaretListener
-	{
+	class BracketHighlighter implements Highlighter, CaretListener {
 		MatchState matching;
 		int matchLine, matchPos;
 
-		@Override public void paint(Graphics g, Insets i, CodeMetrics gm, int line_start, int line_end)
-		{
+		@Override public void paint(Graphics g, Insets i, CodeMetrics gm,
+				int line_start, int line_end) {
 			Color c = g.getColor();
-			if (matching == MatchState.MATCHING)
-			{
-				g.setColor(new Color(100,100,100));
-				g.drawRect(line_wid_at(matchLine,matchPos),matchLine * lineHeight,monoAdvance,lineHeight);
+			if (matching == MatchState.MATCHING) {
+				g.setColor(new Color(100, 100, 100));
+				g.drawRect(line_wid_at(matchLine, matchPos), matchLine
+						* lineHeight, monoAdvance, lineHeight);
 			}
-			else if (matching == MatchState.NO_MATCH)
-			{
-				g.setColor(new Color(255,0,0));
-				g.fillRect(line_wid_at(matchLine,matchPos),matchLine * lineHeight,monoAdvance,lineHeight);
+			else if (matching == MatchState.NO_MATCH) {
+				g.setColor(new Color(255, 0, 0));
+				g.fillRect(line_wid_at(matchLine, matchPos), matchLine
+						* lineHeight, monoAdvance, lineHeight);
 			}
 			g.setColor(c);
 		}
 
-		private boolean matchFound(BracketMatch m, int x, int y)
-		{
-			if (--m.count <= 0)
-			{
+		private boolean matchFound(BracketMatch m, int x, int y) {
+			if (--m.count <= 0) {
 				matchLine = y;
 				matchPos = x;
 				matching = MatchState.MATCHING;
@@ -2122,22 +2213,19 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			return false;
 		}
 
-		class BracketMatch
-		{
+		class BracketMatch {
 			char match;
 			char opposite;
 			short count;
 
-			public BracketMatch(char m, char o, short c)
-			{
+			public BracketMatch(char m, char o, short c) {
 				match = m;
 				opposite = o;
 				count = c;
 			}
 		}
 
-		private void findMatchForward(int row, int col, BracketMatch match)
-		{
+		private void findMatchForward(int row, int col, BracketMatch match) {
 			int y = row;
 			int blockType = 0;
 			StringBuilder sb = code.getsb(y);
@@ -2146,55 +2234,57 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			ArrayList<TokenMarkerInfo> tmall = marker.getStyles(code.get(y));
 
 			int offset;
-			for (offset = 0; offset < tmall.size(); offset++)
-			{
+			for (offset = 0; offset < tmall.size(); offset++) {
 				TokenMarkerInfo tm = tmall.get(offset);
-				if (col < tm.startPos) break; // The blocks have skipped us.
-				if (col >= tm.startPos && col < tm.endPos)
-				{
+				if (col < tm.startPos)
+					break; // The blocks have skipped us.
+				if (col >= tm.startPos && col < tm.endPos) {
 					blockType = tm.blockHash;
 					break;
 				}
 			}
-			if (subFindMatchForward(match,sb,tmall,offset,col,blockType,y)) return;
+			if (subFindMatchForward(match, sb, tmall, offset, col, blockType, y))
+				return;
 
-			for (y++; y < code.size(); y++)
-			{
+			for (y++; y < code.size(); y++) {
 				tmall = marker.getStyles(code.get(y));
-				if (subFindMatchForward(match,code.getsb(y),tmall,0,0,blockType,y)) return;
+				if (subFindMatchForward(match, code.getsb(y), tmall, 0, 0,
+						blockType, y))
+					return;
 			}
 		}
 
-		private boolean subFindMatchForward(BracketMatch match, StringBuilder sb,
-				ArrayList<TokenMarkerInfo> tmall, int offset, int spos, int blockType, int y)
-		{
+		private boolean subFindMatchForward(BracketMatch match,
+				StringBuilder sb, ArrayList<TokenMarkerInfo> tmall, int offset,
+				int spos, int blockType, int y) {
 			int pos = spos;
-			for (int i = offset; i < tmall.size(); i++)
-			{
+			for (int i = offset; i < tmall.size(); i++) {
 				TokenMarkerInfo tm = tmall.get(i);
 				if (blockType == 0) // If our start wasn't in a block
 					for (; pos < tm.startPos; pos++)
 						// Check outside this block's range
-						if (sb.charAt(pos) == match.match)
-						{
-							if (matchFound(match,pos,y)) return true;
+						if (sb.charAt(pos) == match.match) {
+							if (matchFound(match, pos, y))
+								return true;
 						}
-						else if (sb.charAt(pos) == match.opposite) match.count++;
-				if (blockType == tmall.get(i).blockHash) // If the block has the same type
-					for (pos = Math.max(spos,tm.startPos); pos < tm.endPos; pos++)
+						else if (sb.charAt(pos) == match.opposite)
+							match.count++;
+				if (blockType == tmall.get(i).blockHash) // If the block has the
+															// same type
+					for (pos = Math.max(spos, tm.startPos); pos < tm.endPos; pos++)
 						// Check inside it
-						if (sb.charAt(pos) == match.match)
-						{
-							if (matchFound(match,pos,y)) return true;
+						if (sb.charAt(pos) == match.match) {
+							if (matchFound(match, pos, y))
+								return true;
 						}
-						else if (sb.charAt(pos) == match.opposite) match.count++;
+						else if (sb.charAt(pos) == match.opposite)
+							match.count++;
 				pos = tm.endPos;
 			}
 			return false;
 		}
 
-		private void findMatchBackward(int row, int col, BracketMatch match)
-		{
+		private void findMatchBackward(int row, int col, BracketMatch match) {
 			int y = row;
 			int blockType = 0;
 			StringBuilder sb = code.getsb(y);
@@ -2203,105 +2293,107 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			ArrayList<TokenMarkerInfo> tmall = marker.getStyles(code.get(y));
 
 			int offset;
-			for (offset = 0; offset < tmall.size(); offset++)
-			{
+			for (offset = 0; offset < tmall.size(); offset++) {
 				TokenMarkerInfo tm = tmall.get(offset);
-				if (col < tm.startPos) break; // The blocks have skipped us.
-				if (col >= tm.startPos && col < tm.endPos)
-				{
+				if (col < tm.startPos)
+					break; // The blocks have skipped us.
+				if (col >= tm.startPos && col < tm.endPos) {
 					blockType = tm.blockHash;
 					break;
 				}
 			}
-			if (subFindMatchBackward(match,sb,tmall,offset,caret.col,blockType,y)) return;
+			if (subFindMatchBackward(match, sb, tmall, offset, caret.col,
+					blockType, y))
+				return;
 
-			for (y--; y >= 0; y--)
-			{
+			for (y--; y >= 0; y--) {
 				tmall = marker.getStyles(code.get(y));
-				if (subFindMatchBackward(match,code.getsb(y),tmall,tmall.size() - 1,code.getsb(y).length(),
-						blockType,y)) return;
+				if (subFindMatchBackward(match, code.getsb(y), tmall,
+						tmall.size() - 1, code.getsb(y).length(), blockType, y))
+					return;
 			}
 		}
 
-		private boolean subFindMatchBackward(BracketMatch match, StringBuilder sb,
-				ArrayList<TokenMarkerInfo> tmall, int offset, int spos, int blockType, int y)
-		{
+		private boolean subFindMatchBackward(BracketMatch match,
+				StringBuilder sb, ArrayList<TokenMarkerInfo> tmall, int offset,
+				int spos, int blockType, int y) {
 			int pos = spos;
 			int i = offset;
 			TokenMarkerInfo tm = tmall.get(i);
-			for (;;)
-			{
-				if (blockType == tmall.get(i).blockHash) // If the block has the same type
-					for (pos = Math.min(spos,tm.endPos - 1); pos >= tm.startPos; pos--)
+			for (;;) {
+				if (blockType == tmall.get(i).blockHash) // If the block has the
+															// same type
+					for (pos = Math.min(spos, tm.endPos - 1); pos >= tm.startPos; pos--)
 						// Check inside it
-						if (sb.charAt(pos) == match.match)
-						{
-							if (matchFound(match,pos,y)) return true;
+						if (sb.charAt(pos) == match.match) {
+							if (matchFound(match, pos, y))
+								return true;
 						}
-						else if (sb.charAt(pos) == match.opposite) match.count++;
-				if (i > 0)
-				{
+						else if (sb.charAt(pos) == match.opposite)
+							match.count++;
+				if (i > 0) {
 					tm = tmall.get(--i);
 					if (blockType == 0) // If our start wasn't in a block
 						for (pos = tm.startPos - 1; pos >= tm.endPos; pos--)
 							// Check outside this block's range
-							if (sb.charAt(pos) == match.match)
-							{
-								if (matchFound(match,pos,y)) return true;
+							if (sb.charAt(pos) == match.match) {
+								if (matchFound(match, pos, y))
+									return true;
 							}
-							else if (sb.charAt(pos) == match.opposite) match.count++;
+							else if (sb.charAt(pos) == match.opposite)
+								match.count++;
 				}
-				else
-				{
+				else {
 					if (blockType == 0) // If our start wasn't in a block
 						for (pos = tm.startPos - 1; pos >= 0; pos--)
 							// Check outside this block's range
-							if (sb.charAt(pos) == match.match)
-							{
-								if (matchFound(match,pos,y)) return true;
+							if (sb.charAt(pos) == match.match) {
+								if (matchFound(match, pos, y))
+									return true;
 							}
-							else if (sb.charAt(pos) == match.opposite) match.count++;
+							else if (sb.charAt(pos) == match.opposite)
+								match.count++;
 					break;
 				}
 			}
 			return false;
 		}
 
-		@Override public void caretUpdate(CaretEvent ce)
-		{
+		@Override public void caretUpdate(CaretEvent ce) {
 			matching = MatchState.NOT_MATCHING;
 			StringBuilder sb = code.getsb(caret.row);
 			String start = "([{", end = ")]}";
-			for (int x : new int[] { caret.col - 1,caret.col })
-				if (x >= 0 && x < sb.length())
-				{
+			for (int x : new int[] { caret.col - 1, caret.col })
+				if (x >= 0 && x < sb.length()) {
 					char c = sb.charAt(x);
 					int p = start.indexOf(c);
-					if (p != -1)
-					{
-						findMatchForward(caret.row,x,new BracketMatch(end.charAt(p),start.charAt(p),(short) 0));
+					if (p != -1) {
+						findMatchForward(caret.row, x,
+								new BracketMatch(end.charAt(p),
+										start.charAt(p), (short) 0));
 						return;
 					}
 					p = end.indexOf(c);
-					if (p != -1)
-					{
-						findMatchBackward(caret.row,x,new BracketMatch(start.charAt(p),end.charAt(p),(short) 0));
+					if (p != -1) {
+						findMatchBackward(caret.row, x,
+								new BracketMatch(start.charAt(p),
+										end.charAt(p), (short) 0));
 						return;
 					}
 				}
 		}
 	}
 
-	//-----------------------------------------------------------------
-	//----- Be Undoable -----------------------------------------------
-	//-----------------------------------------------------------------
+	// -----------------------------------------------------------------
+	// ----- Be Undoable -----------------------------------------------
+	// -----------------------------------------------------------------
 
 	/**
 	 * A class of a dozen types an UndoPatch can have.
+	 * 
 	 * @author josh
 	 */
-	static final class OPT
-	{
+	static final class OPT {
 		/** The patch is a one-of-a-kind that isn't worth its own constant. */
 		public static final int OTHER = 0;
 		/** The patch contains something the user typed. */
@@ -2310,8 +2402,10 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		public static final int BACKSPACE = 2;
 		/** The patch is from deleting something. */
 		public static final int DELETE = 3;
-		/** The patch is from typing a space; 'space' gets its
-		 *  own type to allow changing merge behavior around it */
+		/**
+		 * The patch is from typing a space; 'space' gets its
+		 * own type to allow changing merge behavior around it
+		 */
 		public static final int SPACE = 4;
 		/** The patch is from a newline insertion. */
 		public static final int ENTER = 5;
@@ -2336,20 +2430,27 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	 * during its lifecycle, with perfect accuracy assuming each
 	 * patch is applied in the same order it was created and reverted
 	 * in the opposite. (And was, of course, constructed properly.)
+	 * 
 	 * @author josh
 	 */
-	class UndoPatch
-	{
+	class UndoPatch {
 		/** The type of this UndoPatch; a member of {@link OPT} */
 		int opTag;
-		/** The text stored before the code was modified, hereafter
-		 * referred to as the "pre-patch text." */
+		/**
+		 * The text stored before the code was modified, hereafter
+		 * referred to as the "pre-patch text."
+		 */
 		Line[] oldText;
-		/** The text as it stood after the modifications that sparked
-		 * the creation of this UndoPatch, hereafter just "patch text." */
+		/**
+		 * The text as it stood after the modifications that sparked
+		 * the creation of this UndoPatch, hereafter just "patch text."
+		 */
 		Line[] patchText;
-		/** The index of the row that begins both segments of text.
-		 * In other words, both oldText and patchText must start at the same line. */
+		/**
+		 * The index of the row that begins both segments of text.
+		 * In other words, both oldText and patchText must start at the same
+		 * line.
+		 */
 		int startRow;
 
 		caretdata cbefore = new caretdata(), cafter = new caretdata();
@@ -2357,16 +2458,14 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		/**
 		 * Storage class for grabbing caret data and later replacing it.
 		 */
-		class caretdata
-		{
+		class caretdata {
 			public int ccol, crow, scol, srow;
 			ST selt;
 
 			/**
 			 * Grab the current caret indexes for use later.
 			 */
-			public void grab()
-			{
+			public void grab() {
 				ccol = caret.col;
 				crow = caret.row;
 				scol = sel.col;
@@ -2377,8 +2476,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			/**
 			 * Replace previously grabbed caret data, modifying {@link caret}.
 			 */
-			public void replace()
-			{
+			public void replace() {
 				caret.col = ccol;
 				caret.row = crow;
 				sel.col = scol;
@@ -2386,8 +2484,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 				sel.type = selt;
 			}
 
-			public void copy(caretdata cfrom)
-			{
+			public void copy(caretdata cfrom) {
 				ccol = cfrom.ccol;
 				crow = cfrom.crow;
 				scol = cfrom.scol;
@@ -2398,12 +2495,15 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 
 		/**
 		 * Construct a complete, finalized UndoPatch manually.
-		 * @param t  The pre-patch code.
-		 * @param ot The patch code.
-		 * @param sr The index of the starting row of the two codes.
+		 * 
+		 * @param t
+		 *            The pre-patch code.
+		 * @param ot
+		 *            The patch code.
+		 * @param sr
+		 *            The index of the starting row of the two codes.
 		 */
-		UndoPatch(Line[] t, Line[] ot, int sr)
-		{
+		UndoPatch(Line[] t, Line[] ot, int sr) {
 			oldText = ot;
 			patchText = t;
 			startRow = sr;
@@ -2412,10 +2512,11 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		/**
 		 * Prefixes a line to the stored pre-patch code, decrementing
 		 * the recorded startRow to account for the change.
-		 * @param ln  The line to prefix to our stored pre-patch code.
+		 * 
+		 * @param ln
+		 *            The line to prefix to our stored pre-patch code.
 		 */
-		public void prefix_row(Line ln)
-		{
+		public void prefix_row(Line ln) {
 			startRow--;
 			Line[] ancient = oldText;
 			oldText = new Line[oldText.length + 1];
@@ -2428,19 +2529,18 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		 * A convenience constructor; same as calling the other overload as
 		 * UndoPatch(<caret.row,sel.row>.sort).
 		 */
-		UndoPatch()
-		{
-			this(Math.min(caret.row,sel.row),Math.max(caret.row,sel.row));
+		UndoPatch() {
+			this(Math.min(caret.row, sel.row), Math.max(caret.row, sel.row));
 		}
 
 		/**
 		 * Construct a new UndoPatch, copying in pre-patch code from
 		 * {@link code} in the given row interval.
+		 * 
 		 * @param startRow
 		 * @param endRow
 		 */
-		UndoPatch(int startRow, int endRow)
-		{
+		UndoPatch(int startRow, int endRow) {
 			final int lc = endRow - startRow + 1;
 			oldText = new Line[lc];
 			for (int i = 0; i < lc; i++)
@@ -2450,13 +2550,15 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		}
 
 		/**
-		 * Reconstruct the stored pre-patch text by copying from
-		 * {@link code} in the given row range.
-		 * @param newStartRow  The index of the first row to copy.
-		 * @param newEndRow    The index of the last row to copy.
+		 * Reconstruct the stored pre-patch text by copying from {@link code} in
+		 * the given row range.
+		 * 
+		 * @param newStartRow
+		 *            The index of the first row to copy.
+		 * @param newEndRow
+		 *            The index of the last row to copy.
 		 */
-		public void reconstruct(int newStartRow, int newEndRow)
-		{
+		public void reconstruct(int newStartRow, int newEndRow) {
 			final int lc = newEndRow - newStartRow + 1;
 			oldText = new Line[lc];
 			for (int i = 0; i < lc; i++)
@@ -2465,14 +2567,15 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		}
 
 		/**
-		 * Populates the patchText member by copying data stored in
-		 * {@link code} from the previously given starting line {@link startRow}
-		 * to the newly specified end row.
-		 * @param endRow  The row at which to stop copying the patch text.
+		 * Populates the patchText member by copying data stored in {@link code}
+		 * from the previously given starting line {@link startRow} to the newly
+		 * specified end row.
+		 * 
+		 * @param endRow
+		 *            The row at which to stop copying the patch text.
 		 */
-		public void realize(int endRow)
-		{
-			fireLineChange(startRow,endRow);
+		public void realize(int endRow) {
+			fireLineChange(startRow, endRow);
 			final int lc = endRow - startRow + 1;
 			patchText = new Line[lc];
 			for (int i = 0; i < lc; i++)
@@ -2498,31 +2601,29 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 
 	/**
 	 * Undo the most recently stored UndoPatch.
-	 * The patch itself is not moved; instead, {@link patchIndex} is decremented.
+	 * The patch itself is not moved; instead, {@link patchIndex} is
+	 * decremented.
 	 */
-	public void undo()
-	{
-		if (patchIndex == 0) return;
+	public void undo() {
+		if (patchIndex == 0)
+			return;
 		UndoPatch p = undoPatches.get(--patchIndex);
 		// Reverse patch
 		int prow;
-		for (prow = 0; prow < p.patchText.length; prow++)
-		{
-			if (prow >= p.oldText.length)
-			{
+		for (prow = 0; prow < p.patchText.length; prow++) {
+			if (prow >= p.oldText.length) {
 				for (int da = p.patchText.length - prow; da > 0; da--)
 					code.remove(p.startRow + prow);
 				break;
 			}
-			code.set(p.startRow + prow,new Line(p.oldText[prow]));
+			code.set(p.startRow + prow, new Line(p.oldText[prow]));
 		}
-		while (prow < p.oldText.length)
-		{
-			code.add(p.startRow + prow,new Line(p.oldText[prow]));
+		while (prow < p.oldText.length) {
+			code.add(p.startRow + prow, new Line(p.oldText[prow]));
 			prow++;
 		}
 		p.cbefore.replace();
-		fireLineChange(p.startRow,p.startRow + p.oldText.length);
+		fireLineChange(p.startRow, p.startRow + p.oldText.length);
 		repaint();
 	}
 
@@ -2530,25 +2631,22 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	 * Re-apply the UndoPatch that has most recently been undone.
 	 * If no previous UndoPatch has been reverted, return without error.
 	 */
-	public void redo()
-	{
-		if (patchIndex >= undoPatches.size()) return;
+	public void redo() {
+		if (patchIndex >= undoPatches.size())
+			return;
 		UndoPatch p = undoPatches.get(patchIndex++);
 		// Perform patch
 		int prow;
-		for (prow = 0; prow < p.oldText.length; prow++)
-		{
-			if (prow >= p.patchText.length)
-			{
+		for (prow = 0; prow < p.oldText.length; prow++) {
+			if (prow >= p.patchText.length) {
 				for (int da = p.oldText.length - prow; da > 0; da--)
 					code.remove(p.startRow + prow);
 				break;
 			}
-			code.set(p.startRow + prow,new Line(p.patchText[prow]));
+			code.set(p.startRow + prow, new Line(p.patchText[prow]));
 		}
-		while (prow < p.patchText.length)
-		{
-			code.add(p.startRow + prow,new Line(p.patchText[prow]));
+		while (prow < p.patchText.length) {
+			code.add(p.startRow + prow, new Line(p.patchText[prow]));
 			prow++;
 		}
 		p.cafter.replace();
@@ -2557,64 +2655,73 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 
 	/**
 	 * Store an UndoPatch so we can undo it later.
-	 * @param undo      The UndoPatch to store.
-	 * @param patchType The type of the patch, as a constant from {@link OPT}.
+	 * 
+	 * @param undo
+	 *            The UndoPatch to store.
+	 * @param patchType
+	 *            The type of the patch, as a constant from {@link OPT}.
 	 */
-	public void storeUndo(UndoPatch undo, int patchType)
-	{
+	public void storeUndo(UndoPatch undo, int patchType) {
 		undo.opTag = patchType;
 		while (patchIndex < undoPatches.size())
 			undoPatches.remove(undoPatches.size() - 1);
-		if (!undoCanMerge || patchIndex == 0 || !undoCompatible(undoPatches.get(patchIndex - 1),undo))
-		{
+		if (!undoCanMerge || patchIndex == 0
+				|| !undoCompatible(undoPatches.get(patchIndex - 1), undo)) {
 			undoPatches.add(undo);
 			undoCanMerge = true;
 			patchIndex++;
 		}
 		else
-			undoMerge(undo,undoPatches.get(patchIndex - 1));
+			undoMerge(undo, undoPatches.get(patchIndex - 1));
 	}
 
 	/**
 	 * Merge two undo patches into one, assuming the patches have the
 	 * same starting line index and line count.
-	 * @param merge  The new UndoPatch to merge in.
-	 * @param into   The old UndoPatch into which we will merge the new one.
+	 * 
+	 * @param merge
+	 *            The new UndoPatch to merge in.
+	 * @param into
+	 *            The old UndoPatch into which we will merge the new one.
 	 */
-	private static void undoMerge(UndoPatch merge, UndoPatch into)
-	{
+	private static void undoMerge(UndoPatch merge, UndoPatch into) {
 		into.patchText = merge.patchText;
 		into.cafter.copy(merge.cafter);
 		into.opTag = merge.opTag;
 	}
 
 	/**
-	 * Utility function to check if two UndoPatches are ideal candidates for merging.
-	 * @param up1 Some UndoPatch, which will be tested for merge sanity.
-	 * @param up2 Some other UndoPatch against which to test the first for compatibility.
-	 * @return Whether, given the two undo patches, they should be merged instead of pushing the new one.
+	 * Utility function to check if two UndoPatches are ideal candidates for
+	 * merging.
+	 * 
+	 * @param up1
+	 *            Some UndoPatch, which will be tested for merge sanity.
+	 * @param up2
+	 *            Some other UndoPatch against which to test the first for
+	 *            compatibility.
+	 * @return Whether, given the two undo patches, they should be merged
+	 *         instead of pushing the new one.
 	 * @note It is immaterial which UndoPatch is newer.
 	 */
-	private static boolean undoCompatible(UndoPatch up1, UndoPatch up2)
-	{
-		if ((up1.opTag != up2.opTag && up2.opTag != OPT.SPACE) || up1.startRow != up2.startRow)
+	private static boolean undoCompatible(UndoPatch up1, UndoPatch up2) {
+		if ((up1.opTag != up2.opTag && up2.opTag != OPT.SPACE)
+				|| up1.startRow != up2.startRow)
 			return false;
-		if (up1.oldText.length != up1.patchText.length || up1.oldText.length != up2.oldText.length
-				|| up2.patchText.length != up2.patchText.length) return false;
+		if (up1.oldText.length != up1.patchText.length
+				|| up1.oldText.length != up2.oldText.length
+				|| up2.patchText.length != up2.patchText.length)
+			return false;
 		return true;
 	}
 
-	@Override public void focusGained(FocusEvent arg0)
-	{
+	@Override public void focusGained(FocusEvent arg0) {
 		FindDialog.getInstance().selectedJoshText = this;
 	}
 
-	@Override public void focusLost(FocusEvent arg0)
-	{ //Unused
+	@Override public void focusLost(FocusEvent arg0) { // Unused
 	}
 
-	public boolean isChanged()
-	{
+	public boolean isChanged() {
 		return undoPatches.size() > 1;
 	}
 }

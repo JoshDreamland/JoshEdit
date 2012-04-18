@@ -95,7 +95,7 @@ public class Runner
 			super(new BorderLayout());
 
 			text = new JoshText(codeLines);
-			lines = new LineNumberPanel(text.getFont(),text.code.size());
+			lines = new LineNumberPanel(text,text.code.size(),true);
 			text.code.addCodeListener(new CodeListener()
 				{
 					public void codeChanged(CodeEvent e)

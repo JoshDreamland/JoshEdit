@@ -8,7 +8,6 @@
 package org.lateralgm.joshedit;
 
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -16,23 +15,30 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.util.Map;
 
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 public class LineNumberPanel extends JPanel
 {
 	private static final long serialVersionUID = 1L;
 
+	/** The FontMetrics of the textarea that this is watching, so we know the font height for spacing line numbers */
+	protected FontMetrics metrics;
 	protected int lines;
 	/** Indicates whether line numbering starts at 0 */
-	protected boolean startZero = true;
-	/** The font of the textarea that this is watching, so we know the font height for spacing line numbers */
-	protected Font metricFont;
+	protected boolean startZero;
 
-	public LineNumberPanel(Font metricFont, int lines)
+	public LineNumberPanel(FontMetrics metrics, int lines, boolean startZero)
 	{
-		this.metricFont = metricFont;
+		this.metrics = metrics;
 		this.lines = lines;
+		this.startZero = startZero;
 		resize();
+	}
+
+	public LineNumberPanel(JComponent textarea, int lines, boolean startZero)
+	{
+		this(textarea.getFontMetrics(textarea.getFont()),lines,startZero);
 	}
 
 	public void setLines(int lines)
@@ -54,7 +60,7 @@ public class LineNumberPanel extends JPanel
 		int width = maxAdvance * (int) Math.max(Math.log10(lines - (startZero ? 1 : 0)) + 2,2);
 
 		//get line height, multiply by number of lines. + 1 line since the end seems to have a little extra
-		int height = getFontMetrics(metricFont).getHeight() * (lines + 1);
+		int height = metrics.getHeight() * (lines + 1);
 
 		setPreferredSize(new Dimension(width,height));
 		revalidate();
@@ -69,11 +75,10 @@ public class LineNumberPanel extends JPanel
 	{
 		Object map = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
 		if (map != null) ((Graphics2D) g).addRenderingHints((Map<?,?>) map);
-		
+
 		Rectangle clip = g.getClipBounds();
-		FontMetrics fm = getFontMetrics(metricFont);
-		final int insetY = fm.getLeading() + fm.getAscent();
-		final int gh = fm.getHeight();
+		final int insetY = metrics.getLeading() + metrics.getAscent();
+		final int gh = metrics.getHeight();
 		int lineNum = clip.y / gh;
 		final int start = lineNum * gh + insetY;
 		final int end = clip.y + clip.height + gh;

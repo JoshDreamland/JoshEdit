@@ -33,7 +33,7 @@ public class CPPTokenMarker extends DefaultTokenMarker
 				128,0),0));
 		schemes.add(new BlockDescriptor("Preprocessor","^(\\s*)#","$",true,true,'\\',new Color(0,
 				255,255),0));
-		KeywordSet kws = new KeywordSet("Statements",new Color(0,0,128),Font.BOLD);
+		KeywordSet kws = addKeywordSet("Statements",new Color(0,0,128),Font.BOLD);
 		String[] cppkws = {"if","else","do","while","for","new","delete","this","and","or","not"};
 		for (int i = 0; i < cppkws.length; i++)
 			kws.words.add(cppkws[i]);

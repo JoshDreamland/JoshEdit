@@ -29,12 +29,14 @@ public class DefaultTokenMarker implements TokenMarker
 	private int line_count;
 	/** The index of the first invalid line, or -1 for all-clear */
 	private int invalid_line = 0;
-	
+
 	/** True if this is in general a case sensitive language. */
 	public boolean caseSensitive = true; // Most are.
-	
+
 	/** Default constructor; does nothing. */
-	public DefaultTokenMarker() {}
+	public DefaultTokenMarker()
+	{
+	}
 
 	/**
 	 * Construct with case sensitivity option.
@@ -42,7 +44,8 @@ public class DefaultTokenMarker implements TokenMarker
 	 * @param caseSens
 	 *            True if this language is in general case sensitive.
 	 **/
-	public DefaultTokenMarker(boolean caseSens) {
+	public DefaultTokenMarker(boolean caseSens)
+	{
 		caseSensitive = caseSens;
 	}
 
@@ -65,7 +68,7 @@ public class DefaultTokenMarker implements TokenMarker
 		/** Begin and end are not regex. If end is null, EOL is used. */
 		Pattern end;
 		/** True if this block type is allowed to span multiple lines. Can be true only if end is non-null. */
-		boolean multiline; 
+		boolean multiline;
 		/** True if we can escape the ending character. If end is null, this allows us to span multiple lines. */
 		boolean escapeend;
 		/** The character used to escape things, or null if no escape is allowed. */
@@ -86,8 +89,8 @@ public class DefaultTokenMarker implements TokenMarker
 		 * @param font_style The font style with which this block will be rendered.
 		 */
 		public BlockDescriptor(String block_name, String begin_regex, String end_regex,
-				boolean allow_multiline, boolean escape_endmarkers, char escape_char,
-				Color markColor, int font_style)
+				boolean allow_multiline, boolean escape_endmarkers, char escape_char, Color markColor,
+				int font_style)
 		{
 			name = block_name;
 			begin = Pattern.compile(begin_regex);
@@ -110,7 +113,7 @@ public class DefaultTokenMarker implements TokenMarker
 		public BlockDescriptor(String block_name, String begin_regex, String end_regex,
 				Color markColor, int font_style)
 		{
-			this(block_name,begin_regex,end_regex,true,false,(char)0,markColor,font_style);
+			this(block_name,begin_regex,end_regex,true,false,(char) 0,markColor,font_style);
 		}
 	}
 
@@ -121,7 +124,7 @@ public class DefaultTokenMarker implements TokenMarker
 	 * A class for representing a set of keywords to mark.
 	 * @author Josh Ventura
 	 */
-	public class KeywordSet
+	public static class KeywordSet
 	{
 		/** The name of this group of keywords, for preferences purposes. */
 		String name;
@@ -134,33 +137,19 @@ public class DefaultTokenMarker implements TokenMarker
 		/** Whether or not these keywords must match in case to be marked. */
 		public final boolean caseSensitive;
 
-		/** Construct a new case-sensitive keyword set with some basic information. 
-		 * @param group_name The name of this group, for preferences purposes.
-		 * @param markColor The font color with which keywords in this group are rendered.
-		 * @param font_style The font style with which keywords in this group are rendered.
-		 */
-		public KeywordSet(String group_name, Color markColor, int font_style)
-		{
-			name = group_name;
-			color = markColor;
-			fontStyle = font_style;
-			words = new HashSet<String>();
-			caseSensitive = DefaultTokenMarker.this.caseSensitive;
-		}
-
-		/** Construct a new case-sensitive keyword set with some basic information. 
-		 * @param group_name The name of this group, for preferences purposes.
+		/** Construct a new keyword set with some basic information.
+		 * @param groupName The name of this group, for preferences purposes.
 		 * @param markColor The font color with which keywords in this group are rendered.
 		 * @param font_style The font style with which keywords in this group are rendered.
 		 * @param casesens Whether or not this keyword set should be matched with case sensitivity.
 		 */
-		public KeywordSet(String group_name, Color markColor, int font_style,boolean casesens)
+		public KeywordSet(String groupName, Color markColor, int fontStyle, boolean casesens)
 		{
-			name = group_name;
+			name = groupName;
 			color = markColor;
-			fontStyle = font_style;
-			words = new HashSet<String>();
+			this.fontStyle = fontStyle;
 			caseSensitive = casesens;
+			words = new HashSet<String>();
 		}
 	}
 
@@ -169,6 +158,32 @@ public class DefaultTokenMarker implements TokenMarker
 
 	/** A keyword set used to specify formatting for any identifier which is not in a keyword set. */
 	public KeywordSet default_kws = null; // Set this to non-null to mark regular identifiers
+
+	/** Adds a new keyword set with some basic information. Uses global case-sensitivity.
+	 * @param groupName The name of this group, for preferences purposes.
+	 * @param markColor The font color with which keywords in this group are rendered.
+	 * @param fontStyle The font style with which keywords in this group are rendered.
+	 * @return The new keyword set, so you can populate it.
+	 */
+	public KeywordSet addKeywordSet(String groupName, Color markColor, int fontStyle)
+	{
+		return addKeywordSet(groupName,markColor,fontStyle,caseSensitive);
+	}
+
+	/** Adds a new keyword set with some basic information and specified case-sensitivity.
+	 * @param groupName The name of this group, for preferences purposes.
+	 * @param markColor The font color with which keywords in this group are rendered.
+	 * @param fontStyle The font style with which keywords in this group are rendered.
+	 * @param caseSensitive Whether or not this keyword set should be matched with case sensitivity.
+	 * @return The new keyword set, so you can populate it.
+	 */
+	public KeywordSet addKeywordSet(String groupName, Color markColor, int fontStyle,
+			boolean caseSensitive)
+	{
+		KeywordSet ks = new KeywordSet(groupName,markColor,fontStyle,caseSensitive);
+		tmKeywords.add(ks);
+		return ks;
+	}
 
 	/**
 	 * A class representing a set of symbols to mark.
@@ -239,7 +254,7 @@ public class DefaultTokenMarker implements TokenMarker
 
 	/** A list of all other tokens to mark. */
 	public ArrayList<SimpleToken> otherTokens = new ArrayList<DefaultTokenMarker.SimpleToken>();
-	
+
 	/** Class for storing extra info about a scheme. */
 	static final class SchemeInfo
 	{
@@ -273,7 +288,7 @@ public class DefaultTokenMarker implements TokenMarker
 			type = SchemeType.NOTHING;
 			id = 0;
 		}
-		
+
 		/** Construct new empty schemeInfo with a type. 
 		 * @param scheme_type The type of this scheme; one of the {@link SchemeType} constants.
 		 */
@@ -295,9 +310,11 @@ public class DefaultTokenMarker implements TokenMarker
 	}
 
 	/** Class for tossing around token marker info with a schemeInfo attachment. */
-	class TokenMarkerInfoEx extends TokenMarkerInfo {
+	class TokenMarkerInfoEx extends TokenMarkerInfo
+	{
 		/** Info about the scheme for which this TokenMarkerInfo was constructed. */
 		SchemeInfo schemeInfo;
+
 		/** Construct our extended TokenMarker info with the works. 
 		 * 
 		 * @param fs The font style to use.
@@ -307,8 +324,9 @@ public class DefaultTokenMarker implements TokenMarker
 		 * @param hash Any attribute, probably in si as well, which much persist.
 		 * @param si More information about the scheme that created this TokenMarkerInfo.
 		 */
-		public TokenMarkerInfoEx(int fs, Color col, int start, int end, int hash, SchemeInfo si) {
-			super(fs, col, start, end, hash);
+		public TokenMarkerInfoEx(int fs, Color col, int start, int end, int hash, SchemeInfo si)
+		{
+			super(fs,col,start,end,hash);
 			schemeInfo = si;
 		}
 	}
@@ -331,7 +349,7 @@ public class DefaultTokenMarker implements TokenMarker
 		while (invalid_line < line_count - 1)
 		{
 			ArrayList<TokenMarkerInfo> styles = getStyles(code.get(invalid_line));
-			TokenMarkerInfoEx tmi = (TokenMarkerInfoEx) styles.get(styles.size()-1);
+			TokenMarkerInfoEx tmi = (TokenMarkerInfoEx) styles.get(styles.size() - 1);
 			invalid_line++;
 			if (code.get(invalid_line).attr < 1)
 				code.get(invalid_line).attr = 0;
@@ -344,13 +362,15 @@ public class DefaultTokenMarker implements TokenMarker
 	}
 
 	/** @see TokenMarker#formatCode(Code) */
-	@Override public void formatCode(Code code)
+	@Override
+	public void formatCode(Code code)
 	{
 		return; // We can't format the code; we're only pretending to know anything about it.
 	}
 
 	/** @see TokenMarker#linesChanged(Code,int,int) */
-	@Override public void linesChanged(Code code, int start, int end)
+	@Override
+	public void linesChanged(Code code, int start, int end)
 	{
 		line_count = code.size();
 		if (start < invalid_line || invalid_line == -1) invalid_line = start;
@@ -360,9 +380,10 @@ public class DefaultTokenMarker implements TokenMarker
 			else if (code.get(i).attr > 0) code.get(i).attr = -1;
 		mark(code);
 	}
-	
+
 	/** @see TokenMarker#getStyles(Line) */
-	@Override public ArrayList<TokenMarkerInfo> getStyles(Line jline)
+	@Override
+	public ArrayList<TokenMarkerInfo> getStyles(Line jline)
 	{
 		ArrayList<TokenMarkerInfo> res = new ArrayList<TokenMarkerInfo>();
 		StringBuilder line = jline.sbuild;
@@ -371,7 +392,7 @@ public class DefaultTokenMarker implements TokenMarker
 		// Our function guarantees a block at the end of our code to keep the printer, well, printing.
 		// Adding this blindly sometimes screws up other mechanisms. This tells us whether to do so or not.
 		boolean pushCapstone = true;
-		
+
 		int i = 0; // The position from which we will parse this thing
 		FindAllBlocks: for (;;) // What we're going to do is find any and all blocks up front, and move to the end of them.
 		{
@@ -400,9 +421,8 @@ public class DefaultTokenMarker implements TokenMarker
 				shm = ischeme;
 				ischeme = 0;
 			}
-			
-			if (shm == -1)
-				break;
+
+			if (shm == -1) break;
 
 			// Start searching for its end.
 			for (;;)
@@ -411,24 +431,26 @@ public class DefaultTokenMarker implements TokenMarker
 						line.length());
 				if (!mmatcher.find()) // If there's no end in sight, or that end passed our position of interest
 				{
-					res.add(new TokenMarkerInfoEx(schemes.get(shm).fontStyle,schemes.get(shm).color,mmin,line.length(),shm, new SchemeInfo(SchemeType.UNTERMBLOCK,shm)));
+					res.add(new TokenMarkerInfoEx(schemes.get(shm).fontStyle,schemes.get(shm).color,mmin,
+							line.length(),shm,new SchemeInfo(SchemeType.UNTERMBLOCK,shm)));
 					pushCapstone = false;
 					break FindAllBlocks; // Then we've found all the blocks. Quit.
 				}
 				// Now, we have found a chunk that may be the end marker, and lies before our position in question.
 				// Move to its end.
 				i = mmatcher.end();
-				
+
 				if (!schemes.get(shm).escapeend) // If we can't escape an ending sequence,
 				{
-					res.add(new TokenMarkerInfoEx(schemes.get(shm).fontStyle,schemes.get(shm).color,mmin,i,shm,new SchemeInfo(SchemeType.BLOCK,shm)));
+					res.add(new TokenMarkerInfoEx(schemes.get(shm).fontStyle,schemes.get(shm).color,mmin,i,
+							shm,new SchemeInfo(SchemeType.BLOCK,shm)));
 					break; // Then mission complete
 				}
-				
+
 				// Otherwise, we have to verify that the end *isn't* escaped.
 				char escc = schemes.get(shm).escapeChar;
 				boolean end_escaped = false;
-				
+
 				int cp; // Check position
 				for (cp = mminend; cp < mmatcher.start(); cp++)
 				{ // So, start iterating block contents!
@@ -440,15 +462,18 @@ public class DefaultTokenMarker implements TokenMarker
 							end_escaped = true; // It is! The end has been escaped. Find a new end and come back.
 					}
 				}
-				
-				if (!end_escaped) { // If the end wasn't escaped,
-					res.add(new TokenMarkerInfoEx(schemes.get(shm).fontStyle,schemes.get(shm).color,mmin,i,shm,new SchemeInfo(SchemeType.BLOCK,shm)));
+
+				if (!end_escaped)
+				{ // If the end wasn't escaped,
+					res.add(new TokenMarkerInfoEx(schemes.get(shm).fontStyle,schemes.get(shm).color,mmin,i,
+							shm,new SchemeInfo(SchemeType.BLOCK,shm)));
 					break; // Mission accomplished
 				}
 				// So, our line was escaped.
 				if (cp >= line.length()) // If we're at the end of the line now,
 				{ // Then the block is escaped and doesn't end on this line. Hop out. 
-					res.add(new TokenMarkerInfoEx(schemes.get(shm).fontStyle,schemes.get(shm).color,mmin,line.length(),shm,new SchemeInfo(SchemeType.UNTERMBLOCK,shm)));
+					res.add(new TokenMarkerInfoEx(schemes.get(shm).fontStyle,schemes.get(shm).color,mmin,
+							line.length(),shm,new SchemeInfo(SchemeType.UNTERMBLOCK,shm)));
 					pushCapstone = false;
 					break FindAllBlocks;
 				}
@@ -459,7 +484,8 @@ public class DefaultTokenMarker implements TokenMarker
 
 		i = 0;
 		if (pushCapstone)
-			res.add(new TokenMarkerInfoEx(0,null,line.length(),line.length(),0,new SchemeInfo(SchemeType.NOTHING,0)));
+			res.add(new TokenMarkerInfoEx(0,null,line.length(),line.length(),0,new SchemeInfo(
+					SchemeType.NOTHING,0)));
 		for (int bi = 0; bi < res.size(); i = res.get(bi++).endPos)
 		{
 			final int sp = res.get(bi).startPos;
@@ -478,19 +504,21 @@ public class DefaultTokenMarker implements TokenMarker
 					boolean fnd = false;
 					String f = line.substring(i,lookingat.end());
 					for (int sn = 0; sn < tmKeywords.size(); sn++)
-						if (tmKeywords.get(sn).words.contains(tmKeywords.get(sn).caseSensitive? f : f.toLowerCase()))
+						if (tmKeywords.get(sn).words.contains(tmKeywords.get(sn).caseSensitive ? f
+								: f.toLowerCase()))
 						{
 							res.add(bi++,new TokenMarkerInfoEx(tmKeywords.get(sn).fontStyle,
-									tmKeywords.get(sn).color,lookingat.start(),lookingat.end(),0,
-									new SchemeInfo(SchemeType.KEYWORD,sn)));
+									tmKeywords.get(sn).color,lookingat.start(),lookingat.end(),0,new SchemeInfo(
+											SchemeType.KEYWORD,sn)));
 							fnd = true;
 							break;
 						}
-					if (!fnd) {
+					if (!fnd)
+					{
 						if (default_kws != null)
-							res.add(bi++,new TokenMarkerInfoEx(default_kws.fontStyle,
-									default_kws.color,lookingat.start(),lookingat.end(),0,
-									new SchemeInfo(SchemeType.DEFKEYWORD,0)));
+							res.add(bi++,
+									new TokenMarkerInfoEx(default_kws.fontStyle,default_kws.color,lookingat.start(),
+											lookingat.end(),0,new SchemeInfo(SchemeType.DEFKEYWORD,0)));
 					}
 					i = lookingat.end();
 					continue SubschemeLoop;
@@ -500,9 +528,9 @@ public class DefaultTokenMarker implements TokenMarker
 					lookingat = otherTokens.get(tt).pattern.matcher(line).region(i,line.length());
 					if (lookingat.lookingAt())
 					{
-						res.add(bi++,new TokenMarkerInfoEx(otherTokens.get(tt).fontStyle,otherTokens.get(tt).color,
-								lookingat.start(),lookingat.end(),0,
-								new SchemeInfo(SchemeType.TOKEN,tt)));
+						res.add(bi++,new TokenMarkerInfoEx(otherTokens.get(tt).fontStyle,
+								otherTokens.get(tt).color,lookingat.start(),lookingat.end(),0,new SchemeInfo(
+										SchemeType.TOKEN,tt)));
 						i = lookingat.end();
 						continue SubschemeLoop;
 					}
@@ -510,8 +538,8 @@ public class DefaultTokenMarker implements TokenMarker
 				char c = line.charAt(i);
 				for (int sn = 0; sn < tmChars.size(); sn++)
 					if (tmChars.get(sn).chars.contains(c))
-						res.add(bi++,new TokenMarkerInfoEx(tmChars.get(sn).fontStyle,tmChars.get(sn).color,i,i+1,0,
-								new SchemeInfo(SchemeType.SYMBOL,sn)));
+						res.add(bi++,new TokenMarkerInfoEx(tmChars.get(sn).fontStyle,tmChars.get(sn).color,i,
+								i + 1,0,new SchemeInfo(SchemeType.SYMBOL,sn)));
 				i++;
 			}
 		}

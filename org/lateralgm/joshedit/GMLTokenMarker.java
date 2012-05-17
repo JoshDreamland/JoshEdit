@@ -23,7 +23,7 @@ public class GMLTokenMarker extends DefaultTokenMarker
 		schemes.add(new BlockDescriptor("Double Quote String","\"","\"",new Color(0,0,255),0));
 		schemes.add(new BlockDescriptor("Single Quote String","'","'",new Color(0,0,255),0));
 
-		KeywordSet kws = new KeywordSet("Statements",new Color(0,0,128),Font.BOLD);
+		KeywordSet kws = addKeywordSet("Statements",new Color(0,0,128),Font.BOLD);
 		 //FIXME: Just remove these and make LGM add them from its properties file
 		Collections.addAll(kws.words,new String[] {"if","then","else","do","while","for","until","with"});
 		tmKeywords.add(kws);

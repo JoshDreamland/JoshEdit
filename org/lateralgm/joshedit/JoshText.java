@@ -2722,7 +2722,8 @@ public class JoshText extends JComponent implements Scrollable,
 	@Override public void focusLost(FocusEvent arg0) { // Unused
 	}
 
-	public boolean isChanged() {
-		return undoPatches.size() > 1;
+	public boolean isChanged()
+	{
+		return !undoPatches.isEmpty();
 	}
 }

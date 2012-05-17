@@ -29,6 +29,22 @@ public class DefaultTokenMarker implements TokenMarker
 	private int line_count;
 	/** The index of the first invalid line, or -1 for all-clear */
 	private int invalid_line = 0;
+	
+	/** True if this is in general a case sensitive language. */
+	public boolean caseSensitive = true; // Most are.
+	
+	/** Default constructor; does nothing. */
+	public DefaultTokenMarker() {}
+
+	/**
+	 * Construct with case sensitivity option.
+	 * 
+	 * @param caseSens
+	 *            True if this language is in general case sensitive.
+	 **/
+	public DefaultTokenMarker(boolean caseSens) {
+		caseSensitive = caseSens;
+	}
 
 	// The index of the next valid line after an invalid line is determined
 	// while parsing--the first line that matches up with the tags from the
@@ -105,7 +121,7 @@ public class DefaultTokenMarker implements TokenMarker
 	 * A class for representing a set of keywords to mark.
 	 * @author Josh Ventura
 	 */
-	public static class KeywordSet
+	public class KeywordSet
 	{
 		/** The name of this group of keywords, for preferences purposes. */
 		String name;
@@ -129,7 +145,7 @@ public class DefaultTokenMarker implements TokenMarker
 			color = markColor;
 			fontStyle = font_style;
 			words = new HashSet<String>();
-			caseSensitive = false;
+			caseSensitive = DefaultTokenMarker.this.caseSensitive;
 		}
 
 		/** Construct a new case-sensitive keyword set with some basic information. 

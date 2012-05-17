@@ -462,7 +462,7 @@ public class DefaultTokenMarker implements TokenMarker
 					boolean fnd = false;
 					String f = line.substring(i,lookingat.end());
 					for (int sn = 0; sn < tmKeywords.size(); sn++)
-						if (tmKeywords.get(sn).words.contains( f.toLowerCase()))
+						if (tmKeywords.get(sn).words.contains(tmKeywords.get(sn).caseSensitive? f : f.toLowerCase()))
 						{
 							res.add(bi++,new TokenMarkerInfoEx(tmKeywords.get(sn).fontStyle,
 									tmKeywords.get(sn).color,lookingat.start(),lookingat.end(),0,

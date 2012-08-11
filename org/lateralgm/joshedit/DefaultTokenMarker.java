@@ -356,7 +356,7 @@ public class DefaultTokenMarker implements TokenMarker
 			else
 				code.get(invalid_line).attr &= ~LINE_ATTRIBS.LA_SCHEMEBLOCK; // Remove all scheme info
 			if (tmi.schemeInfo.type == SchemeType.UNTERMBLOCK) // If we're in a block scheme, note so.
-				code.get(invalid_line).attr |= tmi.schemeInfo.id << LINE_ATTRIBS.LA_SCHEMEBITOFFSET;
+				code.get(invalid_line).attr |= (tmi.schemeInfo.id + 1) << LINE_ATTRIBS.LA_SCHEMEBITOFFSET;
 		}
 		invalid_line = -1;
 	}
@@ -387,7 +387,7 @@ public class DefaultTokenMarker implements TokenMarker
 	{
 		ArrayList<TokenMarkerInfo> res = new ArrayList<TokenMarkerInfo>();
 		StringBuilder line = jline.sbuild;
-		int ischeme = (int) ((jline.attr & LINE_ATTRIBS.LA_SCHEMEBLOCK) >> LINE_ATTRIBS.LA_SCHEMEBITOFFSET);
+		int ischeme = (int) (((jline.attr & LINE_ATTRIBS.LA_SCHEMEBLOCK) >> LINE_ATTRIBS.LA_SCHEMEBITOFFSET) - 1);
 
 		// Our function guarantees a block at the end of our code to keep the printer, well, printing.
 		// Adding this blindly sometimes screws up other mechanisms. This tells us whether to do so or not.
@@ -399,7 +399,7 @@ public class DefaultTokenMarker implements TokenMarker
 			int shm = -1; // Scheme Holding Minimum Match
 			int mmin = line.length(); // Minimum match position
 			int mminend = mmin;
-			if (ischeme == 0)
+			if (ischeme < 0)
 			{
 				for (int si = 0; si < schemes.size(); si++)
 				{
@@ -419,7 +419,7 @@ public class DefaultTokenMarker implements TokenMarker
 				mmin = 0;
 				mminend = 0;
 				shm = ischeme;
-				ischeme = 0;
+				ischeme = -1;
 			}
 
 			if (shm == -1) break;

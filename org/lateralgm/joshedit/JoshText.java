@@ -2970,6 +2970,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			prow++;
 		}
 		p.cafter.replace();
+		fireLineChange(p.startRow,p.startRow + p.oldText.length);
 		repaint();
 	}
 

@@ -24,19 +24,34 @@ import javax.swing.event.CaretListener;
 
 import org.lateralgm.joshedit.Selection.ST;
 
+/**
+ * Class representing our caret position.
+ */
 public class Caret implements ActionListener
 {
-	public int col, row;
+	/** The column on which our caret is set. */
+	public int col;
+	/** The row on which our caret is set. */
+	public int row;
 	/** The width to the position of the column, used when traversing lines of varying length. */
 	public int colw;
+	/** True if we are in insert mode, false if we are in overwrite mode. */
 	public boolean insert = true;
 
+	/** True if we are to render. */
 	private boolean visible = true;
+	/** The timer that controls caret blinking/flashing. */
 	private Timer flasher;
+	/** The component to which we will paint. */
 	private JComponent painter;
+	/** The JoshText that contains us. */
 	private JoshText joshText;
+	/** List of caret listeners to notify on position update. */
 	private ArrayList<CaretListener> caretListeners = new ArrayList<CaretListener>();
 
+	/**
+	 * @param jt The owning JoshText.
+	 */
 	public Caret(JoshText jt)
 	{
 		setBlinkRate(getDefaultBlinkRate());
@@ -45,6 +60,10 @@ public class Caret implements ActionListener
 		flasher.start();
 	}
 
+	/**
+	 * Copy coordinates on construct; do nothing else.
+	 * @param caret Caret whose coordinates will be copied.
+	 */
 	public Caret(Caret caret) // Copy constructor solely for push/pop mechanisms. Copies only positions.
 	{
 		col = caret.col;
@@ -52,6 +71,9 @@ public class Caret implements ActionListener
 		colw = caret.colw;
 	}
 
+	/**
+	 * @return The default blink/flash rate.
+	 */
 	public static int getDefaultBlinkRate()
 	{
 		Object oblink = UIManager.get("TextArea.caretBlinkRate",null);
@@ -60,6 +82,9 @@ public class Caret implements ActionListener
 		return blink;
 	}
 
+	/**
+	 * @param rate The new default blink/flash rate.
+	 */
 	public void setBlinkRate(int rate)
 	{
 		if (flasher == null)
@@ -68,6 +93,7 @@ public class Caret implements ActionListener
 			flasher.setDelay(rate);
 	}
 
+	/** Reset the flasher timer, showing the caret now. */
 	public void flashOn()
 	{
 		flasher.restart();
@@ -78,12 +104,15 @@ public class Caret implements ActionListener
 		}
 	}
 
+	/** @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent) */
+	@Override
 	public void actionPerformed(ActionEvent e)
 	{
 		visible = !visible;
 		repaint();
 	}
 
+	/** Repaint the caret. */
 	protected final synchronized void repaint()
 	{
 		if (painter != null)
@@ -94,10 +123,15 @@ public class Caret implements ActionListener
 			if (joshText.sel.type == ST.RECT)
 				painter.repaint(i.left + col * gw,i.top + row * gh,gw + 1,gh);
 			else
-				painter.repaint(i.left + joshText.line_wid_at(row,col),i.top + row * gh,insert ? gw + 1 : 2,gh);
+				painter.repaint(i.left + joshText.line_wid_at(row,col),i.top + row * gh,
+						insert ? gw + 1 : 2,gh);
 		}
 	}
 
+	/**
+	 * @param g The graphics object to which to paint.
+	 * @param sel The selection object to paint along with the caret.
+	 */
 	public void paint(Graphics g, Selection sel)
 	{
 		// Draw caret
@@ -109,14 +143,18 @@ public class Caret implements ActionListener
 
 			g.setXORMode(Color.WHITE);
 			if (sel.type == ST.RECT)
-				g.fillRect(i.left + col * gw,     i.top + Math.min(row,sel.row) * gh,
-									 insert ? 2 : gw + 1,   (Math.abs(row - sel.row) + 1) * gh);
+				g.fillRect(i.left + col * gw,i.top + Math.min(row,sel.row) * gh,insert ? 2 : gw + 1,
+						(Math.abs(row - sel.row) + 1) * gh);
 			else
-				g.fillRect(i.left + joshText.line_wid_at(row,col),i.top + row * gh, insert ? 2 : gw + 1,gh);
+				g.fillRect(i.left + joshText.line_wid_at(row,col),i.top + row * gh,insert ? 2 : gw + 1,gh);
 			g.setPaintMode();
 		}
 	}
 
+	/**
+	 * Copy the coordinates from another Caret into this Caret.
+	 * @param scar The caret from which to copy coordinates.
+	 */
 	public void resetcoords(Caret scar)
 	{
 		col = scar.col;
@@ -124,16 +162,25 @@ public class Caret implements ActionListener
 		colw = scar.colw;
 	}
 
+	/**
+	 * @param selection The current selection, for reference.
+	 * @return The actual position index, in characters in the line, of the caret.
+	 */
 	public int getPositionRepresentation(Selection selection)
 	{
 		return selection.type == ST.RECT ? joshText.column_to_index(row,col) : col;
 	}
 
+	/**
+	 * Add a caret listener to inform on position change.
+	 * @param cl The new caret listener.
+	 */
 	public void addCaretListener(CaretListener cl)
 	{
 		caretListeners.add(cl);
 	}
 
+	/** Fire a position change to all listeners. */
 	public void positionChanged()
 	{
 		for (int i = 0; i < caretListeners.size(); i++)
@@ -146,7 +193,7 @@ public class Caret implements ActionListener
 				{
 					return col;
 				}
-				
+
 				@Override
 				public int getDot()
 				{

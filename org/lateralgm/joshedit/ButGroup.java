@@ -11,10 +11,17 @@ import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.ButtonModel;
 
+/**
+ * @author IsmAvatar
+ */
 public class ButGroup extends ButtonGroup
 {
+	/** Stow it, ECJ. */
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * @param buts Buttons to add to this group.
+	 */
 	public ButGroup(AbstractButton...buts)
 	{
 		super();
@@ -22,6 +29,9 @@ public class ButGroup extends ButtonGroup
 			add(b);
 	}
 
+	/**
+	 * @see javax.swing.ButtonGroup#setSelected(javax.swing.ButtonModel, boolean)
+	 */
 	@Override
 	public void setSelected(ButtonModel m, boolean b)
 	{

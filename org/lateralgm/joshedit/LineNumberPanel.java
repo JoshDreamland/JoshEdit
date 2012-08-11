@@ -18,16 +18,24 @@ import java.util.Map;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 
+/** Panel to display line numbers. */
 public class LineNumberPanel extends JPanel
 {
+	/** Shut up, ECJ. */
 	private static final long serialVersionUID = 1L;
 
 	/** The FontMetrics of the textarea that this is watching, so we know the font height for spacing line numbers */
 	protected FontMetrics metrics;
+	/** The number of lines to number. */
 	protected int lines;
 	/** Indicates whether line numbering starts at 0 */
 	protected boolean startZero;
 
+	/**
+	 * @param metrics The font metrics to use to paint numbers at the correct position.
+	 * @param lines The number of lines in the code.
+	 * @param startZero True if the first line should be given index 0, false if it should be given index 1.
+	 */
 	public LineNumberPanel(FontMetrics metrics, int lines, boolean startZero)
 	{
 		this.metrics = metrics;
@@ -36,11 +44,20 @@ public class LineNumberPanel extends JPanel
 		resize();
 	}
 
+	/**
+	 * @param textarea The text area component to draw next to.
+	 * @param lines The number of lines in the text area component.
+	 * @param startZero True if the first line should be given index 0, false if it should be given index 1.
+	 */
 	public LineNumberPanel(JComponent textarea, int lines, boolean startZero)
 	{
 		this(textarea.getFontMetrics(textarea.getFont()),lines,startZero);
 	}
 
+	/**
+	 * Set the number of lines to be numbered.
+	 * @param lines The number of lines.
+	 */
 	public void setLines(int lines)
 	{
 		this.lines = lines + (startZero ? 0 : 1);
@@ -48,6 +65,9 @@ public class LineNumberPanel extends JPanel
 		repaint();
 	}
 
+	/**
+	 * Call upon resize to repaint.
+	 */
 	public void resize()
 	{
 		//find the advance of the widest number
@@ -70,6 +90,9 @@ public class LineNumberPanel extends JPanel
 		//		getParent().doLayout();
 	}
 
+	/**
+	 * @param g The graphics object to which to paint.
+	 */
 	@Override
 	public void paintComponent(Graphics g)
 	{

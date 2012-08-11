@@ -38,11 +38,19 @@ import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.UIManager;
 
+/**
+ * @author IsmAvatar
+ * Class to handle code completion.
+ */
 public class CompletionMenu
 	{
+	/** The text area in which to handle code completion. */
 	protected JoshText area;
+	/** The scroll pane to house completion results. */
 	private JScrollPane scroll;
+	/** Array of available completions. */
 	private final Completion[] completions;
+	/** Completion options from which the user can select. */
 	private Completion[] options;
 	private String word;
 	private JList completionList;
@@ -71,6 +79,7 @@ public class CompletionMenu
 		completionList.addKeyListener(keyHandler);
 		completionList.addMouseListener(new MouseAdapter()
 			{
+				@Override
 				public void mouseClicked(MouseEvent e)
 					{
 					if (apply())
@@ -84,6 +93,7 @@ public class CompletionMenu
 		ph = new PopupHandler(owner,scroll);
 		ph.addHideListener(new PopupHandler.HideListener()
 			{
+				@Override
 				public void hidePerformed(boolean wasVisible)
 					{
 					dispose();
@@ -299,6 +309,7 @@ public class CompletionMenu
 			}
 
 		//events
+		@Override
 		public void eventDispatched(AWTEvent ev)
 			{
 			// We are interested in MouseEvents only
@@ -322,55 +333,77 @@ public class CompletionMenu
 				}
 			}
 
+		/** Just hide the window. */
+		@Override
 		public void componentResized(ComponentEvent e)
 			{
 			hide();
 			}
 
+		/** Just hide the window. */
+		@Override
 		public void componentMoved(ComponentEvent e)
 			{
 			hide();
 			}
 
+		/** Just hide the window. */
+		@Override
 		public void componentShown(ComponentEvent e)
 			{
 			hide();
 			}
 
+		/** Just hide the window. */
+		@Override
 		public void componentHidden(ComponentEvent e)
 			{
 			hide();
 			}
 
+		/** Just hide the window. */
+		@Override
 		public void windowClosing(WindowEvent e)
 			{
 			hide();
 			}
 
+		/** Just hide the window. */
+		@Override
 		public void windowClosed(WindowEvent e)
 			{
 			hide();
 			}
 
+		/** Just hide the window. */
+		@Override
 		public void windowIconified(WindowEvent e)
 			{
 			hide();
 			}
 
+		/** Just hide the window. */
+		@Override
 		public void windowDeactivated(WindowEvent e)
 			{
 			hide();
 			}
 
+		/** Unused */
 		//Unused
+		@Override
 		public void windowOpened(WindowEvent e)
 			{ //Unused
 			}
 
+		/** Unused */
+		@Override
 		public void windowDeiconified(WindowEvent e)
 			{ //Unused
 			}
 
+		/** Unused */
+		@Override
 		public void windowActivated(WindowEvent e)
 			{ //Unused
 			}
@@ -421,6 +454,7 @@ public class CompletionMenu
 			return -1;
 			}
 
+		@Override
 		public String toString()
 			{
 			return name;
@@ -434,6 +468,7 @@ public class CompletionMenu
 			name = w;
 			}
 
+		@Override
 		public boolean apply(JoshText a, char input, int row, int wordStart, int wordEnd)
 			{
 			String s = name + (input != '\0' ? String.valueOf(input) : new String());
@@ -447,13 +482,20 @@ public class CompletionMenu
 			}
 		}
 
+	/**
+	 * @author IsmAvatar
+	 * Class to handle key presses in the code completion pane.
+	 */
 	private class KeyHandler extends KeyAdapter
 		{
+		/** Invoke default super constructor.*/
 		public KeyHandler()
 			{
 			super();
 			}
 
+		/** Handle key press. */
+		@Override
 		public void keyPressed(KeyEvent e)
 			{
 			switch (e.getKeyCode())
@@ -511,6 +553,8 @@ public class CompletionMenu
 				}
 			}
 
+		/** Handle key type. */
+		@Override
 		public void keyTyped(KeyEvent e)
 			{
 			if ((e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0) return;

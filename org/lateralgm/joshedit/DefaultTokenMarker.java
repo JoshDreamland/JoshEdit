@@ -140,7 +140,7 @@ public class DefaultTokenMarker implements TokenMarker
 		/** Construct a new keyword set with some basic information.
 		 * @param groupName The name of this group, for preferences purposes.
 		 * @param markColor The font color with which keywords in this group are rendered.
-		 * @param font_style The font style with which keywords in this group are rendered.
+		 * @param fontStyle The font style with which keywords in this group are rendered.
 		 * @param casesens Whether or not this keyword set should be matched with case sensitivity.
 		 */
 		public KeywordSet(String groupName, Color markColor, int fontStyle, boolean casesens)
@@ -174,13 +174,13 @@ public class DefaultTokenMarker implements TokenMarker
 	 * @param groupName The name of this group, for preferences purposes.
 	 * @param markColor The font color with which keywords in this group are rendered.
 	 * @param fontStyle The font style with which keywords in this group are rendered.
-	 * @param caseSensitive Whether or not this keyword set should be matched with case sensitivity.
+	 * @param caseSensitiveTK Whether or not this keyword set should be matched with case sensitivity.
 	 * @return The new keyword set, so you can populate it.
 	 */
 	public KeywordSet addKeywordSet(String groupName, Color markColor, int fontStyle,
-			boolean caseSensitive)
+			boolean caseSensitiveTK)
 	{
-		KeywordSet ks = new KeywordSet(groupName,markColor,fontStyle,caseSensitive);
+		KeywordSet ks = new KeywordSet(groupName,markColor,fontStyle,caseSensitiveTK);
 		tmKeywords.add(ks);
 		return ks;
 	}

@@ -30,20 +30,64 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
+/**
+ * @author Josh Ventura
+ * Class to display a full set of find and replace options.
+ */
 public class FindDialog extends JDialog implements WindowListener,ActionListener
 {
+	/** Cram it, ECJ. */
 	private static final long serialVersionUID = 1L;
-	public static JComboBox tFind, tReplace;
-	public static JCheckBox whole, start, sens, esc, regex, wrap, back;
-	public static JRadioButton scGame, scObject, scEvent, scCode, scSel;
-	public static JButton bFind, bReplace, bRepAll;
 
+	/** The Find combobox (a text field with drop-down history). */
+	public static JComboBox tFind;
+	/** The Replace combobox (a text field with drop-down history). */
+	public static JComboBox tReplace;
+
+	/** The "whole word only" checkbox. */
+	public static JCheckBox whole;
+	/** The "search from start" checkbox. */
+	public static JCheckBox start;
+	/** The "case sensitive" checkbox. */
+	public static JCheckBox sens;
+	/** The  checkbox. */
+	public static JCheckBox esc;
+	/** The "regular expression" checkbox. */
+	public static JCheckBox regex;
+	/** The "wrap search at EOF" checkbox. */
+	public static JCheckBox wrap;
+	/** The "search backwards" checkbox. */
+	public static JCheckBox backward;
+
+	/** The game scope radio. */
+	public static JRadioButton scGame;
+	/** The object scope radio. */
+	public static JRadioButton scObject;
+	/** The event scope radio. */
+	public static JRadioButton scEvent;
+	/** The code scope radio. */
+	public static JRadioButton scCode;
+	/** The selection scope radio. */
+	public static JRadioButton scSel;
+
+	/** The Find button. */
+	public static JButton bFind;
+	/** The Replace button. */
+	public static JButton bReplace;
+	/** The Replace All button. */
+	public static JButton bRepAll;
+
+	/** The static FindDialog isntance (one per program). */
 	protected static FindDialog INSTANCE = new FindDialog();
+	/** A collection of action listeners. */
 	protected Set<ActionListener> listenerList = new HashSet<ActionListener>();
+	/** A collection of permanent action listeners. */
 	protected static Set<ActionListener> permListenerList = new HashSet<ActionListener>();
 
+	/** The currently active JoshText. */
 	public JoshText selectedJoshText = null;
 
+	/** Construct, creating everything. */
 	private FindDialog()
 	{
 		super((Frame) null,"Find/Replace");
@@ -53,34 +97,55 @@ public class FindDialog extends JDialog implements WindowListener,ActionListener
 		setMinimumSize(getSize());
 	}
 
+	/** @return Returns the static FindDialog instance.  */
 	public static FindDialog getInstance()
 	{
 		return INSTANCE;
 	}
 
+	/**
+	 * @author Josh Ventura
+	 * Class to listen for <Enter> presses on find/replace fields and act on them.
+	 */
 	class EnterListener implements ActionListener
 	{
+		/** Simulate a find press. */
+		@Override
 		public void actionPerformed(ActionEvent e)
 		{
 			bFind.doClick();
 		}
 	}
 
+	/**
+	 * @author Josh Ventura
+	 * An interface by which find/replace navigators can be invoked to handle search queries.
+	 */
 	public interface FindNavigator
 	{
+		/**
+		 * @param find The new string to find.
+		 * @param replace The new string with which to replace found items.
+		 */
 		void updateParameters(String find, String replace);
-		
+
+		/** Show yourself if hidden and grab focus. */
 		void present();
 
+		/** Find the next match. */
 		void findNext();
 
+		/** Find the previous match. */
 		void findPrevious();
 
+		/** Find and replace the next match. */
 		void replaceNext();
 
+		/** Find and replace the previous match. */
 		void replacePrevious();
 	}
 
+	/** Create the form layout. */
 	private void applyLayout()
 	{
 		GroupLayout gl = new GroupLayout(getContentPane());
@@ -107,16 +172,17 @@ public class FindDialog extends JDialog implements WindowListener,ActionListener
 		options.add(sens = new JCheckBox("Case sensitive"));
 		options.add(esc = new JCheckBox("Escape sequences"));
 		options.add(regex = new JCheckBox("Regular expression"));
-		options.add(back = new JCheckBox("Search backwards"));
+		options.add(backward = new JCheckBox("Search backwards"));
 
 		new ButGroup(whole,start);
 		new ButGroup(esc,regex);
 		regex.addItemListener(new ItemListener()
 		{
+			@Override
 			public void itemStateChanged(ItemEvent e)
 			{
 				boolean b = regex.isSelected();
-				back.setEnabled(!b);
+				backward.setEnabled(!b);
 			}
 		});
 
@@ -148,6 +214,7 @@ public class FindDialog extends JDialog implements WindowListener,ActionListener
 
 		bFind.addActionListener(new ActionListener()
 		{
+			@Override
 			public void actionPerformed(ActionEvent e)
 			{
 				if (selectedJoshText == null)
@@ -159,7 +226,7 @@ public class FindDialog extends JDialog implements WindowListener,ActionListener
 				selectedJoshText.finder.updateParameters((String) tFind.getEditor().getItem(),
 						(String) tReplace.getEditor().getItem());
 				selectedJoshText.finder.present();
-				if (back.isSelected())
+				if (backward.isSelected())
 					selectedJoshText.finder.findPrevious();
 				else
 					selectedJoshText.finder.findNext();
@@ -167,6 +234,7 @@ public class FindDialog extends JDialog implements WindowListener,ActionListener
 		});
 		bReplace.addActionListener(new ActionListener()
 		{
+			@Override
 			public void actionPerformed(ActionEvent e)
 			{
 				if (selectedJoshText == null)
@@ -178,7 +246,7 @@ public class FindDialog extends JDialog implements WindowListener,ActionListener
 				selectedJoshText.finder.updateParameters((String) tFind.getEditor().getItem(),
 						(String) tReplace.getEditor().getItem());
 				selectedJoshText.finder.present();
-				if (back.isSelected())
+				if (backward.isSelected())
 					selectedJoshText.finder.replacePrevious();
 				else
 					selectedJoshText.finder.replaceNext();
@@ -186,6 +254,7 @@ public class FindDialog extends JDialog implements WindowListener,ActionListener
 		});
 		bClose.addActionListener(new ActionListener()
 		{
+			@Override
 			public void actionPerformed(ActionEvent e)
 			{
 				dispose();
@@ -255,11 +324,14 @@ public class FindDialog extends JDialog implements WindowListener,ActionListener
 		permListenerList.add(l);
 	}
 
+	/** @param l The listener to remove. */
 	public static void removePermanentActionListener(ActionListener l)
 	{
 		permListenerList.remove(l);
 	}
 
+	/** Dispatch performed actions to own listers. */
+	@Override
 	public void actionPerformed(ActionEvent e)
 	{
 		for (ActionListener l : listenerList)
@@ -268,33 +340,46 @@ public class FindDialog extends JDialog implements WindowListener,ActionListener
 			l.actionPerformed(e);
 	}
 
+	/** Clean up when window is closed. */
+	@Override
 	public void windowClosed(WindowEvent e)
 	{
 		listenerList.clear();
 	}
 
+	/** Clean up when window is closed. */
+	@Override
 	public void windowClosing(WindowEvent e)
 	{
 		listenerList.clear();
 	}
 
-	//unused
+	/** Unused. */
+	@Override
 	public void windowActivated(WindowEvent e)
 	{ //unused
 	}
 
+	/** Unused. */
+	@Override
 	public void windowDeactivated(WindowEvent e)
 	{ //unused
 	}
 
+	/** Unused. */
+	@Override
 	public void windowDeiconified(WindowEvent e)
 	{ //unused
 	}
 
+	/** Unused. */
+	@Override
 	public void windowIconified(WindowEvent e)
 	{ //unused
 	}
 
+	/** Unused. */
+	@Override
 	public void windowOpened(WindowEvent e)
 	{ //unused
 	}

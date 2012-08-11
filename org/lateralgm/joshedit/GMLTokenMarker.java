@@ -10,12 +10,16 @@ import java.awt.Color;
 import java.awt.Font;
 import java.util.Collections;
 
+/**
+ * Sample GML token marker class based on the default token marker.
+ */
 public class GMLTokenMarker extends DefaultTokenMarker
 {
+	/** Construct, populating language data. */
 	public GMLTokenMarker()
 	{
 		super();
-		schemes.add(new BlockDescriptor("Javadoc","/\\*\\*","\\*/",new Color(128,128,255),Font.BOLD));
+		schemes.add(new BlockDescriptor("Javadoc","/\\*(?=\\*)","\\*/",new Color(128,128,255),Font.BOLD));
 		schemes.add(new BlockDescriptor("Block Comment","/(?=\\*)","\\*/",new Color(13,165,13),
 				Font.ITALIC));
 		schemes.add(new BlockDescriptor("Doc Line Comment","///","$",new Color(128,128,255),Font.BOLD));
@@ -24,8 +28,9 @@ public class GMLTokenMarker extends DefaultTokenMarker
 		schemes.add(new BlockDescriptor("Single Quote String","'","'",new Color(0,0,255),0));
 
 		KeywordSet kws = addKeywordSet("Statements",new Color(0,0,128),Font.BOLD);
-		 //FIXME: Just remove these and make LGM add them from its properties file
-		Collections.addAll(kws.words,new String[] {"if","then","else","do","while","for","until","with"});
+		//FIXME: Just remove these and make LGM add them from its properties file
+		Collections.addAll(kws.words,new String[] { "if","then","else","do","while","for","until",
+				"with","switch","case","default","break","continue","exit","return" });
 		tmKeywords.add(kws);
 
 		CharSymbolSet css = new CharSymbolSet("Operators and Separators",new Color(255,0,0),0);

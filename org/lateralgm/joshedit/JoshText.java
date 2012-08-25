@@ -1597,7 +1597,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 					int offset = 0;
 					StringBuilder ins = new StringBuilder();
 
-					for (int i = 0; i < nr.length(); i++)
+					for (int i = 0; i < nr.length() && i < caret.col; i++)
 						if (Character.isWhitespace(nr.charAt(i)))
 						{
 							offset++;

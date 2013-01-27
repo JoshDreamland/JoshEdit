@@ -293,6 +293,7 @@ public class QuickFind extends JToolBar implements FindNavigator
 		joshText.caret.col = fr.pos;
 		joshText.sel.row = fr.endLine;
 		joshText.sel.col = fr.endPos;
+		joshText.caret.positionChanged();
 		joshText.repaint();
 	}
 

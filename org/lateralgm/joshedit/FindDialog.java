@@ -40,9 +40,9 @@ public class FindDialog extends JDialog implements WindowListener,ActionListener
 	private static final long serialVersionUID = 1L;
 
 	/** The Find combobox (a text field with drop-down history). */
-	public static JComboBox tFind;
+	public static JComboBox<String> tFind;
 	/** The Replace combobox (a text field with drop-down history). */
-	public static JComboBox tReplace;
+	public static JComboBox<String> tReplace;
 
 	/** The "whole word only" checkbox. */
 	public static JCheckBox whole;
@@ -154,12 +154,12 @@ public class FindDialog extends JDialog implements WindowListener,ActionListener
 		setLayout(gl);
 
 		JLabel lFind = new JLabel("Find: ");
-		tFind = new JComboBox();
+		tFind = new JComboBox<String>();
 		tFind.setEditable(true);
 		tFind.getEditor().addActionListener(new EnterListener());
 
 		JLabel lReplace = new JLabel("Replace: ");
-		tReplace = new JComboBox();
+		tReplace = new JComboBox<String>();
 		tReplace.setEditable(true);
 		tReplace.getEditor().addActionListener(new EnterListener());
 

@@ -268,11 +268,11 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		for (int i = 0; i < 256; i++)
 			chType[i] = ChType.NONE;
 
-		for (int i = 'a'; i < 'z'; i++)
+		for (int i = 'a'; i <= 'z'; i++)
 			chType[i] = ChType.WORD;
-		for (int i = 'A'; i < 'Z'; i++)
+		for (int i = 'A'; i <= 'Z'; i++)
 			chType[i] = ChType.WORD;
-		for (int i = '0'; i < '9'; i++)
+		for (int i = '0'; i <= '9'; i++)
 			chType[i] = ChType.WORD;
 		chType['_'] = ChType.WORD;
 
@@ -543,7 +543,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 				code.get(caret.row).sbuild = swb;
 				up.realize(caret.row);
 				storeUndo(up,OPT.SWAP);
-				if (sel.type != ST.RECT) caret.col = line_offset_from(caret.row,caret.colw);
+				if (sel.type != ST.RECT) sel.col = caret.col = line_offset_from(caret.row,caret.colw);
 			}
 			else
 			{
@@ -554,7 +554,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 					code.get(i).sbuild = code.get(i + 1).sbuild;
 				code.get(erow).sbuild = swb;
 				up.realize(erow);
-				if (sel.type != ST.RECT) caret.col = line_offset_from(caret.row,caret.colw);
+				if (sel.type != ST.RECT) sel.col = caret.col = line_offset_from(caret.row,caret.colw);
 				storeUndo(up,OPT.SWAP);
 			}
 		}
@@ -577,7 +577,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 				code.get(caret.row).sbuild = swb;
 				up.realize(caret.row);
 				storeUndo(up,OPT.UNSWAP);
-				if (sel.type != ST.RECT) caret.col = line_offset_from(caret.row,caret.colw);
+				if (sel.type != ST.RECT) sel.col = caret.col = line_offset_from(caret.row,caret.colw);
 			}
 			else
 			{
@@ -589,7 +589,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 				code.get(srow).sbuild = swb;
 				up.realize(erow);
 				storeUndo(up,OPT.UNSWAP);
-				if (sel.type != ST.RECT) caret.col = line_offset_from(caret.row,caret.colw);
+				if (sel.type != ST.RECT) sel.col = caret.col = line_offset_from(caret.row,caret.colw);
 			}
 		}
 	};
@@ -714,11 +714,11 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 		}
 	};
 	/** Decrease the indent for all selected lines. */
-	public AbstractAction aUnindent = new AbstractAction("UNINDENT")
+	/*public AbstractAction aUnindent = new AbstractAction("UNINDENT")
 	{
 		private static final long serialVersionUID = 1L;
 
-		/** @see AbstractAction#actionPerformed(ActionEvent) */
+		/** @see AbstractAction#actionPerformed(ActionEvent) * /
 		@Override
 		public void actionPerformed(ActionEvent e)
 		{
@@ -732,14 +732,14 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			up.realize(erow);
 			storeUndo(up,OPT.INDENT);
 		}
-	};
+	};*/
 
 	/** Map the AbstractActions declared in JoshText to keyboard hotkeys. */
 	private void mapActions()
 	{
 		ActionMap am = getActionMap();
 		Action acts[] = { aLineDel,aLineDup,aLineSwap,aLineUnSwap,aSelAll,aCopy,aCut,aPaste,aUndo,
-				aRedo,aFind,aQuickFind,aUnindent };
+				aRedo,aFind,aQuickFind };
 		for (Action a : acts)
 			am.put(a.getValue(Action.NAME),a);
 	}
@@ -747,6 +747,16 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	/** The global find dialog. */
 	FindDialog findDialog = FindDialog.getInstance();
 
+	/**
+	 * Adds a unit of indentation to the beginning of a given row.
+	 * 
+	 * @param row
+	 *            The index of the row to indent.
+	 */
+	void indent(int row) {		
+		code.getsb(row).insert(0,Settings.indentRepString);
+	}
+	
 	/**
 	 * Removes a unit of indentation from the beginning of a given row.
 	 * 
@@ -757,16 +767,13 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	{
 		StringBuilder sb = code.get(row).sbuild;
 		int wc = 0, cc = 0;
+		// Calculate the number of cells by which this line appears to be indented
 		while (cc < sb.length() && Character.isWhitespace(sb.charAt(cc)))
 		{
-			if (sb.charAt(cc) == '\t')
-			{
-				wc = ((wc + Settings.indentSizeInSpaces) / Settings.indentSizeInSpaces)
-						* Settings.indentSizeInSpaces;
-			}
+			if (sb.charAt(cc++) == '\t')
+				wc = ((wc + Settings.indentSizeInSpaces) / Settings.indentSizeInSpaces) * Settings.indentSizeInSpaces;
 			else
 				wc++;
-			cc++;
 		}
 		if (wc > 0)
 		{
@@ -1317,7 +1324,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 	private Font baseFont = null;
 	/** This is a map of our derived fonts by the flags with which they were derived from the base font. */
 	private HashMap<Integer,Font> specialFonts = new HashMap<Integer,Font>();
-	
+
 	/**
 	 * Paint the line with the given index to the given Graphics object,
 	 * starting
@@ -1549,7 +1556,8 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 			Point p = mouseToPoint(e.getPoint(),true);
 			ST sto = sel.type;
 			sel.type = ST.NORM;
-			UndoPatch up = new UndoPatch(p.y,Math.min(code.size() - 1,p.y + sel.getMiddlePasteRipple()));
+			UndoPatch up = new UndoPatch(p.y,Math.min(code.size() - 1,p.y + sel.getMiddlePasteRipple()
+					- 1));
 			up.cbefore.stype = sto;
 			sel.col = caret.col = p.x;
 			sel.row = caret.row = p.y;
@@ -1790,13 +1798,16 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 				}
 				break;
 			case KeyEvent.VK_TAB:
+				System.out.println("Tab");
 				if (!sel.isEmpty())
 				{
 					UndoPatch up = new UndoPatch();
 					String tab = Settings.indentRepString;
 					int yx = Math.max(sel.row,caret.row);
-					for (int y = Math.min(sel.row,caret.row); y <= yx; y++)
-						code.getsb(y).insert(0,tab);
+					if (!e.isShiftDown()) for (int y = Math.min(sel.row,caret.row); y <= yx; y++)
+						indent(y);
+					else for (int y = Math.min(sel.row,caret.row); y <= yx; y++)
+						unindent(y);
 					sel.col += tab.length();
 					caret.col += tab.length();
 					up.realize(Math.max(sel.row,caret.row));
@@ -1804,7 +1815,16 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 					break;
 				}
 				UndoPatch up = new UndoPatch();
-				sel.insert(Settings.indentRepString);
+				if (!e.isShiftDown())
+					sel.insert(Settings.indentRepString);
+				else {
+					unindent(caret.row);
+					int P = 0;
+					while (P < code.getsb(caret.row).length()
+							&& Character.isWhitespace(code.getsb(caret.row).charAt(P)))
+						P++;
+					caret.colw = caret.col = sel.col = P;
+				}
 				up.realize(caret.row);
 				storeUndo(up,OPT.TYPED);
 				break;
@@ -1871,6 +1891,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 				break;
 			case KeyEvent.VK_LEFT:
 				int otype = selGetKind(code.getsb(caret.row),caret.col - 1);
+				int moved = 0;
 				do
 				{
 					if (caret.col > 0)
@@ -1882,6 +1903,9 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 					}
 					else
 						break;
+					if (moved == 0 && !selOfKind(code.getsb(caret.row),caret.col - 1,otype))
+						otype = selGetKind(code.getsb(caret.row),caret.col - 1);
+					++moved;
 				}
 				while (e.isControlDown() && selOfKind(code.getsb(caret.row),caret.col - 1,otype));
 				undoCanMerge = false;
@@ -1898,6 +1922,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 				break;
 			case KeyEvent.VK_RIGHT:
 				otype = selGetKind(code.getsb(caret.row),caret.col);
+				moved = 0;
 				do
 				{
 					if (sel.type == ST.RECT || caret.col < code.getsb(caret.row).length())
@@ -1909,6 +1934,9 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 					}
 					else
 						break;
+					if (moved == 0 && !selOfKind(code.getsb(caret.row),caret.col,otype))
+						otype = selGetKind(code.getsb(caret.row),caret.col);
+					++moved;
 				}
 				while (e.isControlDown() && selOfKind(code.getsb(caret.row),caret.col,otype));
 				undoCanMerge = false;
@@ -2009,9 +2037,12 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 				e.consume();
 				break;
 		}
-		if (sc.x != caret.col || sc.y != caret.row) caret.positionChanged();
+		if (sc.x != caret.col || sc.y != caret.row)
+		{
+			caret.positionChanged();
+			sel.selectionChanged();
+		}
 		fitToCode();
-		// doShowCursor();
 	}
 
 	/** Handle a component key event; a type or a generic press. */
@@ -2272,7 +2303,7 @@ public class JoshText extends JComponent implements Scrollable,ComponentListener
 				sel.deselect(false);
 				sel.type = ST.NORM;
 				up.startRow = caret.row;
-				up.reconstruct(p.y,Math.min(code.size() - 1,p.y + sel.getInsertRipple(data)));
+				up.reconstruct(p.y,Math.min(code.size() - 1,p.y + sel.getInsertRipple(data) - 1));
 			}
 			int er = 0;
 			if (data.length() > 0 && data.charAt(data.length() - 1) == 0)

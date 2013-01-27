@@ -116,7 +116,7 @@ public class Selection implements Highlighter
 	{
 		if (type == ST.RECT) return Math.abs(caret.row - row) + 1;
 		if (str.length() > 0 && str.charAt(str.length() - 1) == 0)
-			return Math.max(str.split("(\r?\n|\r)",-1).length,0);
+			return Math.max(str.split("(\r?\n|\r)",-1).length,1);
 		return 1;
 	}
 

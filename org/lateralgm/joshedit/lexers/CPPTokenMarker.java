@@ -5,10 +5,12 @@
 	 * the GNU General Public License, version 3 or later. 
 	 */
 
-package org.lateralgm.joshedit;
+package org.lateralgm.joshedit.lexers;
 
 import java.awt.Color;
 import java.awt.Font;
+
+import org.lateralgm.joshedit.DefaultTokenMarker;
 
 /**
  * Sample C++ token marker class based on the default token marker.

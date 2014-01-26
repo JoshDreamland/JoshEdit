@@ -4,11 +4,13 @@
  * You can use, modify, and distribute it under the terms of
  * the GNU General Public License, version 3 or later. 
  */
-package org.lateralgm.joshedit;
+package org.lateralgm.joshedit.lexers;
 
 import java.awt.Color;
 import java.awt.Font;
 import java.util.Collections;
+
+import org.lateralgm.joshedit.DefaultTokenMarker;
 
 /**
  * Sample GML token marker class based on the default token marker.

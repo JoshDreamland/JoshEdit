@@ -46,7 +46,7 @@ public class Bindings extends JPanel
 	/** The default mappings file. */
 	private static final ResourceBundle DEFAULTS = ResourceBundle.getBundle("org.lateralgm.joshedit.defaults"); //$NON-NLS-1$
 	/** The translation file. */
-	private static final ResourceBundle TRANSLATE = ResourceBundle.getBundle("org.lateralgm.joshedit.translate"); //$NON-NLS-1$
+	public static final ResourceBundle TRANSLATE = ResourceBundle.getBundle("org.lateralgm.joshedit.translate"); //$NON-NLS-1$
 	/** The preferences file. */
 	public static final Preferences PREFS = Preferences.userRoot().node("/org/lateralgm/joshedit"); //$NON-NLS-1$
 

@@ -53,7 +53,7 @@ public class CompletionMenu
 	/** Completion options from which the user can select. */
 	private Completion[] options;
 	private String word;
-	private JList completionList;
+	private JList<Completion> completionList;
 	private KeyHandler keyHandler;
 	//	protected int wordOffset;
 	//	protected int wordPos;
@@ -74,7 +74,7 @@ public class CompletionMenu
 		completions = c;
 
 		keyHandler = new KeyHandler();
-		completionList = new JList();
+		completionList = new JList<Completion>();
 		completionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		completionList.addKeyListener(keyHandler);
 		completionList.addMouseListener(new MouseAdapter()

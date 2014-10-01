@@ -51,7 +51,7 @@ class SyntaxDesc
 		public IndentRule(String r)
 		{
 			rule = Pattern.compile(r);
-			bi = new Block("","");
+			bi = new Block("", "");
 		}
 
 		public IndentRule(String r, Block b)
@@ -63,13 +63,13 @@ class SyntaxDesc
 		public IndentRule(String r, String b, String e)
 		{
 			rule = Pattern.compile(r);
-			bi = new Block(b,e);
+			bi = new Block(b, e);
 		}
 
 		public IndentRule(String r, String b, String e, String i)
 		{
 			rule = Pattern.compile(r);
-			bi = new Block(b,e,i);
+			bi = new Block(b, e, i);
 		}
 	}
 

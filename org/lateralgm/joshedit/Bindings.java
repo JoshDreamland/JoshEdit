@@ -44,11 +44,14 @@ public class Bindings extends JPanel
 	private static final long serialVersionUID = 1L;
 
 	/** The default mappings file. */
-	private static final ResourceBundle DEFAULTS = ResourceBundle.getBundle("org.lateralgm.joshedit.defaults"); //$NON-NLS-1$
+	private static final ResourceBundle DEFAULTS = ResourceBundle
+		.getBundle("org.lateralgm.joshedit.defaults"); //$NON-NLS-1$
 	/** The translation file. */
-	private static final ResourceBundle TRANSLATE = ResourceBundle.getBundle("org.lateralgm.joshedit.translate"); //$NON-NLS-1$
+	private static final ResourceBundle TRANSLATE = ResourceBundle
+		.getBundle("org.lateralgm.joshedit.translate"); //$NON-NLS-1$
 	/** The preferences file. */
-	public static final Preferences PREFS = Preferences.userRoot().node("/org/lateralgm/joshedit"); //$NON-NLS-1$
+	public static final Preferences PREFS = Preferences.userRoot().node(
+		"/org/lateralgm/joshedit"); //$NON-NLS-1$
 
 	/** Our list of bindings. */
 	JTable list;
@@ -93,7 +96,7 @@ public class Bindings extends JPanel
 		 */
 		public void addRow(String desc, String key)
 		{
-			rows.add(new Row(desc,key));
+			rows.add(new Row(desc, key));
 		}
 
 		/** We always have two columns. */
@@ -131,10 +134,8 @@ public class Bindings extends JPanel
 		@Override
 		public void setValueAt(Object aValue, int rowIndex, int columnIndex)
 		{
-			if (columnIndex == 0)
-				rows.get(rowIndex).desc = aValue.toString();
-			else
-				rows.get(rowIndex).key = aValue.toString();
+			if (columnIndex == 0) rows.get(rowIndex).desc = aValue.toString();
+			else rows.get(rowIndex).key = aValue.toString();
 		}
 
 		/**
@@ -181,8 +182,8 @@ public class Bindings extends JPanel
 		@Override
 		public void setValue(Object value)
 		{
-			super.setValue((value == null) ? "" : value instanceof String ? keyToEnglish((String) value)
-					: value);
+			super.setValue((value == null) ? ""
+				: value instanceof String ? keyToEnglish((String) value) : value);
 		}
 	}
 
@@ -231,12 +232,13 @@ public class Bindings extends JPanel
 			System.out.println(e.getModifiersEx() + " " + e.getKeyCode());
 
 			// Modifiers by themselves invalid
-			if (e.getKeyCode() == KeyEvent.VK_CONTROL || e.getKeyCode() == KeyEvent.VK_ALT
-					|| e.getKeyCode() == KeyEvent.VK_SHIFT || e.getKeyCode() == 0) return;
+			if (e.getKeyCode() == KeyEvent.VK_CONTROL
+				|| e.getKeyCode() == KeyEvent.VK_ALT
+				|| e.getKeyCode() == KeyEvent.VK_SHIFT || e.getKeyCode() == 0) return;
 
 			// Typable characters invalid
 			if (e.getModifiersEx() == InputEvent.SHIFT_DOWN_MASK //and nothing else
-					|| e.getModifiersEx() == 0 && !e.isActionKey()) return;
+				|| e.getModifiersEx() == 0 && !e.isActionKey()) return;
 
 			// Generate name
 			String mods = "";
@@ -267,8 +269,12 @@ public class Bindings extends JPanel
 			{
 				if (i.key.equals(name) && row != myRow)
 				{
-					boolean ret = JOptionPane.showConfirmDialog(null,"Key combination already set for \""
-							+ i.desc + ".\" Reassign?","Shortcut conflict",JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+					boolean ret =
+						JOptionPane.showConfirmDialog(null,
+							"Key combination already set for \""
+								+ i.desc + ".\" Reassign?",
+							"Shortcut conflict",
+							JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
 					if (ret)
 					{
 						i.key = "";
@@ -348,10 +354,10 @@ public class Bindings extends JPanel
 
 		/** @see javax.swing.table.TableCellEditor#getTableCellEditorComponent(javax.swing.JTable, java.lang.Object, boolean, int, int) */
 		@Override
-		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected,
-				int row, int column)
+		public Component getTableCellEditorComponent(JTable table, Object value,
+			boolean isSelected, int row, int column)
 		{
-			comp.init(row,table,value.toString());
+			comp.init(row, table, value.toString());
 			return comp;
 		}
 	}
@@ -360,7 +366,7 @@ public class Bindings extends JPanel
 	public Bindings()
 	{
 		super();
-		setLayout(new BoxLayout(this,BoxLayout.PAGE_AXIS));
+		setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
 		add(new JLabel("Use the list below to edit key bindings."));
 
@@ -392,17 +398,17 @@ public class Bindings extends JPanel
 	 */
 	static void populateBindings(KeystrokeTableModel model)
 	{
-		TreeMap<String,ArrayList<String>> items = new TreeMap<String,ArrayList<String>>();
+		TreeMap<String, ArrayList<String>> items = new TreeMap<String, ArrayList<String>>();
 		Preferences bindings = PREFS.node("bindings"); //$NON-NLS-1$
 		try
 		{
 			for (String key : bindings.keys())
 			{
-				String act = bindings.get(key,null);
+				String act = bindings.get(key, null);
 				if (act != null)
 				{
 					ArrayList<String> a = items.get(act);
-					if (a == null) items.put(act,a = new ArrayList<String>());
+					if (a == null) items.put(act, a = new ArrayList<String>());
 					a.add(key);
 				}
 			}
@@ -417,16 +423,16 @@ public class Bindings extends JPanel
 			{
 				String act = DEFAULTS.getString(key);
 				ArrayList<String> a = items.get(act);
-				if (a == null) items.put(act,a = new ArrayList<String>());
+				if (a == null) items.put(act, a = new ArrayList<String>());
 				a.add(key);
 			}
 		}
-		for (Entry<String,ArrayList<String>> i : items.entrySet())
+		for (Entry<String, ArrayList<String>> i : items.entrySet())
 		{
 			String act = i.getKey();
 			for (String key : i.getValue())
 			{
-				model.addRow(getString("bindings." + act,act),key);
+				model.addRow(getString("bindings." + act, act), key);
 				act = "";
 			}
 		}
@@ -448,7 +454,7 @@ public class Bindings extends JPanel
 		{
 			r = def == null ? '!' + key + '!' : def;
 		}
-		return PREFS.get(key,r);
+		return PREFS.get(key, r);
 	}
 
 	/**
@@ -462,11 +468,11 @@ public class Bindings extends JPanel
 			boolean changed = false;
 			for (String key : bindings.keys())
 			{
-				String act = bindings.get(key,null);
+				String act = bindings.get(key, null);
 				if (act != null)
 				{
 					changed = true;
-					im.put(JoshText.key(key),act);
+					im.put(JoshText.key(key), act);
 				}
 			}
 			if (changed) return;
@@ -479,7 +485,7 @@ public class Bindings extends JPanel
 		for (String key : DEFAULTS.keySet())
 		{
 			String act = DEFAULTS.getString(key);
-			im.put(JoshText.key(key),act);
+			im.put(JoshText.key(key), act);
 		}
 	}
 }

@@ -30,7 +30,7 @@ public class Code extends ArrayList<Line>
 	 */
 	public void add(int index, StringBuilder sb)
 	{
-		super.add(index,new Line(sb));
+		super.add(index, new Line(sb));
 		fireLinesChanged();
 	}
 
@@ -40,7 +40,7 @@ public class Code extends ArrayList<Line>
 	 */
 	public void add(int index, String string)
 	{
-		add(index,new StringBuilder(string));
+		add(index, new StringBuilder(string));
 	}
 
 	/**
@@ -114,7 +114,7 @@ public class Code extends ArrayList<Line>
 	protected void fireLinesChanged()
 	{
 		for (Code.CodeListener l : listenerList)
-			l.codeChanged(new CodeEvent(this,CodeEvent.LINES_CHANGED));
+			l.codeChanged(new CodeEvent(this, CodeEvent.LINES_CHANGED));
 	}
 
 	/** Event related to this code. */
@@ -131,7 +131,7 @@ public class Code extends ArrayList<Line>
 		 */
 		public CodeEvent(Object source, int id)
 		{
-			super(source,id);
+			super(source, id);
 		}
 
 	}
@@ -196,9 +196,10 @@ public class Code extends ArrayList<Line>
 		{
 			if (findme.length == 1)
 			{
-				int io = find_prev_in(getsb(y),findme[0].toLowerCase(),y == lineFrom ? posFrom : getsb(y).length());
-				if (io != -1)
-					return new FindResults(y,io,findme[0].length());
+				int io =
+					find_prev_in(getsb(y), findme[0].toLowerCase(),
+						y == lineFrom ? posFrom : getsb(y).length());
+				if (io != -1) return new FindResults(y, io, findme[0].length());
 			}
 		}
 		return null;
@@ -212,11 +213,9 @@ public class Code extends ArrayList<Line>
 	 */
 	private static int find_prev_in(StringBuilder sb, String findme, int from)
 	{
-		if (from == 0)
-			return -1;
-		if (FindDialog.sens.isSelected())
-		  return sb.lastIndexOf(findme, from-1);
-	  return sb.toString().toLowerCase().lastIndexOf(findme.toLowerCase(),from-1);
+		if (from == 0) return -1;
+		if (FindDialog.sens.isSelected()) return sb.lastIndexOf(findme, from - 1);
+		return sb.toString().toLowerCase().lastIndexOf(findme.toLowerCase(), from - 1);
 	}
 
 	/**
@@ -231,7 +230,7 @@ public class Code extends ArrayList<Line>
 		{
 			Matcher m = p.matcher(getsb(y).toString());
 			int si = y == lineFrom ? posFrom : 0;
-			if (m.find(si)) return new FindResults(y,m.start(),y,m.end());
+			if (m.find(si)) return new FindResults(y, m.start(), y, m.end());
 		}
 		return null;
 	}
@@ -246,10 +245,10 @@ public class Code extends ArrayList<Line>
 	{
 		findMain: for (int y = lineFrom; y < size(); y++)
 		{
-			int io = find_next_in(getsb(y),findme[0],y == lineFrom ? posFrom : 0);
+			int io = find_next_in(getsb(y), findme[0], y == lineFrom ? posFrom : 0);
 			if (io == -1) continue;
 
-			if (findme.length == 1) return new FindResults(y,io,findme[0].length());
+			if (findme.length == 1) return new FindResults(y, io, findme[0].length());
 
 			int intermediate;
 			for (intermediate = 1; intermediate < findme.length - 1; intermediate++)
@@ -257,9 +256,9 @@ public class Code extends ArrayList<Line>
 				if (!findme[intermediate].equals(getsb(y + intermediate))) continue findMain;
 			}
 			if (getsb(y + intermediate).length() >= findme[intermediate].length()
-					&& getsb(y + intermediate).substring(0,findme[intermediate].length()).equals(
-							findme[intermediate]))
-				return new FindResults(io,y,findme[intermediate].length(),y + intermediate);
+				&& getsb(y + intermediate).substring(0,
+					findme[intermediate].length()).equals(findme[intermediate])) return new FindResults(
+				io, y, findme[intermediate].length(), y + intermediate);
 		}
 		return null;
 	}
@@ -272,7 +271,7 @@ public class Code extends ArrayList<Line>
 	 */
 	private static int find_next_in(StringBuilder sb, String findme, int from)
 	{
-		if (FindDialog.sens.isSelected()) return sb.indexOf(findme,from);
-		return sb.toString().toLowerCase().indexOf(findme,from);
+		if (FindDialog.sens.isSelected()) return sb.indexOf(findme, from);
+		return sb.toString().toLowerCase().indexOf(findme, from);
 	}
 }

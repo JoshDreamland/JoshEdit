@@ -42,7 +42,7 @@ public class QuickFind extends JToolBar implements FindNavigator
 	private static final long serialVersionUID = 1L;
 
 	/** Font for quick find widgets. */
-	private static final Font FONT = new Font(Font.SANS_SERIF,Font.PLAIN,12);
+	private static final Font FONT = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
 	/** The string to display on the find label. */
 	private static final String S_FIND;
 	/** The string to display on the replace label. */
@@ -132,14 +132,14 @@ public class QuickFind extends JToolBar implements FindNavigator
 		add(tReplace = new JTextField());
 		add(prev = new JButton(I_PREV));
 		add(next = new JButton(I_NEXT));
-		add(highlight = new JToggleButton(B_HIGHL,I_MARK));
-		add(bReplace = new JButton(B_REPL,I_REPL));
+		add(highlight = new JToggleButton(B_HIGHL, I_MARK));
+		add(bReplace = new JButton(B_REPL, I_REPL));
 		add(settings = new JButton(I_SET));
 		highlight.setFont(FONT);
 		swapFnR.setFont(FONT);
 
-		setMaximumSize(new Dimension(Integer.MAX_VALUE,20));
-		setPreferredSize(new Dimension(320,24));
+		setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
+		setPreferredSize(new Dimension(320, 24));
 		setBorder(null);
 
 		tReplace.setVisible(false);
@@ -185,10 +185,9 @@ public class QuickFind extends JToolBar implements FindNavigator
 			@Override
 			public void actionPerformed(ActionEvent e)
 			{
-				if ((e.getModifiers() & InputEvent.SHIFT_DOWN_MASK) != 0 ^ FindDialog.backward.isSelected())
-					findPrevious();
-				else
-					findNext();
+				if ((e.getModifiers() & InputEvent.SHIFT_DOWN_MASK) != 0
+					^ FindDialog.backward.isSelected()) findPrevious();
+				else findNext();
 			}
 		});
 		bReplace.addActionListener(new ActionListener()
@@ -198,18 +197,16 @@ public class QuickFind extends JToolBar implements FindNavigator
 			{
 				if (lastResult == null || !isSelected(lastResult))
 				{
-					if (joshText.sel.isEmpty()) if (!FindDialog.backward.isSelected())
-						findNext();
-					else
-						findPrevious();
+					if (joshText.sel.isEmpty()) if (!FindDialog.backward
+						.isSelected()) findNext();
+					else findPrevious();
 				}
-				else
-					doReplace();
+				else doReplace();
 			}
 		});
 		swapFnR.addMouseListener(new MouseAdapter()
 		{
-			final Color HIGHLIGHT = new Color(0,128,255);
+			final Color HIGHLIGHT = new Color(0, 128, 255);
 
 			@Override
 			public void mouseExited(MouseEvent arg0)
@@ -249,18 +246,16 @@ public class QuickFind extends JToolBar implements FindNavigator
 	{
 		UndoPatch up = joshText.new UndoPatch();
 		joshText.sel.insert(tReplace.getText());
-		up.realize(Math.max(joshText.caret.row,joshText.sel.row));
-		joshText.storeUndo(up,OPT.REPLACE);
+		up.realize(Math.max(joshText.caret.row, joshText.sel.row));
+		joshText.storeUndo(up, OPT.REPLACE);
 		joshText.repaint();
 	}
 
 	/** Changes our mode between find and find and replace. */
 	protected void toggleMode()
 	{
-		if (mode != Mode.mode_find)
-			toggleModeFind();
-		else
-			toggleModeReplace();
+		if (mode != Mode.mode_find) toggleModeFind();
+		else toggleModeReplace();
 	}
 
 	/** Change the mode to find. */
@@ -302,7 +297,8 @@ public class QuickFind extends JToolBar implements FindNavigator
 	 * @return True if the editor's selection mirrors the given find results, false otherwise. */
 	protected boolean isSelected(FindResults fr)
 	{
-		boolean res = (joshText.caret.row == fr.line && joshText.caret.col == fr.pos
+		boolean res =
+			(joshText.caret.row == fr.line && joshText.caret.col == fr.pos
 				&& joshText.sel.row == fr.endLine && joshText.sel.col == fr.endPos);
 		System.out.println("SELECTED: " + res);
 		return res;
@@ -320,21 +316,23 @@ public class QuickFind extends JToolBar implements FindNavigator
 			Pattern p;
 			try
 			{
-				p = Pattern.compile(ftext,Pattern.CASE_INSENSITIVE);
+				p = Pattern.compile(ftext, Pattern.CASE_INSENSITIVE);
 			}
 			catch (PatternSyntaxException pse)
 			{
 				System.out.println("Shit man, your expression sucks");
 				return;
 			}
-			lastResult = joshText.code.findNext(p,joshText.caret.row,
-					joshText.caret.col + (joshText.sel.isEmpty() ? 0 : 1));
+			lastResult =
+				joshText.code.findNext(p, joshText.caret.row, joshText.caret.col
+					+ (joshText.sel.isEmpty() ? 0 : 1));
 			if (lastResult != null) selectFind(lastResult);
 			return;
 		}
 		String[] findme = ftext.split("\r?\n");
 
-		lastResult = joshText.code.findNext(findme,joshText.caret.row,joshText.caret.col
+		lastResult =
+			joshText.code.findNext(findme, joshText.caret.row, joshText.caret.col
 				+ (joshText.sel.isEmpty() ? 0 : 1));
 		if (lastResult != null) selectFind(lastResult);
 		return;
@@ -348,7 +346,8 @@ public class QuickFind extends JToolBar implements FindNavigator
 		if (ftext.length() == 0) return;
 		if (FindDialog.regex.isSelected()) return;
 		String[] findme = ftext.split("\r?\n");
-		lastResult = joshText.code.findPrevious(findme,joshText.caret.row,joshText.caret.col);
+		lastResult =
+			joshText.code.findPrevious(findme, joshText.caret.row, joshText.caret.col);
 		if (lastResult != null) selectFind(lastResult);
 	}
 

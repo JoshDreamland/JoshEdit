@@ -51,7 +51,7 @@ public class LineNumberPanel extends JPanel
 	 */
 	public LineNumberPanel(JComponent textarea, int lines, boolean startZero)
 	{
-		this(textarea.getFontMetrics(textarea.getFont()),lines,startZero);
+		this(textarea.getFontMetrics(textarea.getFont()), lines, startZero);
 	}
 
 	/**
@@ -77,12 +77,13 @@ public class LineNumberPanel extends JPanel
 			if (widths[i] > maxAdvance) maxAdvance = widths[i];
 
 		//multiply by max number of digits
-		int width = maxAdvance * (int) Math.max(Math.log10(lines - (startZero ? 1 : 0)) + 2,2);
+		int width =
+			maxAdvance * (int) Math.max(Math.log10(lines - (startZero ? 1 : 0)) + 2, 2);
 
 		//get line height, multiply by number of lines. + 1 line since the end seems to have a little extra
 		int height = metrics.getHeight() * (lines + 1);
 
-		setPreferredSize(new Dimension(width,height));
+		setPreferredSize(new Dimension(width, height));
 		revalidate();
 
 		//this particular line appears to be necessary to allow these changes to take effect.
@@ -96,8 +97,9 @@ public class LineNumberPanel extends JPanel
 	@Override
 	public void paintComponent(Graphics g)
 	{
-		Object map = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
-		if (map != null) ((Graphics2D) g).addRenderingHints((Map<?,?>) map);
+		Object map =
+			Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
+		if (map != null) ((Graphics2D) g).addRenderingHints((Map<?, ?>) map);
 
 		Rectangle clip = g.getClipBounds();
 		final int insetY = metrics.getLeading() + metrics.getAscent();
@@ -108,10 +110,10 @@ public class LineNumberPanel extends JPanel
 		if (!startZero) lineNum++;
 
 		g.setColor(getBackground());
-		g.fillRect(clip.x,clip.y,clip.width,clip.height);
+		g.fillRect(clip.x, clip.y, clip.width, clip.height);
 		g.setColor(getForeground());
 
 		for (int y = start; lineNum < lines && y <= end; lineNum++, y += gh)
-			g.drawString(Integer.toString(lineNum),0,y);
+			g.drawString(Integer.toString(lineNum), 0, y);
 	}
 }

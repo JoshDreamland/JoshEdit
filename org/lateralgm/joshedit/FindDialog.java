@@ -34,7 +34,7 @@ import javax.swing.JRadioButton;
  * @author Josh Ventura
  * Class to display a full set of find and replace options.
  */
-public class FindDialog extends JDialog implements WindowListener,ActionListener
+public class FindDialog extends JDialog implements WindowListener, ActionListener
 {
 	/** Cram it, ECJ. */
 	private static final long serialVersionUID = 1L;
@@ -90,7 +90,7 @@ public class FindDialog extends JDialog implements WindowListener,ActionListener
 	/** Construct, creating everything. */
 	private FindDialog()
 	{
-		super((Frame) null,"Find/Replace");
+		super((Frame) null, "Find/Replace");
 		applyLayout();
 		addWindowListener(this);
 		pack();
@@ -164,7 +164,7 @@ public class FindDialog extends JDialog implements WindowListener,ActionListener
 		tReplace.getEditor().addActionListener(new EnterListener());
 
 		JPanel options = new JPanel();
-		options.setLayout(new BoxLayout(options,BoxLayout.PAGE_AXIS));
+		options.setLayout(new BoxLayout(options, BoxLayout.PAGE_AXIS));
 		options.setBorder(BorderFactory.createTitledBorder("Options"));
 		options.add(whole = new JCheckBox("Whole word"));
 		options.add(start = new JCheckBox("Start of word"));
@@ -174,8 +174,8 @@ public class FindDialog extends JDialog implements WindowListener,ActionListener
 		options.add(regex = new JCheckBox("Regular expression"));
 		options.add(backward = new JCheckBox("Search backwards"));
 
-		new ButGroup(whole,start);
-		new ButGroup(esc,regex);
+		new ButGroup(whole, start);
+		new ButGroup(esc, regex);
 		regex.addItemListener(new ItemListener()
 		{
 			@Override
@@ -187,7 +187,7 @@ public class FindDialog extends JDialog implements WindowListener,ActionListener
 		});
 
 		JPanel scope = new JPanel();
-		scope.setLayout(new BoxLayout(scope,BoxLayout.PAGE_AXIS));
+		scope.setLayout(new BoxLayout(scope, BoxLayout.PAGE_AXIS));
 		scope.setBorder(BorderFactory.createTitledBorder("Scope"));
 
 		ButtonGroup bg = new ButtonGroup();
@@ -199,7 +199,7 @@ public class FindDialog extends JDialog implements WindowListener,ActionListener
 		scope.add(scObject);
 		bg.add(scEvent = new JRadioButton("Event"));
 		scope.add(scEvent);
-		bg.add(scCode = new JRadioButton("Code",true));
+		bg.add(scCode = new JRadioButton("Code", true));
 		scope.add(scCode);
 		bg.add(scSel = new JRadioButton("Selection"));
 		scope.add(scSel);
@@ -223,13 +223,11 @@ public class FindDialog extends JDialog implements WindowListener,ActionListener
 					return;
 				}
 				setVisible(false);
-				selectedJoshText.finder.updateParameters((String) tFind.getEditor().getItem(),
-						(String) tReplace.getEditor().getItem());
+				selectedJoshText.finder.updateParameters((String) tFind.getEditor()
+					.getItem(), (String) tReplace.getEditor().getItem());
 				selectedJoshText.finder.present();
-				if (backward.isSelected())
-					selectedJoshText.finder.findPrevious();
-				else
-					selectedJoshText.finder.findNext();
+				if (backward.isSelected()) selectedJoshText.finder.findPrevious();
+				else selectedJoshText.finder.findNext();
 			}
 		});
 		bReplace.addActionListener(new ActionListener()
@@ -243,13 +241,12 @@ public class FindDialog extends JDialog implements WindowListener,ActionListener
 					return;
 				}
 				setVisible(false);
-				selectedJoshText.finder.updateParameters((String) tFind.getEditor().getItem(),
-						(String) tReplace.getEditor().getItem());
+				selectedJoshText.finder.updateParameters((String) tFind.getEditor()
+					.getItem(), (String) tReplace.getEditor().getItem());
 				selectedJoshText.finder.present();
-				if (backward.isSelected())
-					selectedJoshText.finder.replacePrevious();
-				else
-					selectedJoshText.finder.replaceNext();
+				if (backward.isSelected()) selectedJoshText.finder
+					.replacePrevious();
+				else selectedJoshText.finder.replaceNext();
 			}
 		});
 		bClose.addActionListener(new ActionListener()
@@ -272,24 +269,24 @@ public class FindDialog extends JDialog implements WindowListener,ActionListener
 		/*		*/.addComponent(tFind)
 		/*		*/.addComponent(tReplace)))
 		/**/.addGroup(gl.createSequentialGroup()
-		/*	*/.addComponent(options,pref,pref,Integer.MAX_VALUE)
-		/*	*/.addComponent(scope,pref,pref,Integer.MAX_VALUE))
+		/*	*/.addComponent(options, pref, pref, Integer.MAX_VALUE)
+		/*	*/.addComponent(scope, pref, pref, Integer.MAX_VALUE))
 		/**/.addGroup(gl.createSequentialGroup()
-		/*	*/.addComponent(bFind,pref,pref,Integer.MAX_VALUE)
-		/*	*/.addComponent(bReplace,pref,pref,Integer.MAX_VALUE)
-		/*	*/.addComponent(bRepAll,pref,pref,Integer.MAX_VALUE)
-		/*	*/.addComponent(bClose,pref,pref,Integer.MAX_VALUE)));
+		/*	*/.addComponent(bFind, pref, pref, Integer.MAX_VALUE)
+		/*	*/.addComponent(bReplace, pref, pref, Integer.MAX_VALUE)
+		/*	*/.addComponent(bRepAll, pref, pref, Integer.MAX_VALUE)
+		/*	*/.addComponent(bClose, pref, pref, Integer.MAX_VALUE)));
 
 		gl.setVerticalGroup(gl.createSequentialGroup()
 		/**/.addGroup(gl.createParallelGroup()
 		/*	*/.addComponent(lFind)
-		/*	*/.addComponent(tFind,pref,pref,pref))
+		/*	*/.addComponent(tFind, pref, pref, pref))
 		/**/.addGroup(gl.createParallelGroup()
 		/*	*/.addComponent(lReplace)
-		/*	*/.addComponent(tReplace,pref,pref,pref))
+		/*	*/.addComponent(tReplace, pref, pref, pref))
 		/**/.addGroup(gl.createParallelGroup()
-		/*	*/.addComponent(options,pref,pref,Integer.MAX_VALUE)
-		/*	*/.addComponent(scope,pref,pref,Integer.MAX_VALUE))
+		/*	*/.addComponent(options, pref, pref, Integer.MAX_VALUE)
+		/*	*/.addComponent(scope, pref, pref, Integer.MAX_VALUE))
 		/**/.addGroup(gl.createParallelGroup()
 		/*	*/.addComponent(bFind)
 		/*	*/.addComponent(bReplace)

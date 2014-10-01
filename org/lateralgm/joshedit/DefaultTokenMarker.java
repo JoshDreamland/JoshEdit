@@ -89,8 +89,8 @@ public class DefaultTokenMarker implements TokenMarker
 		 * @param font_style The font style with which this block will be rendered.
 		 */
 		public BlockDescriptor(String block_name, String begin_regex, String end_regex,
-				boolean allow_multiline, boolean escape_endmarkers, char escape_char, Color markColor,
-				int font_style)
+			boolean allow_multiline, boolean escape_endmarkers, char escape_char,
+			Color markColor, int font_style)
 		{
 			name = block_name;
 			begin = Pattern.compile(begin_regex);
@@ -111,9 +111,10 @@ public class DefaultTokenMarker implements TokenMarker
 		 * @param font_style The font style with which this block will be rendered.
 		 */
 		public BlockDescriptor(String block_name, String begin_regex, String end_regex,
-				Color markColor, int font_style)
+			Color markColor, int font_style)
 		{
-			this(block_name,begin_regex,end_regex,true,false,(char) 0,markColor,font_style);
+			this(block_name, begin_regex, end_regex, true, false, (char) 0, markColor,
+				font_style);
 		}
 	}
 
@@ -167,7 +168,7 @@ public class DefaultTokenMarker implements TokenMarker
 	 */
 	public KeywordSet addKeywordSet(String groupName, Color markColor, int fontStyle)
 	{
-		return addKeywordSet(groupName,markColor,fontStyle,caseSensitive);
+		return addKeywordSet(groupName, markColor, fontStyle, caseSensitive);
 	}
 
 	/** Adds a new keyword set with some basic information and specified case-sensitivity.
@@ -178,9 +179,9 @@ public class DefaultTokenMarker implements TokenMarker
 	 * @return The new keyword set, so you can populate it.
 	 */
 	public KeywordSet addKeywordSet(String groupName, Color markColor, int fontStyle,
-			boolean caseSensitiveTK)
+		boolean caseSensitiveTK)
 	{
-		KeywordSet ks = new KeywordSet(groupName,markColor,fontStyle,caseSensitiveTK);
+		KeywordSet ks = new KeywordSet(groupName, markColor, fontStyle, caseSensitiveTK);
 		tmKeywords.add(ks);
 		return ks;
 	}
@@ -324,9 +325,10 @@ public class DefaultTokenMarker implements TokenMarker
 		 * @param hash Any attribute, probably in si as well, which much persist.
 		 * @param si More information about the scheme that created this TokenMarkerInfo.
 		 */
-		public TokenMarkerInfoEx(int fs, Color col, int start, int end, int hash, SchemeInfo si)
+		public TokenMarkerInfoEx(int fs, Color col, int start, int end, int hash,
+			SchemeInfo si)
 		{
-			super(fs,col,start,end,hash);
+			super(fs, col, start, end, hash);
 			schemeInfo = si;
 		}
 	}
@@ -340,10 +342,8 @@ public class DefaultTokenMarker implements TokenMarker
 	{
 		do
 		{
-			if (invalid_line == 0)
-				code.get(invalid_line).attr = 0;
-			else
-				invalid_line--;
+			if (invalid_line == 0) code.get(invalid_line).attr = 0;
+			else invalid_line--;
 		}
 		while (code.get(invalid_line).attr < 0);
 		while (invalid_line < line_count - 1)
@@ -351,12 +351,11 @@ public class DefaultTokenMarker implements TokenMarker
 			ArrayList<TokenMarkerInfo> styles = getStyles(code.get(invalid_line));
 			TokenMarkerInfoEx tmi = (TokenMarkerInfoEx) styles.get(styles.size() - 1);
 			invalid_line++;
-			if (code.get(invalid_line).attr < 1)
-				code.get(invalid_line).attr = 0;
-			else
-				code.get(invalid_line).attr &= ~LINE_ATTRIBS.LA_SCHEMEBLOCK; // Remove all scheme info
+			if (code.get(invalid_line).attr < 1) code.get(invalid_line).attr = 0;
+			else code.get(invalid_line).attr &= ~LINE_ATTRIBS.LA_SCHEMEBLOCK; // Remove all scheme info
 			if (tmi.schemeInfo.type == SchemeType.UNTERMBLOCK) // If we're in a block scheme, note so.
-				code.get(invalid_line).attr |= (tmi.schemeInfo.id + 1) << LINE_ATTRIBS.LA_SCHEMEBITOFFSET;
+			code.get(invalid_line).attr |=
+				(tmi.schemeInfo.id + 1) << LINE_ATTRIBS.LA_SCHEMEBITOFFSET;
 		}
 		invalid_line = -1;
 	}
@@ -375,8 +374,7 @@ public class DefaultTokenMarker implements TokenMarker
 		line_count = code.size();
 		if (start < invalid_line || invalid_line == -1) invalid_line = start;
 		for (int i = start; i < end; i++)
-			if (code.get(i).attr > 0)
-				code.get(i).attr = -code.get(i).attr;
+			if (code.get(i).attr > 0) code.get(i).attr = -code.get(i).attr;
 			else if (code.get(i).attr > 0) code.get(i).attr = -1;
 		mark(code);
 	}
@@ -387,7 +385,8 @@ public class DefaultTokenMarker implements TokenMarker
 	{
 		ArrayList<TokenMarkerInfo> res = new ArrayList<TokenMarkerInfo>();
 		StringBuilder line = jline.sbuild;
-		int ischeme = (int) (((jline.attr & LINE_ATTRIBS.LA_SCHEMEBLOCK) >> LINE_ATTRIBS.LA_SCHEMEBITOFFSET) - 1);
+		int ischeme =
+			(int) (((jline.attr & LINE_ATTRIBS.LA_SCHEMEBLOCK) >> LINE_ATTRIBS.LA_SCHEMEBITOFFSET) - 1);
 
 		// Our function guarantees a block at the end of our code to keep the printer, well, printing.
 		// Adding this blindly sometimes screws up other mechanisms. This tells us whether to do so or not.
@@ -403,8 +402,10 @@ public class DefaultTokenMarker implements TokenMarker
 			{
 				for (int si = 0; si < schemes.size(); si++)
 				{
-					Matcher m = schemes.get(si).begin.matcher(line.toString()).region(i,line.length()).useTransparentBounds(
-							true);
+					Matcher m =
+						schemes.get(si).begin.matcher(line.toString())
+							.region(i, line.length())
+							.useTransparentBounds(true);
 					if (!m.find()) continue;
 					if (m.start() < mmin)
 					{ // If this one is closer to the beginning, it can potentially consume later ones. 
@@ -427,12 +428,14 @@ public class DefaultTokenMarker implements TokenMarker
 			// Start searching for its end.
 			for (;;)
 			{
-				Matcher mmatcher = schemes.get(shm).end.matcher(line.toString()).region(mminend,
-						line.length());
+				Matcher mmatcher =
+					schemes.get(shm).end.matcher(line.toString()).region(
+						mminend, line.length());
 				if (!mmatcher.find()) // If there's no end in sight, or that end passed our position of interest
 				{
-					res.add(new TokenMarkerInfoEx(schemes.get(shm).fontStyle,schemes.get(shm).color,mmin,
-							line.length(),shm,new SchemeInfo(SchemeType.UNTERMBLOCK,shm)));
+					res.add(new TokenMarkerInfoEx(schemes.get(shm).fontStyle,
+						schemes.get(shm).color, mmin, line.length(), shm,
+						new SchemeInfo(SchemeType.UNTERMBLOCK, shm)));
 					pushCapstone = false;
 					break FindAllBlocks; // Then we've found all the blocks. Quit.
 				}
@@ -442,8 +445,9 @@ public class DefaultTokenMarker implements TokenMarker
 
 				if (!schemes.get(shm).escapeend) // If we can't escape an ending sequence,
 				{
-					res.add(new TokenMarkerInfoEx(schemes.get(shm).fontStyle,schemes.get(shm).color,mmin,i,
-							shm,new SchemeInfo(SchemeType.BLOCK,shm)));
+					res.add(new TokenMarkerInfoEx(schemes.get(shm).fontStyle,
+						schemes.get(shm).color, mmin, i, shm,
+						new SchemeInfo(SchemeType.BLOCK, shm)));
 					break; // Then mission complete
 				}
 
@@ -457,23 +461,24 @@ public class DefaultTokenMarker implements TokenMarker
 					if (line.charAt(cp) == escc) // If we see an escape char
 					{
 						if (cp + 1 < mmatcher.start()) // Check if it's at the end char we're looking at
-							cp++; // It's not! Skip the next char in case it's another escape char.
-						else
-							end_escaped = true; // It is! The end has been escaped. Find a new end and come back.
+						cp++; // It's not! Skip the next char in case it's another escape char.
+						else end_escaped = true; // It is! The end has been escaped. Find a new end and come back.
 					}
 				}
 
 				if (!end_escaped)
 				{ // If the end wasn't escaped,
-					res.add(new TokenMarkerInfoEx(schemes.get(shm).fontStyle,schemes.get(shm).color,mmin,i,
-							shm,new SchemeInfo(SchemeType.BLOCK,shm)));
+					res.add(new TokenMarkerInfoEx(schemes.get(shm).fontStyle,
+						schemes.get(shm).color, mmin, i, shm,
+						new SchemeInfo(SchemeType.BLOCK, shm)));
 					break; // Mission accomplished
 				}
 				// So, our line was escaped.
 				if (cp >= line.length()) // If we're at the end of the line now,
 				{ // Then the block is escaped and doesn't end on this line. Hop out. 
-					res.add(new TokenMarkerInfoEx(schemes.get(shm).fontStyle,schemes.get(shm).color,mmin,
-							line.length(),shm,new SchemeInfo(SchemeType.UNTERMBLOCK,shm)));
+					res.add(new TokenMarkerInfoEx(schemes.get(shm).fontStyle,
+						schemes.get(shm).color, mmin, line.length(), shm,
+						new SchemeInfo(SchemeType.UNTERMBLOCK, shm)));
 					pushCapstone = false;
 					break FindAllBlocks;
 				}
@@ -483,9 +488,8 @@ public class DefaultTokenMarker implements TokenMarker
 		}
 
 		i = 0;
-		if (pushCapstone)
-			res.add(new TokenMarkerInfoEx(0,null,line.length(),line.length(),0,new SchemeInfo(
-					SchemeType.NOTHING,0)));
+		if (pushCapstone) res.add(new TokenMarkerInfoEx(0, null, line.length(), line
+			.length(), 0, new SchemeInfo(SchemeType.NOTHING, 0)));
 		for (int bi = 0; bi < res.size(); i = res.get(bi++).endPos)
 		{
 			final int sp = res.get(bi).startPos;
@@ -493,53 +497,73 @@ public class DefaultTokenMarker implements TokenMarker
 			{
 				if (Character.isWhitespace(line.charAt(i)))
 				{
-					while (++i < line.length() && Character.isWhitespace(line.charAt(i)))
+					while (++i < line.length()
+						&& Character.isWhitespace(line.charAt(i)))
 					{ /* Move past whitespace */
 					}
 					continue;
 				}
-				Matcher lookingat = identifier_pattern.matcher(line).region(i,line.length());
+				Matcher lookingat =
+					identifier_pattern.matcher(line).region(i, line.length());
 				if (lookingat.lookingAt())
 				{
 					boolean fnd = false;
-					String f = line.substring(i,lookingat.end());
+					String f = line.substring(i, lookingat.end());
 					for (int sn = 0; sn < tmKeywords.size(); sn++)
-						if (tmKeywords.get(sn).words.contains(tmKeywords.get(sn).caseSensitive ? f
-								: f.toLowerCase()))
+						if (tmKeywords.get(sn).words.contains(tmKeywords
+							.get(sn).caseSensitive ? f : f
+							.toLowerCase()))
 						{
-							res.add(bi++,new TokenMarkerInfoEx(tmKeywords.get(sn).fontStyle,
-									tmKeywords.get(sn).color,lookingat.start(),lookingat.end(),0,new SchemeInfo(
-											SchemeType.KEYWORD,sn)));
+							res.add(bi++,
+								new TokenMarkerInfoEx(tmKeywords
+									.get(sn).fontStyle,
+									tmKeywords.get(sn).color,
+									lookingat.start(),
+									lookingat.end(), 0,
+									new SchemeInfo(
+										SchemeType.KEYWORD,
+										sn)));
 							fnd = true;
 							break;
 						}
 					if (!fnd)
 					{
-						if (default_kws != null)
-							res.add(bi++,
-									new TokenMarkerInfoEx(default_kws.fontStyle,default_kws.color,lookingat.start(),
-											lookingat.end(),0,new SchemeInfo(SchemeType.DEFKEYWORD,0)));
+						if (default_kws != null) res.add(
+							bi++,
+							new TokenMarkerInfoEx(
+								default_kws.fontStyle,
+								default_kws.color, lookingat
+									.start(), lookingat.end(),
+								0, new SchemeInfo(
+									SchemeType.DEFKEYWORD, 0)));
 					}
 					i = lookingat.end();
 					continue SubschemeLoop;
 				}
 				for (int tt = 0; tt < otherTokens.size(); tt++)
 				{
-					lookingat = otherTokens.get(tt).pattern.matcher(line).region(i,line.length());
+					lookingat =
+						otherTokens.get(tt).pattern.matcher(line).region(i,
+							line.length());
 					if (lookingat.lookingAt())
 					{
-						res.add(bi++,new TokenMarkerInfoEx(otherTokens.get(tt).fontStyle,
-								otherTokens.get(tt).color,lookingat.start(),lookingat.end(),0,new SchemeInfo(
-										SchemeType.TOKEN,tt)));
+						res.add(bi++,
+							new TokenMarkerInfoEx(
+								otherTokens.get(tt).fontStyle,
+								otherTokens.get(tt).color,
+								lookingat.start(), lookingat.end(),
+								0, new SchemeInfo(SchemeType.TOKEN,
+									tt)));
 						i = lookingat.end();
 						continue SubschemeLoop;
 					}
 				}
 				char c = line.charAt(i);
 				for (int sn = 0; sn < tmChars.size(); sn++)
-					if (tmChars.get(sn).chars.contains(c))
-						res.add(bi++,new TokenMarkerInfoEx(tmChars.get(sn).fontStyle,tmChars.get(sn).color,i,
-								i + 1,0,new SchemeInfo(SchemeType.SYMBOL,sn)));
+					if (tmChars.get(sn).chars.contains(c)) res.add(bi++,
+						new TokenMarkerInfoEx(tmChars.get(sn).fontStyle,
+							tmChars.get(sn).color, i, i + 1, 0,
+							new SchemeInfo(SchemeType.SYMBOL, sn)));
 				i++;
 			}
 		}

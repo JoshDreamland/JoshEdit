@@ -35,8 +35,10 @@ import org.lateralgm.joshedit.Code.CodeListener;
 
 public class Runner
 {
-	public static final ResourceBundle MESSAGES = ResourceBundle.getBundle("org.lateralgm.joshedit.translate"); //$NON-NLS-1$
-	public static final Preferences PREFS = Preferences.userRoot().node("/org/lateralgm/joshedit"); //$NON-NLS-1$
+	public static final ResourceBundle MESSAGES = ResourceBundle
+		.getBundle("org.lateralgm.joshedit.translate"); //$NON-NLS-1$
+	public static final Preferences PREFS = Preferences.userRoot().node(
+		"/org/lateralgm/joshedit"); //$NON-NLS-1$
 
 	public static EditorInterface editorInterface = new EditorInterface()
 	{
@@ -47,12 +49,12 @@ public class Runner
 
 		public String getString(String key)
 		{
-			return Runner.getString(key,null);
+			return Runner.getString(key, null);
 		}
 
 		public String getString(String key, String def)
 		{
-			return Runner.getString(key,def);
+			return Runner.getString(key, def);
 		}
 	};
 
@@ -92,7 +94,7 @@ public class Runner
 
 		public JoshTextPanel(String[] codeLines)
 		{
-			this(codeLines,true);
+			this(codeLines, true);
 		}
 
 		public JoshTextPanel(String[] codeLines, boolean startZero)
@@ -100,7 +102,7 @@ public class Runner
 			super(new BorderLayout());
 
 			text = new JoshText(codeLines);
-			lines = new LineNumberPanel(text,text.code.size(),startZero);
+			lines = new LineNumberPanel(text, text.code.size(), startZero);
 			text.code.addCodeListener(new CodeListener()
 			{
 				public void codeChanged(CodeEvent e)
@@ -115,8 +117,8 @@ public class Runner
 			scroller = new JScrollPane(text);
 			scroller.setRowHeaderView(lines);
 
-			add(scroller,BorderLayout.CENTER);
-			add(find,BorderLayout.SOUTH);
+			add(scroller, BorderLayout.CENTER);
+			add(find, BorderLayout.SOUTH);
 		}
 
 		public int getCaretLine()
@@ -133,7 +135,7 @@ public class Runner
 		{
 			text.caret.row = row;
 			text.caret.col = col;
-			text.caret.colw = text.line_wid_at(row,col);
+			text.caret.colw = text.line_wid_at(row, col);
 			text.sel.deselect(false);
 			text.caret.positionChanged();
 		}
@@ -192,7 +194,7 @@ public class Runner
 			text.sel.col = col;
 			text.caret.row = row2;
 			text.caret.col = col2;
-			text.caret.colw = text.line_wid_at(row,col);
+			text.caret.colw = text.line_wid_at(row, col);
 			text.caret.positionChanged();
 			text.sel.selectionChanged();
 		}
@@ -247,14 +249,15 @@ public class Runner
 	public static void showBindingsWindow(boolean closeExit)
 	{
 		JFrame f = new JFrame();
-		f.getContentPane().setLayout(new BoxLayout(f.getContentPane(),BoxLayout.PAGE_AXIS));
+		f.getContentPane()
+			.setLayout(new BoxLayout(f.getContentPane(), BoxLayout.PAGE_AXIS));
 
 		JTabbedPane tabs = new JTabbedPane();
-		tabs.addTab("Bindings",new Bindings());
+		tabs.addTab("Bindings", new Bindings());
 		f.add(tabs);
 
 		JPanel repanel = new JPanel();
-		repanel.setLayout(new BoxLayout(repanel,BoxLayout.LINE_AXIS));
+		repanel.setLayout(new BoxLayout(repanel, BoxLayout.LINE_AXIS));
 		repanel.add(new JButton("OK"));
 		repanel.add(new JButton("Cancel"));
 		f.add(repanel);
@@ -268,7 +271,8 @@ public class Runner
 	public static void showFindWindow(boolean closeExit)
 	{
 		JFrame f = new JFrame();
-		f.getContentPane().setLayout(new BoxLayout(f.getContentPane(),BoxLayout.PAGE_AXIS));
+		f.getContentPane()
+			.setLayout(new BoxLayout(f.getContentPane(), BoxLayout.PAGE_AXIS));
 
 	}
 
@@ -287,7 +291,8 @@ public class Runner
 	public static ImageIcon getIconForKey(String key)
 	{
 		Properties iconProps = new Properties();
-		InputStream is = Runner.class.getClassLoader().getResourceAsStream(
+		InputStream is =
+			Runner.class.getClassLoader().getResourceAsStream(
 				"org/lateralgm/joshedit/icons.properties"); //$NON-NLS-1$
 		try
 		{
@@ -297,7 +302,7 @@ public class Runner
 		{
 			System.err.println("Unable to read icons.properties"); //$NON-NLS-1$
 		}
-		String filename = iconProps.getProperty(key,""); //$NON-NLS-1$
+		String filename = iconProps.getProperty(key, ""); //$NON-NLS-1$
 		if (!filename.isEmpty()) return findIcon(filename);
 		return null;
 	}
@@ -313,7 +318,7 @@ public class Runner
 		{
 			r = def == null ? '!' + key + '!' : def;
 		}
-		return PREFS.get(key,r);
+		return PREFS.get(key, r);
 	}
 
 	public static void main(String[] args)

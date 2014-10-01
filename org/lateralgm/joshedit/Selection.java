@@ -105,7 +105,7 @@ public class Selection implements Highlighter
 		if (isEmpty()) return;
 		StringSelection stringSelection = new StringSelection(getSelectedTextForCopy());
 		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-		clipboard.setContents(stringSelection,joshText);
+		clipboard.setContents(stringSelection, joshText);
 	}
 
 	/** Returns the number of lines affected by a potential paste in this selection.
@@ -115,8 +115,8 @@ public class Selection implements Highlighter
 	public int getInsertRipple(String str)
 	{
 		if (type == ST.RECT) return Math.abs(caret.row - row) + 1;
-		if (str.length() > 0 && str.charAt(str.length() - 1) == 0)
-			return Math.max(str.split("(\r?\n|\r)",-1).length,1);
+		if (str.length() > 0 && str.charAt(str.length() - 1) == 0) return Math.max(
+			str.split("(\r?\n|\r)", -1).length, 1);
 		return 1;
 	}
 
@@ -156,9 +156,9 @@ public class Selection implements Highlighter
 		try
 		{
 			String ins = (String) contents.getTransferData(DataFlavor.stringFlavor);
-			if (ins.length() > 0 && ins.charAt(ins.length() - 1) == 0)
-				return Math.min(row,caret.row)
-						+ Math.max(0,insertRect(ins.substring(0,ins.length() - 1)) - 1);
+			if (ins.length() > 0 && ins.charAt(ins.length() - 1) == 0) return Math.min(
+				row, caret.row)
+				+ Math.max(0, insertRect(ins.substring(0, ins.length() - 1)) - 1);
 			insert(ins);
 			return caret.row;
 		}
@@ -187,8 +187,8 @@ public class Selection implements Highlighter
 		try
 		{
 			String str = (String) contents.getTransferData(DataFlavor.stringFlavor);
-			if (str.length() > 0 && str.charAt(str.length() - 1) == 0)
-				return caret.row + Math.max(0,insertRect(str.substring(0,str.length() - 1)) - 1);
+			if (str.length() > 0 && str.charAt(str.length() - 1) == 0) return caret.row
+				+ Math.max(0, insertRect(str.substring(0, str.length() - 1)) - 1);
 			insert(str);
 			return caret.row;
 		}
@@ -238,9 +238,10 @@ public class Selection implements Highlighter
 		if (isEmpty()) return;
 		Clipboard a = Toolkit.getDefaultToolkit().getSystemSelection();
 		if (a == null) a = fallbackMCClipboard;
-		if (a == null) a = fallbackMCClipboard = new Clipboard("Improvised Middle-Click Clipboard");
+		if (a == null) a =
+			fallbackMCClipboard = new Clipboard("Improvised Middle-Click Clipboard");
 		StringSelection stringSelection = new StringSelection(getSelectedTextForCopy());
-		a.setContents(stringSelection,joshText);
+		a.setContents(stringSelection, joshText);
 	}
 
 	/** Move the caret to the beginning of the selection and deselect. */
@@ -282,39 +283,43 @@ public class Selection implements Highlighter
 		if (isEmpty()) return false;
 		switch (type)
 		{
-			case NORM:
-				if (row == caret.row)
-				{
-					code.getsb(row).delete(Math.min(col,caret.col),Math.max(col,caret.col));
-					caret.col = col = Math.min(col,caret.col);
-				}
-				else if (row > caret.row)
-				{
-					code.getsb(row).replace(0,col,code.getsb(caret.row).substring(0,caret.col));
-					while (row > caret.row)
-						code.remove(--row);
-					col = caret.col;
-				}
-				else
-				{
-					code.getsb(caret.row).replace(0,caret.col,code.getsb(row).substring(0,col));
-					while (caret.row > row)
-						code.remove(--caret.row);
-					caret.col = col;
-				}
-				break;
-			case RECT:
-				int x1 = Math.min(col,caret.col),
-				x2 = Math.max(col,caret.col);
-				for (int y = Math.min(row,caret.row); y <= Math.max(row,caret.row); y++)
-				{
-					StringBuilder s = code.getsb(y);
-					int ax1 = joshText.column_to_index(y,x1), ax2 = joshText.column_to_index(y,x2);
-					if (ax1 < s.length()) s.delete(ax1,Math.min(ax2,s.length()));
-				}
-				col = caret.col = x1;
-				caret.colw = joshText.line_wid_at(caret.row,caret.col);
-				return true;
+		case NORM:
+			if (row == caret.row)
+			{
+				code.getsb(row).delete(Math.min(col, caret.col),
+					Math.max(col, caret.col));
+				caret.col = col = Math.min(col, caret.col);
+			}
+			else if (row > caret.row)
+			{
+				code.getsb(row).replace(0, col,
+					code.getsb(caret.row).substring(0, caret.col));
+				while (row > caret.row)
+					code.remove(--row);
+				col = caret.col;
+			}
+			else
+			{
+				code.getsb(caret.row).replace(0, caret.col,
+					code.getsb(row).substring(0, col));
+				while (caret.row > row)
+					code.remove(--caret.row);
+				caret.col = col;
+			}
+			break;
+		case RECT:
+			int x1 = Math.min(col, caret.col),
+			x2 = Math.max(col, caret.col);
+			for (int y = Math.min(row, caret.row); y <= Math.max(row, caret.row); y++)
+			{
+				StringBuilder s = code.getsb(y);
+				int ax1 = joshText.column_to_index(y, x1), ax2 =
+					joshText.column_to_index(y, x2);
+				if (ax1 < s.length()) s.delete(ax1, Math.min(ax2, s.length()));
+			}
+			col = caret.col = x1;
+			caret.colw = joshText.line_wid_at(caret.row, caret.col);
+			return true;
 		}
 		deselect(false);
 		return true;
@@ -328,10 +333,10 @@ public class Selection implements Highlighter
 	{
 		switch (type)
 		{
-			case NORM:
-				return col == caret.col && row == caret.row;
-			case RECT:
-				return col == caret.col;
+		case NORM:
+			return col == caret.col && row == caret.row;
+		case RECT:
+			return col == caret.col;
 		}
 		return true;
 	}
@@ -342,14 +347,15 @@ public class Selection implements Highlighter
 	public String getText()
 	{
 		if (isEmpty()) return "";
-		if (row == caret.row)
-			return code.getsb(row).substring(Math.min(col,caret.col),Math.max(col,caret.col));
-		final int f = Math.min(row,caret.row), l = Math.max(row,caret.row);
-		StringBuilder ret = new StringBuilder(code.getsb(f).substring(f == row ? col : caret.col));
+		if (row == caret.row) return code.getsb(row).substring(Math.min(col, caret.col),
+			Math.max(col, caret.col));
+		final int f = Math.min(row, caret.row), l = Math.max(row, caret.row);
+		StringBuilder ret =
+			new StringBuilder(code.getsb(f).substring(f == row ? col : caret.col));
 		for (int y = f + 1; y < l; y++)
 			ret.append(System.getProperty("line.separator") + code.getsb(y));
 		ret.append(System.getProperty("line.separator")
-				+ code.getsb(l).substring(0,l == row ? col : caret.col));
+			+ code.getsb(l).substring(0, l == row ? col : caret.col));
 		return new String(ret);
 	}
 
@@ -360,24 +366,24 @@ public class Selection implements Highlighter
 	{
 		switch (type)
 		{
-			case NORM:
-				if (isEmpty())
-				{
-					code.add(row + 1,new StringBuilder(code.getsb(row)));
-					return 1;
-				}
-				String n = getText();
-				int res = Math.abs(caret.row - row) + 1;
-				Selection ssel = new Selection(this);
-				Caret scar = new Caret(caret);
-				moveEnd();
-				insert(n);
-				resetcoords(ssel);
-				caret.resetcoords(scar);
-				return (res - 1) * 2;
-			case RECT:
+		case NORM:
+			if (isEmpty())
+			{
+				code.add(row + 1, new StringBuilder(code.getsb(row)));
+				return 1;
+			}
+			String n = getText();
+			int res = Math.abs(caret.row - row) + 1;
+			Selection ssel = new Selection(this);
+			Caret scar = new Caret(caret);
+			moveEnd();
+			insert(n);
+			resetcoords(ssel);
+			caret.resetcoords(scar);
+			return (res - 1) * 2;
+		case RECT:
 
-				break;
+			break;
 		}
 		return 0;
 	}
@@ -399,31 +405,31 @@ public class Selection implements Highlighter
 	{
 		switch (type)
 		{
-			case NORM:
-				deleteSel();
-				code.getsb(caret.row).insert(caret.col++,c);
-				col = caret.col;
-				caret.colw = joshText.line_wid_at(caret.row,caret.col);
-				break;
-			case RECT:
-				deleteSel();
-				for (int y = Math.min(row,caret.row); y <= Math.max(row,caret.row); y++)
+		case NORM:
+			deleteSel();
+			code.getsb(caret.row).insert(caret.col++, c);
+			col = caret.col;
+			caret.colw = joshText.line_wid_at(caret.row, caret.col);
+			break;
+		case RECT:
+			deleteSel();
+			for (int y = Math.min(row, caret.row); y <= Math.max(row, caret.row); y++)
+			{
+				if (joshText.column_in_tab(y, caret.col)) continue;
+				final int ipos = joshText.column_to_index_unsafe(y, caret.col);
+				StringBuilder s = code.getsb(y);
+				if (ipos > s.length())
 				{
-					if (joshText.column_in_tab(y,caret.col)) continue;
-					final int ipos = joshText.column_to_index_unsafe(y,caret.col);
-					StringBuilder s = code.getsb(y);
-					if (ipos > s.length())
-					{
-						StringBuilder spaces = new StringBuilder(ipos - s.length());
-						for (int i = 0; i < ipos - s.length(); i++)
-							spaces.append(' ');
-						s.append(spaces);
-					}
-					s.insert(ipos,c);
+					StringBuilder spaces = new StringBuilder(ipos - s.length());
+					for (int i = 0; i < ipos - s.length(); i++)
+						spaces.append(' ');
+					s.append(spaces);
 				}
-				col = ++caret.col;
-				caret.colw = joshText.line_wid_at(caret.row,caret.col);
-				break;
+				s.insert(ipos, c);
+			}
+			col = ++caret.col;
+			caret.colw = joshText.line_wid_at(caret.row, caret.col);
+			break;
 		}
 	}
 
@@ -433,42 +439,42 @@ public class Selection implements Highlighter
 	 */
 	public void insert(String str)
 	{
-		String[] lines = str.split("(\r?\n|\r)",-1);
+		String[] lines = str.split("(\r?\n|\r)", -1);
 		if (lines.length > 0) switch (type)
 		{
-			case NORM:
-				deleteSel();
-				StringBuilder l1 = code.getsb(caret.row);
-				String resub = l1.substring(col);
-				l1.replace(col,l1.length(),lines[0]);
-				caret.col += lines[0].length();
-				for (int y = 1; y < lines.length; y++)
+		case NORM:
+			deleteSel();
+			StringBuilder l1 = code.getsb(caret.row);
+			String resub = l1.substring(col);
+			l1.replace(col, l1.length(), lines[0]);
+			caret.col += lines[0].length();
+			for (int y = 1; y < lines.length; y++)
+			{
+				code.add(++caret.row, lines[y]);
+				caret.col = lines[y].length();
+			}
+			code.getsb(caret.row).append(resub);
+			col = caret.col;
+			row = caret.row;
+			caret.colw = joshText.line_wid_at(caret.row, caret.col);
+			break;
+		case RECT:
+			deleteSel();
+			final int sr = Math.min(caret.row, row);
+			for (int i = 0; i <= Math.abs(caret.row - row); i++)
+			{
+				final int ipos = joshText.column_to_index_unsafe(sr + i, caret.col);
+				StringBuilder s = code.getsb(sr + i);
+				if (ipos > s.length())
 				{
-					code.add(++caret.row,lines[y]);
-					caret.col = lines[y].length();
+					StringBuilder spaces = new StringBuilder(ipos - s.length());
+					for (int si = 0; si < ipos - s.length(); si++)
+						spaces.append(' ');
+					s.append(spaces);
 				}
-				code.getsb(caret.row).append(resub);
-				col = caret.col;
-				row = caret.row;
-				caret.colw = joshText.line_wid_at(caret.row,caret.col);
-				break;
-			case RECT:
-				deleteSel();
-				final int sr = Math.min(caret.row,row);
-				for (int i = 0; i <= Math.abs(caret.row - row); i++)
-				{
-					final int ipos = joshText.column_to_index_unsafe(sr + i,caret.col);
-					StringBuilder s = code.getsb(sr + i);
-					if (ipos > s.length())
-					{
-						StringBuilder spaces = new StringBuilder(ipos - s.length());
-						for (int si = 0; si < ipos - s.length(); si++)
-							spaces.append(' ');
-						s.append(spaces);
-					}
-					code.getsb(sr + i).insert(ipos,lines[i % lines.length]);
-				}
-				break;
+				code.getsb(sr + i).insert(ipos, lines[i % lines.length]);
+			}
+			break;
 		}
 	}
 
@@ -479,52 +485,53 @@ public class Selection implements Highlighter
 	public int insertRect(String str)
 	{
 		System.out.println("Half-ass Rectpaste");
-		String[] lines = str.split("(\r?\n|\r)",-1);
+		String[] lines = str.split("(\r?\n|\r)", -1);
 		if (lines.length > 0) switch (type)
 		{
-			case NORM:
-				deleteSel();
-				int dcol = joshText.index_to_column(caret.row,caret.col);
-				while (caret.row + lines.length > code.size())
-					code.add(new Line(new StringBuilder("")));
-				for (int i = 0; i < lines.length; i++)
-				{
-					int ipos = joshText.column_to_index_unsafe(caret.row + i,dcol);
-					StringBuilder sb = code.getsb(caret.row + i);
-					while (sb.length() < ipos)
-						sb.append(' ');
-					sb.insert(ipos,lines[i]);
-				}
-				return lines.length;
-			case RECT:
-				if (caret.col == col)
-				{
-					int i;
-					final int sr = Math.min(row,caret.row), ld = Math.abs(caret.row - row);
-					for (i = 0; i < lines.length && i < ld + 1; i++)
-						code.getsb(sr + i).insert(joshText.column_to_index(sr + i,col),lines[i]);
-					return i;
-				}
-				System.out.println("Rectpaste");
-				final int maxw = Math.abs(caret.col - col),
-				ld = Math.abs(caret.row - row);
-				final int sr = Math.min(caret.row,row);
-				deleteSel();
+		case NORM:
+			deleteSel();
+			int dcol = joshText.index_to_column(caret.row, caret.col);
+			while (caret.row + lines.length > code.size())
+				code.add(new Line(new StringBuilder("")));
+			for (int i = 0; i < lines.length; i++)
+			{
+				int ipos = joshText.column_to_index_unsafe(caret.row + i, dcol);
+				StringBuilder sb = code.getsb(caret.row + i);
+				while (sb.length() < ipos)
+					sb.append(' ');
+				sb.insert(ipos, lines[i]);
+			}
+			return lines.length;
+		case RECT:
+			if (caret.col == col)
+			{
 				int i;
+				final int sr = Math.min(row, caret.row), ld =
+					Math.abs(caret.row - row);
 				for (i = 0; i < lines.length && i < ld + 1; i++)
-				{
-					String itxt = lines[i];
-					int ipos = joshText.column_to_index_unsafe(sr + i,col);
-					StringBuilder sb = code.getsb(sr + i);
-					while (ipos > sb.length())
-						sb.append(' ');
-					if (itxt.length() > maxw)
-						itxt = itxt.substring(0,maxw);
-					else if (ipos < sb.length()) while (itxt.length() < maxw)
-						itxt += ' ';
-					sb.insert(ipos,itxt);
-				}
+					code.getsb(sr + i).insert(
+						joshText.column_to_index(sr + i, col), lines[i]);
 				return i;
+			}
+			System.out.println("Rectpaste");
+			final int maxw = Math.abs(caret.col - col),
+			ld = Math.abs(caret.row - row);
+			final int sr = Math.min(caret.row, row);
+			deleteSel();
+			int i;
+			for (i = 0; i < lines.length && i < ld + 1; i++)
+			{
+				String itxt = lines[i];
+				int ipos = joshText.column_to_index_unsafe(sr + i, col);
+				StringBuilder sb = code.getsb(sr + i);
+				while (ipos > sb.length())
+					sb.append(' ');
+				if (itxt.length() > maxw) itxt = itxt.substring(0, maxw);
+				else if (ipos < sb.length()) while (itxt.length() < maxw)
+					itxt += ' ';
+				sb.insert(ipos, itxt);
+			}
+			return i;
 		}
 		return 0;
 	}
@@ -546,7 +553,7 @@ public class Selection implements Highlighter
 		 */
 		public SortedRegion(Point p1, Point p2)
 		{
-			setSorted(p1,p2);
+			setSorted(p1, p2);
 		}
 
 		/**
@@ -604,7 +611,7 @@ public class Selection implements Highlighter
 		 */
 		public RowFirstRegion(Point p1, Point p2)
 		{
-			super(p1,p2);
+			super(p1, p2);
 		}
 
 		/**
@@ -645,7 +652,7 @@ public class Selection implements Highlighter
 		 */
 		public RectangleRegion(Point p1, Point p2)
 		{
-			super(p1,p2);
+			super(p1, p2);
 		}
 
 		/**
@@ -680,13 +687,13 @@ public class Selection implements Highlighter
 	 */
 	public SortedRegion getSortedRegion()
 	{
-		Point p1 = new Point(caret.col,caret.row), p2 = new Point(col,row);
+		Point p1 = new Point(caret.col, caret.row), p2 = new Point(col, row);
 		switch (type)
 		{
-			case RECT:
-				return new RectangleRegion(p1,p2);
-			case NORM:
-				return new RowFirstRegion(p1,p2);
+		case RECT:
+			return new RectangleRegion(p1, p2);
+		case NORM:
+			return new RowFirstRegion(p1, p2);
 		}
 		return null;
 	}
@@ -703,13 +710,14 @@ public class Selection implements Highlighter
 		SortedRegion r = getSortedRegion();
 		switch (type)
 		{
-			case RECT:
-				return !(y < r.getMinY() || y > r.getMaxY() || x < r.getMinX() || x > r.getMaxX());
-			case NORM:
-				if (y < r.getMinY() || y > r.getMaxY()) return false;
-				if (y == r.getMinY() && x < r.getMinX()) return false;
-				if (y == r.getMaxY() && x > r.getMaxX()) return false;
-				return true;
+		case RECT:
+			return !(y < r.getMinY() || y > r.getMaxY() || x < r.getMinX() || x > r
+				.getMaxX());
+		case NORM:
+			if (y < r.getMinY() || y > r.getMaxY()) return false;
+			if (y == r.getMinY() && x < r.getMinX()) return false;
+			if (y == r.getMaxY() && x > r.getMaxX()) return false;
+			return true;
 		}
 		return false;
 	}
@@ -721,7 +729,7 @@ public class Selection implements Highlighter
 	public static class SimpleHighlighter implements Highlighter
 	{
 		/** The default highlight color. */
-		protected static final Color DEF_COL = new Color(200,200,220);
+		protected static final Color DEF_COL = new Color(200, 200, 220);
 		/** The row on which highlighting will occur */
 		protected int y;
 		/** The first column to be highlighted. */
@@ -743,12 +751,13 @@ public class Selection implements Highlighter
 
 		/** Draw the highlight mark. */
 		@Override
-		public void paint(Graphics g, Insets i, CodeMetrics cm, int line_start, int line_end)
+		public void
+			paint(Graphics g, Insets i, CodeMetrics cm, int line_start, int line_end)
 		{
 			g.setColor(DEF_COL);
 			int gh = cm.lineHeight();
-			int xx = cm.lineWidth(y,x1);
-			g.fillRect(i.left + xx,i.top + y * gh,cm.lineWidth(y,x2) - xx,gh);
+			int xx = cm.lineWidth(y, x1);
+			g.fillRect(i.left + xx, i.top + y * gh, cm.lineWidth(y, x2) - xx, gh);
 		}
 	}
 
@@ -760,7 +769,7 @@ public class Selection implements Highlighter
 		/** The selection type to highlight. */
 		ST type;
 		/** The default color in which to highlight. */
-		static final Color DEF_COL = new Color(200,200,220);
+		static final Color DEF_COL = new Color(200, 200, 220);
 
 		/**
 		 * @param r The SortedRegion to highlight.
@@ -776,7 +785,8 @@ public class Selection implements Highlighter
 		 * @see org.lateralgm.joshedit.JoshText.Highlighter#paint(java.awt.Graphics, java.awt.Insets, org.lateralgm.joshedit.JoshText.CodeMetrics, int, int)
 		 */
 		@Override
-		public void paint(Graphics g, Insets i, CodeMetrics cm, int line_start, int line_end)
+		public void
+			paint(Graphics g, Insets i, CodeMetrics cm, int line_start, int line_end)
 		{
 			//g.setXORMode(Color.WHITE);
 
@@ -788,12 +798,13 @@ public class Selection implements Highlighter
 
 			// This section is fine without tab consideration because selected rectangles
 			// are assumed to be completely column-based.
-			if (type == ST.RECT)
-				g.fillRect(i.left + r.getMinX() * gw,i.top + r.getMinY() * gh,(r.getMaxX() - r.getMinX())
-						* gw,(r.getMaxY() - r.getMinY() + 1) * gh);
+			if (type == ST.RECT) g.fillRect(i.left + r.getMinX() * gw,
+				i.top + r.getMinY() * gh, (r.getMaxX() - r.getMinX()) * gw,
+				(r.getMaxY() - r.getMinY() + 1) * gh);
 			else if (r.getMaxY() == r.getMinY())
 			{
-				new SimpleHighlighter(r.getMinY(),r.getMinX(),r.getMaxX()).paint(g,i,cm,line_start,line_end);
+				new SimpleHighlighter(r.getMinY(), r.getMinX(), r.getMaxX()).paint(
+					g, i, cm, line_start, line_end);
 				/*				int xx = line_wid_at(r.getMinY(),r.getMinX());
 								g.fillRect(i.left + xx,i.top + r.getMinY() * gh,line_wid_at(r.getMaxY(),r.getMaxX()) - xx,
 										gh);*/
@@ -803,13 +814,16 @@ public class Selection implements Highlighter
 				Rectangle clip = g.getClipBounds();
 
 				// First line
-				g.fillRect(i.left + cm.lineWidth(r.getMinY(),r.getMinX()),i.top + r.getMinY() * gh,
-						clip.width - cm.lineWidth(r.getMinY(),r.getMinX()) - i.left + clip.x,gh);
+				g.fillRect(i.left + cm.lineWidth(r.getMinY(), r.getMinX()), i.top
+					+ r.getMinY() * gh,
+					clip.width - cm.lineWidth(r.getMinY(), r.getMinX())
+						- i.left + clip.x, gh);
 				// Middle lines
-				g.fillRect(i.left + clip.x,i.top + (r.getMinY() + 1) * gh,clip.width,
-						(r.getMaxY() - r.getMinY() - 1) * gh);
+				g.fillRect(i.left + clip.x, i.top + (r.getMinY() + 1) * gh,
+					clip.width, (r.getMaxY() - r.getMinY() - 1) * gh);
 				// Last line
-				g.fillRect(i.left,i.top + r.getMaxY() * gh,cm.lineWidth(r.getMaxY(),r.getMaxX()),gh);
+				g.fillRect(i.left, i.top + r.getMaxY() * gh,
+					cm.lineWidth(r.getMaxY(), r.getMaxX()), gh);
 			}
 
 			g.setColor(rc);
@@ -824,7 +838,8 @@ public class Selection implements Highlighter
 	public void paint(Graphics g, Insets i, CodeMetrics cm, int line_start, int line_end)
 	{
 		if (isEmpty()) return;
-		new SortedRegionHighlighter(getSortedRegion(),type).paint(g,i,cm,line_start,line_end);
+		new SortedRegionHighlighter(getSortedRegion(), type).paint(g, i, cm, line_start,
+			line_end);
 	}
 
 	/**
@@ -837,14 +852,14 @@ public class Selection implements Highlighter
 		type = t;
 		if (t == ST.NORM)
 		{
-			col = joshText.column_to_index(row,col);
-			caret.col = joshText.column_to_index(caret.row,caret.col);
+			col = joshText.column_to_index(row, col);
+			caret.col = joshText.column_to_index(caret.row, caret.col);
 			special.toNorm();
 		}
 		else
 		{
-			col = joshText.index_to_column(row,col);
-			caret.col = joshText.index_to_column(caret.row,caret.col);
+			col = joshText.index_to_column(row, col);
+			caret.col = joshText.index_to_column(caret.row, caret.col);
 			special.toRect();
 		}
 	}
@@ -855,36 +870,39 @@ public class Selection implements Highlighter
 	public String getSelectedText()
 	{
 		SortedRegion r = getSortedRegion();
-		int maxY = Math.min(r.getMaxY(),joshText.code.size());
+		int maxY = Math.min(r.getMaxY(), joshText.code.size());
 		if (r.getMinY() == maxY)
 		{
 			StringBuilder line = joshText.code.getsb(r.getMinY());
 			if (r.getMinX() >= line.length()) return "";
-			return line.substring(r.getMinX(),Math.min(r.getMaxX(),line.length()));
+			return line.substring(r.getMinX(), Math.min(r.getMaxX(), line.length()));
 		}
 
 		switch (type)
 		{
-			case RECT:
-				StringBuilder sbr = new StringBuilder();
-				for (int y = r.getMinY(); y <= maxY; y++)
-				{
-					StringBuilder liner = joshText.code.getsb(y);
-					final int bpos = joshText.column_to_index(y,r.getMinX());
-					if (bpos < liner.length())
-						sbr.append(liner.substring(bpos,
-								Math.min(joshText.column_to_index(y,r.getMaxX()),liner.length())));
-					if (y != maxY) sbr.append('\n');
-				}
-				return sbr.toString();
-			case NORM:
-				StringBuilder sbn = new StringBuilder(joshText.code.getsb(r.getMinY()).substring(
-						r.getMinX()));
-				for (int y = r.getMinY() + 1; y < maxY; y++)
-					sbn.append('\n').append(joshText.code.getsb(y));
-				StringBuilder linen = joshText.code.getsb(maxY);
-				sbn.append('\n').append(linen.substring(0,Math.min(r.getMaxX(),linen.length())));
-				return sbn.toString();
+		case RECT:
+			StringBuilder sbr = new StringBuilder();
+			for (int y = r.getMinY(); y <= maxY; y++)
+			{
+				StringBuilder liner = joshText.code.getsb(y);
+				final int bpos = joshText.column_to_index(y, r.getMinX());
+				if (bpos < liner.length()) sbr.append(liner.substring(
+					bpos,
+					Math.min(joshText.column_to_index(y, r.getMaxX()),
+						liner.length())));
+				if (y != maxY) sbr.append('\n');
+			}
+			return sbr.toString();
+		case NORM:
+			StringBuilder sbn =
+				new StringBuilder(joshText.code.getsb(r.getMinY()).substring(
+					r.getMinX()));
+			for (int y = r.getMinY() + 1; y < maxY; y++)
+				sbn.append('\n').append(joshText.code.getsb(y));
+			StringBuilder linen = joshText.code.getsb(maxY);
+			sbn.append('\n').append(
+				linen.substring(0, Math.min(r.getMaxX(), linen.length())));
+			return sbn.toString();
 		}
 		return null;
 	}
@@ -924,56 +942,62 @@ public class Selection implements Highlighter
 		@Override
 		public void adjustSelection(SpecialSel ss)
 		{
-			if (type == ST.RECT ? caret.col >= joshText.index_to_column(ss.irow,ss.icol)
-					: caret.row > ss.irow || (caret.row == ss.irow && caret.col >= ss.icol))
+			if (type == ST.RECT ? caret.col >= joshText.index_to_column(ss.irow,
+				ss.icol) : caret.row > ss.irow
+				|| (caret.row == ss.irow && caret.col >= ss.icol))
 			{
 				// Handle first selected word (us)
 				col = ss.icol;
 				if (col > 0) col--;
 				StringBuilder sb = code.getsb(row);
-				int st = JoshText.selGetKind(sb,col);
-				while (col >= 0 && JoshText.selOfKind(sb,col,st))
+				int st = JoshText.selGetKind(sb, col);
+				while (col >= 0 && JoshText.selOfKind(sb, col, st))
 					col--;
 				col++;
 
 				// Handle cursor
 				sb = code.getsb(caret.row);
-				if (type == ST.RECT) caret.col = joshText.column_to_index(caret.row,caret.col);
-				st = JoshText.selGetKind(sb,caret.col);
+				if (type == ST.RECT) caret.col =
+					joshText.column_to_index(caret.row, caret.col);
+				st = JoshText.selGetKind(sb, caret.col);
 				int ep = caret.col, sp = caret.col;
-				while (sp >= 0 && JoshText.selOfKind(sb,sp,st))
+				while (sp >= 0 && JoshText.selOfKind(sb, sp, st))
 					sp--;
 				sp++;
-				while (ep < sb.length() && JoshText.selOfKind(sb,ep,st))
+				while (ep < sb.length() && JoshText.selOfKind(sb, ep, st))
 					ep++;
-				if (type != ST.RECT)
-					caret.col = caret.col - sp > 0 || (caret.col == ss.icol && caret.row == ss.irow) ? ep
-							: sp;
-				else
-					caret.col = caret.col - sp > 0 || (sp == joshText.column_to_index(ss.irow,ss.icol)) ? ep
-							: sp;
+				if (type != ST.RECT) caret.col =
+					caret.col - sp > 0
+						|| (caret.col == ss.icol && caret.row == ss.irow) ? ep
+						: sp;
+				else caret.col =
+					caret.col - sp > 0
+						|| (sp == joshText
+							.column_to_index(ss.irow, ss.icol)) ? ep
+						: sp;
 			}
 			else
 			{
 				// Handle cursor
 				StringBuilder sb = code.getsb(caret.row);
-				if (type == ST.RECT) caret.col = joshText.column_to_index(caret.row,caret.col);
-				int st = JoshText.selGetKind(sb,caret.col);
-				while (caret.col >= 0 && JoshText.selOfKind(sb,caret.col,st))
+				if (type == ST.RECT) caret.col =
+					joshText.column_to_index(caret.row, caret.col);
+				int st = JoshText.selGetKind(sb, caret.col);
+				while (caret.col >= 0 && JoshText.selOfKind(sb, caret.col, st))
 					caret.col--;
 				caret.col++;
 
 				// Handle first selected word (us)
 				col = ss.icol;
 				sb = code.getsb(row);
-				st = JoshText.selGetKind(sb,col);
-				while (col < sb.length() && JoshText.selOfKind(sb,col,st))
+				st = JoshText.selGetKind(sb, col);
+				while (col < sb.length() && JoshText.selOfKind(sb, col, st))
 					col++;
 			}
 			if (type == ST.RECT)
 			{
-				caret.col = joshText.index_to_column(caret.row,caret.col);
-				col = joshText.index_to_column(row,col);
+				caret.col = joshText.index_to_column(caret.row, caret.col);
+				col = joshText.index_to_column(row, col);
 			}
 		}
 	}
@@ -1012,12 +1036,14 @@ public class Selection implements Highlighter
 
 			if (type == ST.RECT)
 			{
-				if (caret.col == 0)
-					for (int i = caret.row; i <= row; i++)
-						col = Math.max(col,joshText.index_to_column(i,code.getsb(i).length()));
-				else
-					for (int i = row; i <= caret.row; i++)
-						caret.col = Math.max(caret.col,joshText.index_to_column(i,code.getsb(i).length()));
+				if (caret.col == 0) for (int i = caret.row; i <= row; i++)
+					col =
+						Math.max(col, joshText.index_to_column(i, code
+							.getsb(i).length()));
+				else for (int i = row; i <= caret.row; i++)
+					caret.col =
+						Math.max(caret.col, joshText.index_to_column(i,
+							code.getsb(i).length()));
 			}
 		}
 	}
@@ -1051,8 +1077,8 @@ public class Selection implements Highlighter
 		{
 			if (valid)
 			{
-				spos = joshText.column_to_index(ssrow,spos);
-				epos = joshText.column_to_index(ssrow,epos);
+				spos = joshText.column_to_index(ssrow, spos);
+				epos = joshText.column_to_index(ssrow, epos);
 			}
 		}
 
@@ -1061,8 +1087,8 @@ public class Selection implements Highlighter
 		{
 			if (valid)
 			{
-				spos = joshText.index_to_column(ssrow,spos);
-				epos = joshText.index_to_column(ssrow,epos);
+				spos = joshText.index_to_column(ssrow, spos);
+				epos = joshText.index_to_column(ssrow, epos);
 			}
 		}
 
@@ -1094,10 +1120,10 @@ public class Selection implements Highlighter
 		final StringBuilder sb = joshText.code.getsb(caret.row);
 		special.spos = caret.getPositionRepresentation(this);
 		special.epos = caret.getPositionRepresentation(this);
-		int skind = JoshText.selGetKind(sb,special.spos);
-		while (special.spos > 0 && JoshText.selOfKind(sb,special.spos - 1,skind))
+		int skind = JoshText.selGetKind(sb, special.spos);
+		while (special.spos > 0 && JoshText.selOfKind(sb, special.spos - 1, skind))
 			special.spos--;
-		while (++special.epos < sb.length() && JoshText.selOfKind(sb,special.epos,skind))
+		while (++special.epos < sb.length() && JoshText.selOfKind(sb, special.epos, skind))
 		{ /* Move to end of selection kind */
 		}
 		row = caret.row;

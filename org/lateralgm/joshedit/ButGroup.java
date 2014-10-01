@@ -22,7 +22,7 @@ public class ButGroup extends ButtonGroup
 	/**
 	 * @param buts Buttons to add to this group.
 	 */
-	public ButGroup(AbstractButton...buts)
+	public ButGroup(AbstractButton... buts)
 	{
 		super();
 		for (AbstractButton b : buts)
@@ -37,6 +37,6 @@ public class ButGroup extends ButtonGroup
 	{
 		if (m == getSelection() && b == false) clearSelection();
 		//		else
-		super.setSelected(m,b);
+		super.setSelected(m, b);
 	}
 }

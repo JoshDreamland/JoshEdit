@@ -76,9 +76,10 @@ public class Caret implements ActionListener
 	 */
 	public static int getDefaultBlinkRate()
 	{
-		Object oblink = UIManager.get("TextArea.caretBlinkRate",null);
+		Object oblink = UIManager.get("TextArea.caretBlinkRate", null);
 		int blink = 500;
-		if (oblink != null && oblink instanceof Number) blink = ((Number) oblink).intValue();
+		if (oblink != null && oblink instanceof Number) blink =
+			((Number) oblink).intValue();
 		return blink;
 	}
 
@@ -87,10 +88,8 @@ public class Caret implements ActionListener
 	 */
 	public void setBlinkRate(int rate)
 	{
-		if (flasher == null)
-			flasher = new Timer(rate,this);
-		else
-			flasher.setDelay(rate);
+		if (flasher == null) flasher = new Timer(rate, this);
+		else flasher.setDelay(rate);
 	}
 
 	/** Reset the flasher timer, showing the caret now. */
@@ -120,11 +119,10 @@ public class Caret implements ActionListener
 			FontMetrics fm = painter.getFontMetrics(painter.getFont());
 			Insets i = painter.getInsets();
 			int gw = fm.getMaxAdvance(), gh = fm.getHeight();
-			if (joshText.sel.type == ST.RECT)
-				painter.repaint(i.left + col * gw,i.top + row * gh,gw + 1,gh);
-			else
-				painter.repaint(i.left + joshText.line_wid_at(row,col),i.top + row * gh,
-						insert ? gw + 1 : 2,gh);
+			if (joshText.sel.type == ST.RECT) painter.repaint(i.left + col * gw, i.top
+				+ row * gh, gw + 1, gh);
+			else painter.repaint(i.left + joshText.line_wid_at(row, col), i.top + row
+				* gh, insert ? gw + 1 : 2, gh);
 		}
 	}
 
@@ -142,11 +140,11 @@ public class Caret implements ActionListener
 			int gw = fm.getMaxAdvance(), gh = fm.getHeight();
 
 			g.setXORMode(Color.WHITE);
-			if (sel.type == ST.RECT)
-				g.fillRect(i.left + col * gw,i.top + Math.min(row,sel.row) * gh,insert ? 2 : gw + 1,
-						(Math.abs(row - sel.row) + 1) * gh);
-			else
-				g.fillRect(i.left + joshText.line_wid_at(row,col),i.top + row * gh,insert ? 2 : gw + 1,gh);
+			if (sel.type == ST.RECT) g.fillRect(i.left + col * gw,
+				i.top + Math.min(row, sel.row) * gh, insert ? 2 : gw + 1,
+				(Math.abs(row - sel.row) + 1) * gh);
+			else g.fillRect(i.left + joshText.line_wid_at(row, col), i.top + row * gh,
+				insert ? 2 : gw + 1, gh);
 			g.setPaintMode();
 		}
 	}
@@ -168,7 +166,7 @@ public class Caret implements ActionListener
 	 */
 	public int getPositionRepresentation(Selection selection)
 	{
-		return selection.type == ST.RECT ? joshText.column_to_index(row,col) : col;
+		return selection.type == ST.RECT ? joshText.column_to_index(row, col) : col;
 	}
 
 	/**

@@ -1,5 +1,6 @@
 /* Copyright (C) 2011 Josh Ventura <joshv@zoominternet.net>
  * Copyright (C) 2011, 2012 IsmAvatar <IsmAvatar@gmail.com>
+ * Copyright (C) 2013, Robert B. Colton
  * 
  * This file is part of JoshEdit. JoshEdit is free software.
  * You can use, modify, and distribute it under the terms of
@@ -36,6 +37,11 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.EventListener;
 import java.util.HashMap;
@@ -48,7 +54,9 @@ import java.util.TimerTask;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
+import javax.swing.InputMap;
 import javax.swing.JComponent;
+import javax.swing.JFileChooser;
 import javax.swing.JViewport;
 import javax.swing.KeyStroke;
 import javax.swing.Scrollable;
@@ -206,6 +214,37 @@ public class JoshText extends JComponent implements Scrollable, ComponentListene
 		int lineHeight();
 	}
 
+	public static interface JEFileChooser
+	{
+		/** Display a dialog requesting a load filename from the user. */
+		String getLoadFilename();
+
+		/** Display a dialog requesting a save filename from the user. */
+		String getSaveFilename();
+	}
+
+	public class DefaultJEFileChooser implements JEFileChooser
+	{
+		JFileChooser fileChooser = new JFileChooser();
+
+		@Override
+		public String getLoadFilename()
+		{
+			if (fileChooser.showSaveDialog(JoshText.this) != JFileChooser.APPROVE_OPTION) return null;
+			return fileChooser.getSelectedFile().getPath();
+		}
+
+		@Override
+		public String getSaveFilename()
+		{
+			if (fileChooser.showOpenDialog(JoshText.this) != JFileChooser.APPROVE_OPTION) return null;
+			return fileChooser.getSelectedFile().getPath();
+		}
+
+	}
+
+	public JEFileChooser fileChooser = new DefaultJEFileChooser();
+
 	/** Our own code metric information. */
 	CodeMetrics metrics = new CodeMetrics()
 	{
@@ -312,10 +351,10 @@ public class JoshText extends JComponent implements Scrollable, ComponentListene
 		setFocusTraversalKeysEnabled(false);
 		setTransferHandler(new JoshTextTransferHandler());
 
-		mapActions();
-
 		// The mapping of keystrokes and action names
 		Bindings.readMappings(getInputMap());
+
+		mapActions();
 
 		// Events
 		enableEvents(AWTEvent.MOUSE_EVENT_MASK | AWTEvent.MOUSE_MOTION_EVENT_MASK
@@ -499,262 +538,406 @@ public class JoshText extends JComponent implements Scrollable, ComponentListene
 		fireLineChange(0, code.size());
 	}
 
+	public void loadFromFile(String name)
+	{
+		try
+		{
+			BufferedReader br = new BufferedReader(new FileReader(name));
+			code.clear();
+
+			String line = br.readLine();
+			try
+			{
+				while (line != null)
+				{
+					code.add(line);
+					line = br.readLine();
+				}
+			}
+			finally
+			{
+				br.close();
+			}
+			fireLineChange(0, 0);
+			doCodeSize(true);
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
+	private boolean hasExtension(String pathName)
+	{
+		File fn = new File(pathName);
+		String name = fn.getName(); // An extension contains no path characters
+		return name.lastIndexOf('.') == -1;
+	}
+
+	public void saveToFile(String name)
+	{
+		if (!hasExtension(name)) name += ".txt"; //$NON-NLS-1$
+		try
+		{
+			BufferedWriter bw = new BufferedWriter(new FileWriter(name));
+
+			try
+			{
+				for (int i = 0; i < code.size(); i++)
+				{
+					bw.write(code.getsb(i).toString() + "\n");
+				}
+			}
+			finally
+			{
+				bw.close();
+			}
+
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+	}
+
 	// ==========================================================
 	// == Map action names to their implementations =============
 	// ==========================================================
 	/** Delete the current line, including the newline character. */
-	public AbstractAction aLineDel = new AbstractAction("LINEDEL")
+	public void LineDel()
 	{
-		private static final long serialVersionUID = 1L;
+		// delete the line where the caret is
+	}
 
-		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override
-		public void actionPerformed(ActionEvent e)
-		{
-			// delete the line where the caret is
-		}
-	};
 	/** Duplicate the current line, placing the copy beneath this one. */
-	public AbstractAction aLineDup = new AbstractAction("LINEDUP")
+	public void LineDup()
 	{
-		private static final long serialVersionUID = 1L;
+		UndoPatch up = new UndoPatch();
+		up.realize(up.startRow + sel.duplicate());
+		storeUndo(up, OPT.DUPLICATE);
+	}
 
-		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override
-		public void actionPerformed(ActionEvent e)
-		{
-			UndoPatch up = new UndoPatch();
-			up.realize(up.startRow + sel.duplicate());
-			storeUndo(up, OPT.DUPLICATE);
-		}
-	};
 	/** Swap the currently selected lines, or this line and the line above it. */
-	public AbstractAction aLineSwap = new AbstractAction("LINESWAP")
+	public void LineSwap()
 	{
-		private static final long serialVersionUID = 1L;
-
-		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override
-		public void actionPerformed(ActionEvent e)
+		if (caret.row == sel.row)
 		{
-			if (caret.row == sel.row)
-			{
-				if (caret.row == 0) return;
-				UndoPatch up = new UndoPatch(caret.row - 1, caret.row);
-				StringBuilder swb = code.getsb(caret.row - 1);
-				code.get(caret.row - 1).sbuild = code.get(caret.row).sbuild;
-				code.get(caret.row).sbuild = swb;
-				up.realize(caret.row);
-				storeUndo(up, OPT.SWAP);
-				if (sel.type != ST.RECT) sel.col =
-					caret.col = line_offset_from(caret.row, caret.colw);
-			}
-			else
-			{
-				UndoPatch up = new UndoPatch();
-				int srow = Math.min(sel.row, caret.row), erow =
-					Math.max(sel.row, caret.row);
-				StringBuilder swb = code.getsb(srow);
-				for (int i = srow; i < erow; i++)
-					code.get(i).sbuild = code.get(i + 1).sbuild;
-				code.get(erow).sbuild = swb;
-				up.realize(erow);
-				if (sel.type != ST.RECT) sel.col =
-					caret.col = line_offset_from(caret.row, caret.colw);
-				storeUndo(up, OPT.SWAP);
-			}
+			if (caret.row == 0) return;
+			UndoPatch up = new UndoPatch(caret.row - 1, caret.row);
+			StringBuilder swb = code.getsb(caret.row - 1);
+			code.get(caret.row - 1).sbuild = code.get(caret.row).sbuild;
+			code.get(caret.row).sbuild = swb;
+			up.realize(caret.row);
+			storeUndo(up, OPT.SWAP);
+			if (sel.type != ST.RECT) sel.col =
+				caret.col = line_offset_from(caret.row, caret.colw);
 		}
-	};
-	/** Un-swap the selected lines, or this line and the line below it. */
-	public AbstractAction aLineUnSwap = new AbstractAction("LINEUNSWAP")
-	{
-		private static final long serialVersionUID = 1L;
-
-		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override
-		public void actionPerformed(ActionEvent e)
+		else
 		{
-			if (caret.row == sel.row)
-			{
-				if (caret.row >= code.size() - 1) return;
-				UndoPatch up = new UndoPatch(caret.row, caret.row + 1);
-				StringBuilder swb = code.getsb(caret.row + 1);
-				code.get(caret.row + 1).sbuild = code.get(caret.row).sbuild;
-				code.get(caret.row).sbuild = swb;
-				up.realize(caret.row);
-				storeUndo(up, OPT.UNSWAP);
-				if (sel.type != ST.RECT) sel.col =
-					caret.col = line_offset_from(caret.row, caret.colw);
-			}
-			else
-			{
-				UndoPatch up = new UndoPatch();
-				int srow = Math.min(sel.row, caret.row), erow =
-					Math.max(sel.row, caret.row);
-				StringBuilder swb = code.getsb(erow);
-				for (int i = erow; i > srow; i--)
-					code.get(i).sbuild = code.get(i - 1).sbuild;
-				code.get(srow).sbuild = swb;
-				up.realize(erow);
-				storeUndo(up, OPT.UNSWAP);
-				if (sel.type != ST.RECT) sel.col =
-					caret.col = line_offset_from(caret.row, caret.colw);
-			}
-		}
-	};
-	/**
-	 * Select all: Place the caret at the end of the code,
-	 * and start the selection from the beginning.
-	 */
-	public AbstractAction aSelAll = new AbstractAction("SELALL")
-	{
-		private static final long serialVersionUID = 1L;
-
-		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override
-		public void actionPerformed(ActionEvent e)
-		{
-			sel.row = sel.col = 0;
-			caret.row = code.size() - 1;
-			caret.col = code.getsb(caret.row).length();
-			sel.type = ST.NORM;
-			sel.selectionChanged();
-		}
-	};
-	/** Copy the contents of the selection to the clipboard. */
-	public AbstractAction aCopy = new AbstractAction("COPY")
-	{
-		private static final long serialVersionUID = 1L;
-
-		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override
-		public void actionPerformed(ActionEvent e)
-		{
-			sel.copy();
-		}
-	};
-	/**
-	 * Cut the contents of the selection, removing them from
-	 * the code and storing them in the clipboard.
-	 */
-	public AbstractAction aCut = new AbstractAction("CUT")
-	{
-		private static final long serialVersionUID = 1L;
-
-		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override
-		public void actionPerformed(ActionEvent e)
-		{
-			if (sel.isEmpty()) return;
-			sel.copy();
 			UndoPatch up = new UndoPatch();
-			sel.deleteSel();
-			up.realize(Math.max(caret.row, sel.row));
-			storeUndo(up, OPT.DELETE);
-			repaint();
+			int srow = Math.min(sel.row, caret.row), erow =
+				Math.max(sel.row, caret.row);
+			StringBuilder swb = code.getsb(srow);
+			for (int i = srow; i < erow; i++)
+				code.get(i).sbuild = code.get(i + 1).sbuild;
+			code.get(erow).sbuild = swb;
+			up.realize(erow);
+			if (sel.type != ST.RECT) sel.col =
+				caret.col = line_offset_from(caret.row, caret.colw);
+			storeUndo(up, OPT.SWAP);
 		}
-	};
+	}
+
+	/** Un-swap the selected lines, or this line and the line below it. */
+	public void LineUnSwap()
+	{
+		if (caret.row == sel.row)
+		{
+			if (caret.row >= code.size() - 1) return;
+			UndoPatch up = new UndoPatch(caret.row, caret.row + 1);
+			StringBuilder swb = code.getsb(caret.row + 1);
+			code.get(caret.row + 1).sbuild = code.get(caret.row).sbuild;
+			code.get(caret.row).sbuild = swb;
+			up.realize(caret.row);
+			storeUndo(up, OPT.UNSWAP);
+			if (sel.type != ST.RECT) sel.col =
+				caret.col = line_offset_from(caret.row, caret.colw);
+		}
+		else
+		{
+			UndoPatch up = new UndoPatch();
+			int srow = Math.min(sel.row, caret.row), erow =
+				Math.max(sel.row, caret.row);
+			StringBuilder swb = code.getsb(erow);
+			for (int i = erow; i > srow; i--)
+				code.get(i).sbuild = code.get(i - 1).sbuild;
+			code.get(srow).sbuild = swb;
+			up.realize(erow);
+			storeUndo(up, OPT.UNSWAP);
+			if (sel.type != ST.RECT) sel.col =
+				caret.col = line_offset_from(caret.row, caret.colw);
+		}
+	}
+
 	/**
-	 * Paste the clipboard into the code, overwriting the selection if there is
-	 * one.
-	 */
-	public AbstractAction aPaste = new AbstractAction("PASTE")
+	* Select all: Place the caret at the end of the code,
+	* and start the selection from the beginning.
+	*/
+	public void SelectAll()
 	{
-		private static final long serialVersionUID = 1L;
+		sel.row = sel.col = 0;
+		caret.row = code.size() - 1;
+		caret.col = code.getsb(caret.row).length();
+		sel.type = ST.NORM;
+		sel.selectionChanged();
+		repaint();
+	}
 
-		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override
-		public void actionPerformed(ActionEvent e)
-		{
-			UndoPatch up =
-				new UndoPatch(Math.min(caret.row, sel.row), Math.max(
-					Math.max(caret.row, sel.row),
-					Math.min(code.size() - 1, Math.min(caret.row, sel.row)
-						+ sel.getPasteRipple() - 1)));
-			up.realize(sel.paste());
-			storeUndo(up, OPT.PASTE);
-			repaint();
-		}
-	};
+	/** Open a file chooser to save the contents of the editor. */
+	public void Save()
+	{
+		String path = fileChooser.getSaveFilename();
+		if (path != null) saveToFile(path);
+	}
+
+	/** Open a dialog to load the contents of the editor from a file. */
+	public void Load()
+	{
+		String path = fileChooser.getLoadFilename();
+		loadFromFile(path);
+		repaint();
+	}
+
+	/** Copy the contents of the selection to the clipboard. */
+	public void Copy()
+	{
+		sel.copy();
+	}
+
+	/**
+	* Cut the contents of the selection, removing them from
+	* the code and storing them in the clipboard.
+	*/
+	public void Cut()
+	{
+		if (sel.isEmpty()) return;
+		sel.copy();
+		UndoPatch up = new UndoPatch();
+		sel.deleteSel();
+		up.realize(Math.max(caret.row, sel.row));
+		storeUndo(up, OPT.DELETE);
+		doCodeSize(true);
+		repaint();
+	}
+
+	/**
+	* Paste the clipboard into the code, overwriting the selection if there is
+	* one.
+	*/
+	public void Paste()
+	{
+		UndoPatch up =
+			new UndoPatch(Math.min(caret.row, sel.row), Math.max(
+				Math.max(caret.row, sel.row),
+				Math.min(code.size() - 1,
+					Math.min(caret.row, sel.row) + sel.getPasteRipple() - 1)));
+		up.realize(sel.paste());
+		storeUndo(up, OPT.PASTE);
+		doCodeSize(true);
+		repaint();
+	}
+
 	/** Undo the most recent action. */
-	public AbstractAction aUndo = new AbstractAction("UNDO")
+	public void Undo()
 	{
-		private static final long serialVersionUID = 1L;
+		// Undo, but then go ahead and repaint
+		undo();
+		doCodeSize(true);
+		repaint();
+	}
 
-		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override
-		public void actionPerformed(ActionEvent e)
-		{
-			undo();
-		}
-	};
 	/** Redo the most recently undone action. */
-	public AbstractAction aRedo = new AbstractAction("REDO")
+	public void Redo()
 	{
-		private static final long serialVersionUID = 1L;
+		// Redo, but then go ahead and repaint
+		redo();
+		doCodeSize(true);
+		repaint();
+	}
 
-		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override
-		public void actionPerformed(ActionEvent e)
-		{
-			redo();
-		}
-	};
 	/** Display the find dialog. */
-	public AbstractAction aFind = new AbstractAction("FIND")
+	public void ShowFind()
 	{
-		private static final long serialVersionUID = 1L;
+		FindDialog.getInstance().selectedJoshText = this;
+		findDialog.setVisible(true);
+	}
 
-		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override
-		public void actionPerformed(ActionEvent e)
-		{
-			findDialog.setVisible(true);
-		}
-	};
 	/** Display the quick find dialog. */
-	public AbstractAction aQuickFind = new AbstractAction("QUICKFIND")
+	public void ShowQuickFind()
 	{
-		private static final long serialVersionUID = 1L;
-
-		/** @see AbstractAction#actionPerformed(ActionEvent) */
-		@Override
-		public void actionPerformed(ActionEvent e)
-		{
-			finder.present();
-		}
-	};
+		finder.present();
+	}
 
 	/** Decrease the indent for all selected lines. */
-	/*public AbstractAction aUnindent = new AbstractAction("UNINDENT")
+	/*
+	public void aUnindent(ActionEvent e)
+	{
+		UndoPatch up = new UndoPatch();
+		int erow;
+		for (int row = erow = Math.min(sel.row,caret.row); row <= sel.row || row <= caret.row; row++)
+		{
+			unindent(row);
+			erow = row;
+		}
+		up.realize(erow);
+		storeUndo(up, OPT.INDENT);
+	}*/
+
+	// ===============================================================================================
+	// == Wrap above methods as actions ==============================================================
+	// ===============================================================================================
+
+	public AbstractAction actCut = new AbstractAction("CUT")
 	{
 		private static final long serialVersionUID = 1L;
 
-		/** @see AbstractAction#actionPerformed(ActionEvent) * /
-		@Override
 		public void actionPerformed(ActionEvent e)
 		{
-			UndoPatch up = new UndoPatch();
-			int erow;
-			for (int row = erow = Math.min(sel.row,caret.row); row <= sel.row || row <= caret.row; row++)
-			{
-				unindent(row);
-				erow = row;
-			}
-			up.realize(erow);
-			storeUndo(up,OPT.INDENT);
+			Cut();
 		}
-	};*/
+	};
+
+	public AbstractAction actCopy = new AbstractAction("COPY")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			Copy();
+		}
+	};
+
+	public AbstractAction actPaste = new AbstractAction("PASTE")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			Paste();
+		}
+	};
+
+	public AbstractAction actUndo = new AbstractAction("UNDO")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			Undo();
+		}
+	};
+
+	public AbstractAction actRedo = new AbstractAction("REDO")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			Redo();
+		}
+	};
+
+	public AbstractAction actFind = new AbstractAction("FIND")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			ShowFind();
+		}
+	};
+
+	public AbstractAction actQuickFind = new AbstractAction("QUICKFIND")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			ShowQuickFind();
+		}
+	};
+
+	public AbstractAction actLineDel = new AbstractAction("LINEDEL")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			LineDel();
+		}
+	};
+
+	public AbstractAction actLineDup = new AbstractAction("LINEDUP")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			LineDup();
+		}
+	};
+
+	public AbstractAction actLineSwap = new AbstractAction("LINESWAP")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			LineSwap();
+		}
+	};
+
+	public AbstractAction actLineUnSwap = new AbstractAction("LINEUNSWAP")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			LineUnSwap();
+		}
+	};
+
+	public AbstractAction actSelAll = new AbstractAction("SELALL")
+	{
+		private static final long serialVersionUID = 1L;
+
+		public void actionPerformed(ActionEvent e)
+		{
+			SelectAll();
+		}
+	};
 
 	/** Map the AbstractActions declared in JoshText to keyboard hotkeys. */
 	private void mapActions()
 	{
 		ActionMap am = getActionMap();
 		Action acts[] =
-			{ aLineDel, aLineDup, aLineSwap, aLineUnSwap, aSelAll, aCopy, aCut, aPaste,
-				aUndo, aRedo, aFind, aQuickFind };
+			{ actLineDel, actLineDup, actLineSwap, actLineUnSwap, actSelAll, actCopy,
+				actCut, actPaste, actUndo, actRedo, actFind, actQuickFind };
+		InputMap map = getInputMap();
+		KeyStroke[] keys = map.allKeys();
 		for (Action a : acts)
+		{
+			// Display accelerator shortcuts
+			for (KeyStroke key : keys)
+			{
+				if (map.get(key).equals(a.getValue(Action.NAME)))
+				{
+					a.putValue(Action.ACCELERATOR_KEY, key);
+				}
+			}
 			am.put(a.getValue(Action.NAME), a);
+		}
 	}
 
 	/** The global find dialog. */
@@ -1368,7 +1551,7 @@ public class JoshText extends JComponent implements Scrollable, ComponentListene
 		int fontFlags = 0;
 
 		StringBuilder line = code.getsb(lineNum);
-		int xx = getInsets().left;
+		int xx = 1 + getInsets().left;
 		char[] a = line.toString().toCharArray();
 		Color c = g.getColor();
 
@@ -1429,7 +1612,9 @@ public class JoshText extends JComponent implements Scrollable, ComponentListene
 
 		for (int ty = lineNum * lineHeight + insetY; ty < clip.y + clip.height + lineHeight
 			&& lineNum < code.size(); ty += lineHeight)
+		{
 			drawLine(g, lineNum++, ty);
+		}
 
 		if (isFocusOwner()) caret.paint(g, sel);
 	}
@@ -2487,17 +2672,28 @@ public class JoshText extends JComponent implements Scrollable, ComponentListene
 			paint(Graphics g, Insets i, CodeMetrics gm, int line_start, int line_end)
 		{
 			Color c = g.getColor();
-			if (matching == MatchState.MATCHING)
+
+			//It should be assumed that line_start is smaller than line end
+			//if (line_start > line_end) {
+			//JOptionPane.showMessageDialog(null,"line start larger than line end!");
+			//}
+
+			//TODO: Make sure we haven't deleted a selection of code that fires a bracket repaint on a line
+			//that was deleted. Current check suffices to fix the exception. - Robert
+			if (matchLine < line_end)
 			{
-				g.setColor(new Color(100, 100, 100));
-				g.drawRect(line_wid_at(matchLine, matchPos),
-					matchLine * lineHeight, monoAdvance, lineHeight);
-			}
-			else if (matching == MatchState.NO_MATCH)
-			{
-				g.setColor(new Color(255, 0, 0));
-				g.fillRect(line_wid_at(matchLine, matchPos),
-					matchLine * lineHeight, monoAdvance, lineHeight);
+				if (matching == MatchState.MATCHING)
+				{
+					g.setColor(new Color(100, 100, 100));
+					g.drawRect(line_wid_at(matchLine, matchPos), matchLine
+						* lineHeight, monoAdvance, lineHeight);
+				}
+				else if (matching == MatchState.NO_MATCH)
+				{
+					g.setColor(new Color(255, 0, 0));
+					g.fillRect(line_wid_at(matchLine, matchPos), matchLine
+						* lineHeight, monoAdvance, lineHeight);
+				}
 			}
 			g.setColor(c);
 		}

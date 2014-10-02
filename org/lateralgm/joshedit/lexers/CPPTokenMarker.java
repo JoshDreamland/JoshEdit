@@ -5,10 +5,13 @@
 	 * the GNU General Public License, version 3 or later. 
 	 */
 
-package org.lateralgm.joshedit;
+package org.lateralgm.joshedit.lexers;
 
 import java.awt.Color;
 import java.awt.Font;
+
+import org.lateralgm.joshedit.DefaultTokenMarker;
+import org.lateralgm.joshedit.DefaultKeywords.Keyword;
 
 /**
  * Sample C++ token marker class based on the default token marker.
@@ -55,5 +58,12 @@ public class CPPTokenMarker extends DefaultTokenMarker
 			new Color(255, 100, 100)));
 		otherTokens.add(new SimpleToken("Numeric literal", "[0-9]+[FfUuLlDd]*", 0,
 			new Color(255, 0, 255)));
+	}
+
+	@Override
+	public Keyword[][] GetKeywords()
+	{
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

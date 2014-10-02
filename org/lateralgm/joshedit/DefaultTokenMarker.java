@@ -23,7 +23,7 @@ import org.lateralgm.joshedit.Line.LINE_ATTRIBS;
  * 
  * @author Josh Ventura
  */
-public class DefaultTokenMarker implements TokenMarker
+public abstract class DefaultTokenMarker implements TokenMarker
 {
 	/** The number of lines last time we parsed; used to determine change type. */
 	private int line_count;
@@ -37,6 +37,8 @@ public class DefaultTokenMarker implements TokenMarker
 	public DefaultTokenMarker()
 	{
 	}
+
+	public abstract DefaultKeywords.Keyword[][] GetKeywords();
 
 	/**
 	 * Construct with case sensitivity option.
@@ -373,6 +375,18 @@ public class DefaultTokenMarker implements TokenMarker
 	{
 		line_count = code.size();
 		if (start < invalid_line || invalid_line == -1) invalid_line = start;
+
+		//TODO: This was a temporary fix for undo/redo
+		//with cut/copy/and paste. - Robert
+		if (start > code.size())
+		{
+			start = code.size();
+		}
+		if (end > code.size())
+		{
+			end = code.size();
+		}
+
 		for (int i = start; i < end; i++)
 			if (code.get(i).attr > 0) code.get(i).attr = -code.get(i).attr;
 			else if (code.get(i).attr > 0) code.get(i).attr = -1;

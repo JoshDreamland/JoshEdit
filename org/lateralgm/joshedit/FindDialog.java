@@ -1,5 +1,6 @@
 /* Copyright (C) 2011 Josh Ventura <joshv@zoominternet.net>
  * Copyright (C) 2011 IsmAvatar <IsmAvatar@gmail.com>
+ * Copyright (C) 2013, Robert B. Colton
  * 
  * This file is part of JoshEdit. JoshEdit is free software.
  * You can use, modify, and distribute it under the terms of
@@ -15,7 +16,9 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.swing.BorderFactory;
@@ -27,6 +30,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
@@ -78,7 +82,7 @@ public class FindDialog extends JDialog implements WindowListener, ActionListene
 	public static JButton bRepAll;
 
 	/** The static FindDialog isntance (one per program). */
-	protected static FindDialog INSTANCE = new FindDialog();
+	protected static FindDialog INSTANCE;
 	/** A collection of action listeners. */
 	protected Set<ActionListener> listenerList = new HashSet<ActionListener>();
 	/** A collection of permanent action listeners. */
@@ -86,6 +90,18 @@ public class FindDialog extends JDialog implements WindowListener, ActionListene
 
 	/** The currently active JoshText. */
 	public JoshText selectedJoshText = null;
+
+	public interface FindDialogCreationListener
+	{
+		void dialogCreated(FindDialog findDialog);
+	}
+
+	public static void addDialogCreationListener(FindDialogCreationListener listener)
+	{
+		createListeners.add(listener);
+	}
+
+	private static List<FindDialogCreationListener> createListeners = new ArrayList<>();
 
 	/** Construct, creating everything. */
 	private FindDialog()
@@ -95,12 +111,25 @@ public class FindDialog extends JDialog implements WindowListener, ActionListene
 		addWindowListener(this);
 		pack();
 		setMinimumSize(getSize());
+		setIconImage(Runner.editorInterface.getIconForKey("JoshText.FIND").getImage());
 	}
 
 	/** @return Returns the static FindDialog instance.  */
 	public static FindDialog getInstance()
 	{
+		if (INSTANCE == null)
+		{
+			fireCreationEvent(INSTANCE = new FindDialog());
+		}
 		return INSTANCE;
+	}
+
+	private static void fireCreationEvent(FindDialog findDialog)
+	{
+		for (FindDialogCreationListener listener : createListeners)
+		{
+			listener.dialogCreated(findDialog);
+		}
 	}
 
 	/**
@@ -141,8 +170,14 @@ public class FindDialog extends JDialog implements WindowListener, ActionListene
 		/** Find and replace the next match. */
 		void replaceNext();
 
+		/** Replaces all the matches and returns the count. */
+		int replaceAll();
+
 		/** Find and replace the previous match. */
 		void replacePrevious();
+
+		/** Performs the replace action. */
+		void doReplace();
 	}
 
 	/** Create the form layout. */
@@ -169,6 +204,7 @@ public class FindDialog extends JDialog implements WindowListener, ActionListene
 		options.add(whole = new JCheckBox("Whole word"));
 		options.add(start = new JCheckBox("Start of word"));
 		options.add(wrap = new JCheckBox("Wrap at EOF"));
+		wrap.setSelected(true);
 		options.add(sens = new JCheckBox("Case sensitive"));
 		options.add(esc = new JCheckBox("Escape sequences"));
 		options.add(regex = new JCheckBox("Regular expression"));
@@ -249,6 +285,26 @@ public class FindDialog extends JDialog implements WindowListener, ActionListene
 				else selectedJoshText.finder.replaceNext();
 			}
 		});
+
+		bRepAll.addActionListener(new ActionListener()
+		{
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				if (selectedJoshText == null)
+				{
+					System.err.println("No text editor selected. Ever.");
+					return;
+				}
+				setVisible(false);
+				selectedJoshText.finder.updateParameters((String) tFind.getEditor()
+					.getItem(), (String) tReplace.getEditor().getItem());
+				int results = selectedJoshText.finder.replaceAll();
+				JOptionPane.showMessageDialog(null, results
+					+ " Occurences Replaced");
+			}
+		});
+
 		bClose.addActionListener(new ActionListener()
 		{
 			@Override

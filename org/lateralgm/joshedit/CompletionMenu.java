@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2010 IsmAvatar <IsmAvatar@gmail.com>
  * Copyright (C) 2008 Quadduc <quadduc@gmail.com>
+ * Copyright (C) 2013, 2014, Robert B. Colton
  * 
  * This file is part of LateralGM.
  * LateralGM is free software and comes with ABSOLUTELY NO WARRANTY.
@@ -12,6 +13,7 @@ package org.lateralgm.joshedit;
 import java.awt.AWTEvent;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Toolkit;
@@ -32,7 +34,6 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
-import javax.swing.JViewport;
 import javax.swing.ListSelectionModel;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
@@ -42,6 +43,9 @@ import javax.swing.UIManager;
  * @author IsmAvatar
  * Class to handle code completion.
  */
+// TODO: doCodeSize(true); <- call that when the auto completion is confirmed
+// otherwise it doesnt update the client area, i propose making a system 
+// wherein all insertions/deletions of text will invalidate a client area resizing
 public class CompletionMenu
 {
 	/** The text area in which to handle code completion. */
@@ -53,7 +57,7 @@ public class CompletionMenu
 	/** Completion options from which the user can select. */
 	private Completion[] options;
 	private String word;
-	private JList completionList;
+	private JList<Completion> completionList;
 	private KeyHandler keyHandler;
 	//	protected int wordOffset;
 	//	protected int wordPos;
@@ -63,6 +67,9 @@ public class CompletionMenu
 
 	protected PopupHandler ph;
 	protected Point loc;
+
+	//FIXME: For some reason this completion menu can not accept focus allowing VK_TAB to not be
+	// dispatched.
 
 	public CompletionMenu(Frame owner, JoshText a, int y, int x1, int x2, int caret,
 		Completion[] c)
@@ -75,7 +82,9 @@ public class CompletionMenu
 		completions = c;
 
 		keyHandler = new KeyHandler();
-		completionList = new JList();
+		completionList = new JList<Completion>();
+		completionList.setFixedCellHeight(12);
+		completionList.setFont(new Font("Monospace", Font.PLAIN, 10));
 		completionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		completionList.addKeyListener(keyHandler);
 		completionList.addMouseListener(new MouseAdapter()
@@ -117,14 +126,17 @@ public class CompletionMenu
 	{
 		Point p = area.getLocationOnScreen();
 		int y = (row + 1) * area.metrics.lineHeight();
-		int x = area.metrics.lineWidth(row, wordStart);
+		int x = area.metrics.lineWidth(row, wordEnd);
+		// adding this breaks it, but without it shows at the correct position
+		// ffs wtf?
+		/*
 		if (area.getParent() instanceof JViewport)
 		{
 			Point vp = ((JViewport) area.getParent()).getViewPosition();
 			x -= vp.x;
 			y -= vp.y;
 		}
-
+        */
 		p.x += Math.min(area.getWidth(), Math.max(0, x));
 		p.y += Math.min(area.getHeight(), Math.max(0, y)) + 3;
 		loc = p;
@@ -554,15 +566,18 @@ public class CompletionMenu
 			if ((e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0) return;
 			char c = e.getKeyChar();
 			if (c == KeyEvent.VK_BACK_SPACE) return;
-			String s = String.valueOf(c);
-			if (s.matches("[^\\v\\t\\w]"))
+			//TODO: This statement used to check \\v and \\t as well, but it was causing VK_ENTER and VK_TAB not to be accepted
+			// as completing the menu which resulted in a painting exception. VK_TAB and VK_ENTER are standard for completing
+			// an autocompletion menu, see Eclipse and Scintilla/CodeBlocks.
+			if (c == KeyEvent.VK_ENTER || c == KeyEvent.VK_TAB
+				|| c == KeyEvent.VK_SPACE)
 			{
 				apply(c);
 				e.consume();
 				dispose();
 				return;
 			}
-			setSelectedText(s);
+			setSelectedText(String.valueOf(c));
 			e.consume();
 			reset();
 		}

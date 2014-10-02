@@ -1,4 +1,5 @@
 /* Copyright (C) 2011 IsmAvatar <IsmAvatar@gmail.com>
+ * Copyright (C) 2013, Robert B. Colton
  * 
  * This file is part of JoshEdit. JoshEdit is free software.
  * You can use, modify, and distribute it under the terms of
@@ -7,7 +8,9 @@
 
 package org.lateralgm.joshedit;
 
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -17,6 +20,8 @@ import java.util.Map;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+
+//import org.lateralgm.resources.Font;
 
 /** Panel to display line numbers. */
 public class LineNumberPanel extends JPanel
@@ -30,6 +35,9 @@ public class LineNumberPanel extends JPanel
 	protected int lines;
 	/** Indicates whether line numbering starts at 0 */
 	protected boolean startZero;
+
+	public Color fgColor = new Color(170, 170, 170);
+	public Color bgColor = new Color(220, 220, 220);
 
 	/**
 	 * @param metrics The font metrics to use to paint numbers at the correct position.
@@ -51,7 +59,7 @@ public class LineNumberPanel extends JPanel
 	 */
 	public LineNumberPanel(JComponent textarea, int lines, boolean startZero)
 	{
-		this(textarea.getFontMetrics(textarea.getFont()), lines, startZero);
+		this(textarea.getFontMetrics(textarea.getFont()),lines,startZero);
 	}
 
 	/**
@@ -83,7 +91,7 @@ public class LineNumberPanel extends JPanel
 		//get line height, multiply by number of lines. + 1 line since the end seems to have a little extra
 		int height = metrics.getHeight() * (lines + 1);
 
-		setPreferredSize(new Dimension(width, height));
+		setPreferredSize(new Dimension(width + 3, height));
 		revalidate();
 
 		//this particular line appears to be necessary to allow these changes to take effect.
@@ -99,9 +107,13 @@ public class LineNumberPanel extends JPanel
 	{
 		Object map =
 			Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
-		if (map != null) ((Graphics2D) g).addRenderingHints((Map<?, ?>) map);
+		if (map != null) ((Graphics2D) g).addRenderingHints((Map<?,?>) map);
 
-		Rectangle clip = g.getClipBounds();
+		Rectangle clip = this.getVisibleRect();
+		// line numbering is always there regardless of horizontal scroll
+		// if you don't make the width static and drag the code editor
+		// so that line numbers are outside the mdi area, the numbers smudge
+		clip.setSize(this.getWidth(), clip.height);
 		final int insetY = metrics.getLeading() + metrics.getAscent();
 		final int gh = metrics.getHeight();
 		int lineNum = clip.y / gh;
@@ -109,11 +121,18 @@ public class LineNumberPanel extends JPanel
 		final int end = clip.y + clip.height + gh;
 		if (!startZero) lineNum++;
 
-		g.setColor(getBackground());
-		g.fillRect(clip.x, clip.y, clip.width, clip.height);
-		g.setColor(getForeground());
+		g.setColor(bgColor);
+		//g.fillRect(clip.x,clip.y,clip.width,clip.height);
+		g.fillRect(0, 0, getWidth(), getHeight());
+		g.setColor(fgColor);
+
+		g.setFont(new Font("Monospace", Font.PLAIN, 12));
 
 		for (int y = start; lineNum < lines && y <= end; lineNum++, y += gh)
-			g.drawString(Integer.toString(lineNum), 0, y);
+		{
+			String str = Integer.toString(lineNum);
+			int strw = (int) g.getFontMetrics().getStringBounds(str, g).getWidth();
+			g.drawString(str, clip.width - strw - 3, y);
+		}
 	}
 }

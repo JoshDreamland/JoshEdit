@@ -8,7 +8,6 @@
 
 package org.lateralgm.joshedit;
 
-import java.awt.BorderLayout;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -25,13 +24,10 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
-import javax.swing.event.CaretListener;
 
-import org.lateralgm.joshedit.Code.CodeEvent;
-import org.lateralgm.joshedit.Code.CodeListener;
+import org.lateralgm.joshedit.lexers.CPPTokenMarker;
 
 public class Runner
 {
@@ -49,12 +45,12 @@ public class Runner
 
 		public String getString(String key)
 		{
-			return Runner.getString(key, null);
+			return Runner.getString(key,null);
 		}
 
 		public String getString(String key, String def)
 		{
-			return Runner.getString(key, def);
+			return Runner.getString(key,def);
 		}
 	};
 
@@ -73,138 +69,11 @@ public class Runner
 		//showBindingsWindow(false);
 	}
 
-	public static class JoshTextPanel extends JPanel
-	{
-		private static final long serialVersionUID = 1L;
-
-		public JScrollPane scroller;
-		public JoshText text;
-		public LineNumberPanel lines;
-		public QuickFind find;
-
-		public JoshTextPanel()
-		{
-			this((String[]) null);
-		}
-
-		public JoshTextPanel(String code)
-		{
-			this(Runner.splitLines(code));
-		}
-
-		public JoshTextPanel(String[] codeLines)
-		{
-			this(codeLines, true);
-		}
-
-		public JoshTextPanel(String[] codeLines, boolean startZero)
-		{
-			super(new BorderLayout());
-
-			text = new JoshText(codeLines);
-			lines = new LineNumberPanel(text, text.code.size(), startZero);
-			text.code.addCodeListener(new CodeListener()
-			{
-				public void codeChanged(CodeEvent e)
-				{
-					lines.setLines(text.code.size());
-				}
-			});
-
-			find = new QuickFind(text);
-			text.finder = find;
-
-			scroller = new JScrollPane(text);
-			scroller.setRowHeaderView(lines);
-
-			add(scroller, BorderLayout.CENTER);
-			add(find, BorderLayout.SOUTH);
-		}
-
-		public int getCaretLine()
-		{
-			return text.caret.row;
-		}
-
-		public int getCaretColumn()
-		{
-			return text.caret.col;
-		}
-
-		public void setCaretPosition(int row, int col)
-		{
-			text.caret.row = row;
-			text.caret.col = col;
-			text.caret.colw = text.line_wid_at(row, col);
-			text.sel.deselect(false);
-			text.caret.positionChanged();
-		}
-
-		public void addCaretListener(CaretListener cl)
-		{
-			text.caret.addCaretListener(cl);
-		}
-
-		/** Convenience method that replaces newlines with \r\n for GM compatibility */
-		public String getTextCompat()
-		{
-			StringBuilder res = new StringBuilder();
-			for (int i = 0; i < text.code.size(); i++)
-			{
-				if (i != 0) res.append("\r\n");
-				res.append(text.code.getsb(i));
-			}
-			return res.toString();
-		}
-
-		public boolean isChanged()
-		{
-			return text.isChanged();
-		}
-
-		public void setText(String s)
-		{
-			text.setText(s == null ? null : s.split("\r?\n"));
-		}
-
-		public String getLineText(int line)
-		{
-			return text.code.getsb(line).toString();
-		}
-
-		public int getLineCount()
-		{
-			return text.code.size();
-		}
-
-		@SuppressWarnings("static-method")
-		public void setTabSize(int spaces)
-		{
-			JoshText.Settings.indentSizeInSpaces = spaces;
-		}
-
-		public void setTokenMarker(TokenMarker tm)
-		{
-			text.setTokenMarker(tm);
-		}
-
-		public void setSelection(int row, int col, int row2, int col2)
-		{
-			text.sel.row = row;
-			text.sel.col = col;
-			text.caret.row = row2;
-			text.caret.col = col2;
-			text.caret.colw = text.line_wid_at(row, col);
-			text.caret.positionChanged();
-			text.sel.selectionChanged();
-		}
-	}
-
 	public static void showCodeWindow(boolean closeExit)
 	{
 		JFrame f = new JFrame("Title");
 		JoshTextPanel p = new JoshTextPanel(getDefaultCode());
-		p.setTokenMarker(new GMLTokenMarker());
+		p.setTokenMarker(new CPPTokenMarker());
 		f.setContentPane(p);
 		f.pack();
 		f.setLocationRelativeTo(null);
@@ -243,6 +112,7 @@ public class Runner
 		Scanner sc = new Scanner(text);
 		while (sc.hasNext())
 			list.add(sc.nextLine());
+		sc.close();
 		return list.toArray(new String[0]);
 	}
 
@@ -253,11 +123,11 @@ public class Runner
 			.setLayout(new BoxLayout(f.getContentPane(), BoxLayout.PAGE_AXIS));
 
 		JTabbedPane tabs = new JTabbedPane();
-		tabs.addTab("Bindings", new Bindings());
+		tabs.addTab("Bindings",new Bindings());
 		f.add(tabs);
 
 		JPanel repanel = new JPanel();
-		repanel.setLayout(new BoxLayout(repanel, BoxLayout.LINE_AXIS));
+		repanel.setLayout(new BoxLayout(repanel,BoxLayout.LINE_AXIS));
 		repanel.add(new JButton("OK"));
 		repanel.add(new JButton("Cancel"));
 		f.add(repanel);
@@ -302,7 +172,7 @@ public class Runner
 		{
 			System.err.println("Unable to read icons.properties"); //$NON-NLS-1$
 		}
-		String filename = iconProps.getProperty(key, ""); //$NON-NLS-1$
+		String filename = iconProps.getProperty(key,""); //$NON-NLS-1$
 		if (!filename.isEmpty()) return findIcon(filename);
 		return null;
 	}
@@ -318,7 +188,7 @@ public class Runner
 		{
 			r = def == null ? '!' + key + '!' : def;
 		}
-		return PREFS.get(key, r);
+		return PREFS.get(key,r);
 	}
 
 	public static void main(String[] args)

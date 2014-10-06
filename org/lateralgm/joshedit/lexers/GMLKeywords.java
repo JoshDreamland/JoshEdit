@@ -23,37 +23,51 @@ import org.lateralgm.joshedit.DefaultKeywords.Function;
 import org.lateralgm.joshedit.DefaultKeywords.Operator;
 import org.lateralgm.joshedit.DefaultKeywords.Variable;
 
+/**
+ * Class to load and serve GML keywords.
+ */
 public final class GMLKeywords {
-  public static DefaultKeywords.Construct[] CONSTRUCTS;
-  public static DefaultKeywords.Operator[] OPERATORS;
-  public static DefaultKeywords.Variable[] VARIABLES;
-  public static DefaultKeywords.Constant[] CONSTANTS;
-  public static DefaultKeywords.Function[] FUNCTIONS;
+  /** GML syntax construct keywords */
+  public static final DefaultKeywords.Construct[] CONSTRUCTS;
+  /** GML operator keywords */
+  public static final DefaultKeywords.Operator[] OPERATORS;
+  /** GML global variable names */
+  public static final DefaultKeywords.Variable[] VARIABLES;
+  /** GML constant names */
+  public static final DefaultKeywords.Constant[] CONSTANTS;
+  /** GML function names */
+  public static final DefaultKeywords.Function[] FUNCTIONS;
 
   static {
-    InputStream is = GMLKeywords.class.getResourceAsStream("gmlkeywords.properties");
+    InputStream is = GMLKeywords.class.getResourceAsStream("gmlkeywords.properties"); //$NON-NLS-1$
     Properties p = new Properties();
     try {
       p.load(is);
     } catch (IOException e) {
       e.printStackTrace();
+    } finally {
+      try {
+        is.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
     }
-    String[] s = p.getProperty("CONSTRUCTS").split("\\s+");
+    String[] s = p.getProperty("CONSTRUCTS").split("\\s+"); //$NON-NLS-1$ //$NON-NLS-2$
     CONSTRUCTS = new Construct[s.length];
     for (int i = 0; i < s.length; i++) {
       CONSTRUCTS[i] = new Construct(s[i]);
     }
-    s = p.getProperty("OPERATORS").split("\\s+");
+    s = p.getProperty("OPERATORS").split("\\s+"); //$NON-NLS-1$ //$NON-NLS-2$
     OPERATORS = new Operator[s.length];
     for (int i = 0; i < s.length; i++) {
       OPERATORS[i] = new Operator(s[i]);
     }
-    s = p.getProperty("VARIABLES").split("\\s+");
+    s = p.getProperty("VARIABLES").split("\\s+"); //$NON-NLS-1$ //$NON-NLS-2$
     VARIABLES = new Variable[s.length];
     for (int i = 0; i < s.length; i++) {
       VARIABLES[i] = new Variable(s[i]);
     }
-    s = p.getProperty("CONSTANTS").split("\\s+");
+    s = p.getProperty("CONSTANTS").split("\\s+"); //$NON-NLS-1$ //$NON-NLS-2$
     CONSTANTS = new Constant[s.length];
     for (int i = 0; i < s.length; i++) {
       CONSTANTS[i] = new Constant(s[i]);
@@ -61,7 +75,7 @@ public final class GMLKeywords {
     p.clear();
 
     // read functions
-    InputStream is2 = GMLKeywords.class.getResourceAsStream("gmlfunctions.txt");
+    InputStream is2 = GMLKeywords.class.getResourceAsStream("gmlfunctions.txt"); //$NON-NLS-1$
     BufferedReader br2 = new BufferedReader(new InputStreamReader(is2));
     ArrayList<Function> funcList = new ArrayList<Function>();
 
@@ -74,13 +88,18 @@ public final class GMLKeywords {
       }
     } catch (IOException e) {
       e.printStackTrace();
+    } finally {
+      try {
+        br2.close();
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
     }
 
     FUNCTIONS = funcList.toArray(new Function[0]);
   }
 
-  public GMLKeywords() {
-
+  private GMLKeywords() {
   }
 
 }

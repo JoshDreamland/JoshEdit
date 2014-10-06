@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.MissingResourceException;
 import java.util.Properties;
 import java.util.ResourceBundle;
@@ -29,6 +30,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 
 import org.lateralgm.joshedit.lexers.CPPTokenMarker;
+import org.lateralgm.joshedit.lexers.GMLTokenMarker;
 
 public class Runner {
   public static final ResourceBundle MESSAGES = ResourceBundle
@@ -53,10 +55,13 @@ public class Runner {
   };
 
   public static interface EditorInterface {
+    /** Fetch an icon by key. */
     ImageIcon getIconForKey(String key);
 
+    /** Fetch an internationalized string by key. */
     String getString(String key);
 
+    /** Fetch an internationalized string by key, or a default on failure. */
     String getString(String key, String def);
   }
 
@@ -68,7 +73,7 @@ public class Runner {
   public static void showCodeWindow(boolean closeExit) {
     JFrame f = new JFrame("Title");
     JoshTextPanel p = new JoshTextPanel(getDefaultCode());
-    p.setTokenMarker(new CPPTokenMarker());
+    p.setTokenMarker(new GMLTokenMarker());
     f.setContentPane(p);
     f.pack();
     f.setLocationRelativeTo(null);
@@ -78,6 +83,8 @@ public class Runner {
     f.setVisible(true);
   }
 
+  /** Fetch the default JoshText code. */
+  @SuppressWarnings("nls")
   public static String[] getDefaultCode() {
     ArrayList<String> code = new ArrayList<String>();
     code.add("Hello, world");
@@ -101,11 +108,13 @@ public class Runner {
     return code.toArray(new String[0]);
   }
 
+  /** Split the given text at newlines, returning an array of these lines. */
   public static String[] splitLines(String text) {
     if (text == null) {
       return null;
     }
-    LinkedList<String> list = new LinkedList<String>();
+    // Magic number 50: approximate number of characters per line, generously rounded up
+    List<String> list = new ArrayList<String>(text.length() / 50);
     Scanner sc = new Scanner(text);
     while (sc.hasNext()) {
       list.add(sc.nextLine());

@@ -28,34 +28,51 @@ package org.lateralgm.joshedit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/** Class defining a basic keyword code-completion interface. */
 public class DefaultKeywords {
 
+  /** Basic keyword class. */
   public abstract static class Keyword {
     protected String name;
 
+    /** Fetch the name of this keyword. */
     public String getName() {
       return name;
     }
   }
 
+  /** Interface used to retrieve keywords from a TokenMarker (or other entity). */
+  public interface HasKeywords {
+    /** Retrieve an array of keyword groups used by this marker. */
+    Keyword[][] getKeywords();
+  }
+
+  /** Class used to store language construct keywords, such as "if". */
   public static class Construct extends Keyword {
+    /** Create with a construct name, eg, "if". */
     public Construct(String input) {
       name = input;
     }
   }
 
+  /** Class used to store operator keywords, such as "and". */
   public static class Operator extends Keyword {
+    /** Construct with an operator name, eg, "if". */
     public Operator(String input) {
       name = input;
     }
   }
 
+  /** Class used to store language global variables, such as "current_time". */
   public static class Variable extends Keyword {
+    /** True if this variable cannot be assigned (note: even readOnly variables change). */
     public final boolean readOnly;
+    /** The size of this variable if it is an array. */
     public final int arraySize;
 
+    /** Construct with a variable name, eg, "current_time". */
     public Variable(String input) {
-      Matcher m = Pattern.compile("(\\w+)(\\[(\\d+)])?(\\*)?").matcher(input);
+      Matcher m = Pattern.compile("(\\w+)(\\[(\\d+)])?(\\*)?").matcher(input); //$NON-NLS-1$
       if (!m.matches()) {
         System.err.println("Invalid variable: " + input); //$NON-NLS-1$
       }
@@ -66,24 +83,35 @@ public class DefaultKeywords {
     }
   }
 
+  /** Class used to store language constants, such as "M_PI". */
   public static class Constant extends Keyword {
+    /** Construct with a constant name, eg, "M_PI". */
     public Constant(String input) {
       name = input;
     }
   }
 
+  /** Class to store information about functions, such as printf. */
   public static class Function extends Keyword {
+    /** The human-friendly description of this function, internationalized. */
     public final String description;
+    /** The names of the arguments to this function. */
     public final String[] arguments;
+    /** The index at which arguments become dynamic; that is, the index of the first dynamic arg. */
     public final int dynArgIndex;
+    /** The minimum number of dynamic arguments. */
     public final int dynArgMin;
+    /** The maximum number of dynamic arguments. */
     public final int dynArgMax;
 
+    /** Construct with a function prototype; parse prototype for other metrics. */
     public Function(String input) {
-      // 1 1 23 3 245 5 6 6 7 7 8 84 9 9
+      // @formatter:off
+      //    1   1  23    3 245   5  6   6 7   7 8        84 9   9
       // /(\w+)\(((\w+,)*)((\w+)\{(\d+),(\d+)}((?=\))|,))?(\w+)?\)/
-      // fun ( arg, arg { 0 , 9 } , arg )
-      String re = "(\\w+)\\(((\\w+,)*)((\\w+)\\{(\\d+),(\\d+)}((?=\\))|,))?(\\w+)?\\)";
+      //   fun  (  arg,     arg  { 0   , 9   }        ,    arg   )
+      // @formatter:on
+      String re = "(\\w+)\\(((\\w+,)*)((\\w+)\\{(\\d+),(\\d+)}((?=\\))|,))?(\\w+)?\\)"; //$NON-NLS-1$
       Matcher m = Pattern.compile(re).matcher(input);
       if (!m.matches()) {
         System.err.println("Invalid function: " + input); //$NON-NLS-1$
@@ -94,7 +122,7 @@ public class DefaultKeywords {
       String daMin = m.group(6); // range min
       String daMax = m.group(7); // range max
       String a2 = m.group(9); // last argument
-      String[] aa1 = a1.length() > 0? a1.split(",") : new String[0];
+      String[] aa1 = a1.length() > 0? a1.split(",") : new String[0]; //$NON-NLS-1$
       arguments = new String[aa1.length + (da != null? 1 : 0) + (a2 != null? 1 : 0)];
       System.arraycopy(aa1, 0, arguments, 0, aa1.length);
       if (da == null) {
@@ -113,9 +141,20 @@ public class DefaultKeywords {
       description = ""; //$NON-NLS-1$
     }
 
+    /**
+     * Construct with most metrics.
+     * 
+     * @param func
+     *        The name of the function.
+     * @param args
+     *        The parameters accepted by this function. These will be parsed crudely using a
+     *        comma-delimited string split.
+     * @param desc
+     *        The internationalized, human-readable description of this function.
+     */
     public Function(String func, String args, String desc) {
       name = func;
-      arguments = args.split(",");
+      arguments = args.split(","); //$NON-NLS-1$
       description = desc;
 
       dynArgIndex = -1;

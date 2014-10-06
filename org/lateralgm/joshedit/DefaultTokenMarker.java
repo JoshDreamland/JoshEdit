@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2011 Josh Ventura <JoshV10@gmail.com>
- *
+ * 
  * This file is part of JoshEdit. JoshEdit is free software.
  * You can use, modify, and distribute it under the terms of
  * the GNU General Public License, version 3 or later.
@@ -15,13 +15,14 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.lateralgm.joshedit.ColorProfile.ColorProfileEntry;
 import org.lateralgm.joshedit.DefaultTokenMarker.SchemeInfo.SchemeType;
 import org.lateralgm.joshedit.Line.LINE_ATTRIBS;
 
 /**
  * A default implementation of TokenMarker taking regular expressions for everything,
  * allowing simplified implementation of language token marking rules.
- *
+ * 
  * @author Josh Ventura
  */
 public abstract class DefaultTokenMarker implements TokenMarker {
@@ -37,11 +38,9 @@ public abstract class DefaultTokenMarker implements TokenMarker {
   public DefaultTokenMarker() {
   }
 
-  public abstract DefaultKeywords.Keyword[][] GetKeywords();
-
   /**
    * Construct with case sensitivity option.
-   *
+   * 
    * @param caseSens
    *        True if this language is in general case sensitive.
    **/
@@ -56,10 +55,10 @@ public abstract class DefaultTokenMarker implements TokenMarker {
   /**
    * Class for storing information about a syntax block, such as comments or strings.
    * These are filtered out and handled before any other token type.
-   *
+   * 
    * @author Josh Ventura
    */
-  public class BlockDescriptor {
+  public static class BlockDescriptor {
     /** Human-readable name for this scheme. */
     String name;
     /** Begin and end are not regex. If end is null, EOL is used. */
@@ -84,6 +83,8 @@ public abstract class DefaultTokenMarker implements TokenMarker {
     int fontStyle;
 
     /**
+     * Construct with all information.
+     * 
      * @param block_name
      *        The name of this block type.
      * @param begin_regex
@@ -115,22 +116,103 @@ public abstract class DefaultTokenMarker implements TokenMarker {
     }
 
     /**
+     * Construct with all information, reading from a color profile.
+     * 
+     * @param blockName
+     *        The name of this block type.
+     * @param beginRegex
+     *        The regular expression matching the start of the block.
+     * @param endRegex
+     *        The regular expression matching the end of the block.
+     * @param allowMultiline
+     *        True if this block should be allowed to span multiple lines.
+     * @param escapeEndMarkers
+     *        True if the end block expression can be escaped.
+     * @param escapeChar
+     *        The escape char by which the end block might be escaped.
+     * @param profile
+     *        The color profile from which to extract formatting information.
+     */
+    public BlockDescriptor(String blockName, String beginRegex, String endRegex,
+        boolean allowMultiline, boolean escapeEndMarkers, char escapeChar, ColorProfile profile) {
+      this(blockName, beginRegex, endRegex, allowMultiline, escapeEndMarkers, escapeChar,
+          profile.get(blockName));
+    }
+
+    /**
+     * Construct with all information, reading from a color profile.
+     * 
+     * @param blockName
+     *        The name of this block type.
+     * @param begin_regex
+     *        The regular expression matching the start of the block.
+     * @param endRegex
+     *        The regular expression matching the end of the block.
+     * @param allowMultiline
+     *        True if this block should be allowed to span multiple lines.
+     * @param escapeEndMarkers
+     *        True if the end block expression can be escaped.
+     * @param escapeChar
+     *        The escape char by which the end block might be escaped.
+     * @param ent
+     *        Profile entry containing font formatting information.
+     */
+    public BlockDescriptor(String blockName, String begin_regex, String endRegex,
+        boolean allowMultiline, boolean escapeEndMarkers, char escapeChar, ColorProfileEntry ent) {
+      this(blockName, begin_regex, endRegex, ent.color, ent.fontStyle);
+    }
+
+    /**
      * Convenience constructor for when multiline is true and the end marker cannot be escaped.
-     *
+     * 
+     * @param blockName
+     *        The name of this block type.
+     * @param beginRegex
+     *        The regular expression matching the start of the block.
+     * @param endRegex
+     *        The regular expression matching the end of the block.
+     * @param markColor
+     *        The font color with which this block will be rendered.
+     * @param fontStyle
+     *        The font style with which this block will be rendered.
+     */
+    public BlockDescriptor(String blockName, String beginRegex, String endRegex, Color markColor,
+        int fontStyle) {
+      this(blockName, beginRegex, endRegex, true, false, (char) 0, markColor, fontStyle);
+    }
+
+    /**
+     * Convenience constructor for when multiline is true and the end marker cannot be escaped.
+     * 
      * @param block_name
      *        The name of this block type.
      * @param begin_regex
      *        The regular expression matching the start of the block.
      * @param end_regex
      *        The regular expression matching the end of the block.
-     * @param markColor
-     *        The font color with which this block will be rendered.
-     * @param font_style
-     *        The font style with which this block will be rendered.
+     * @param profile
+     *        The color profile from which to extract formatting information.
      */
     public BlockDescriptor(String block_name, String begin_regex, String end_regex,
-        Color markColor, int font_style) {
-      this(block_name, begin_regex, end_regex, true, false, (char) 0, markColor, font_style);
+        ColorProfile profile) {
+      this(block_name, begin_regex, end_regex, profile.get(block_name));
+    }
+
+    /**
+     * Convenience constructor for when multiline is true and the end marker cannot be escaped.
+     * 
+     * @param block_name
+     *        The name of this block type.
+     * @param begin_regex
+     *        The regular expression matching the start of the block.
+     * @param end_regex
+     *        The regular expression matching the end of the block.
+     * @param colorEntry
+     *        Profile entry containing font formatting information.
+     */
+    public BlockDescriptor(String block_name, String begin_regex, String end_regex,
+        ColorProfileEntry colorEntry) {
+      this(block_name, begin_regex, end_regex, colorEntry.color, colorEntry.fontStyle);
     }
   }
 
@@ -139,7 +221,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
   /**
    * A class for representing a set of keywords to mark.
-   *
+   * 
    * @author Josh Ventura
    */
   public static class KeywordSet {
@@ -156,21 +238,21 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
     /**
      * Construct a new keyword set with some basic information.
-     *
+     * 
      * @param groupName
      *        The name of this group, for preferences purposes.
      * @param markColor
      *        The font color with which keywords in this group are rendered.
      * @param fontStyle
      *        The font style with which keywords in this group are rendered.
-     * @param casesens
+     * @param caseSens
      *        Whether or not this keyword set should be matched with case sensitivity.
      */
-    public KeywordSet(String groupName, Color markColor, int fontStyle, boolean casesens) {
+    public KeywordSet(String groupName, Color markColor, int fontStyle, boolean caseSens) {
       name = groupName;
       color = markColor;
       this.fontStyle = fontStyle;
-      caseSensitive = casesens;
+      caseSensitive = caseSens;
       words = new HashSet<String>();
     }
   }
@@ -183,7 +265,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
   /**
    * Adds a new keyword set with some basic information. Uses global case-sensitivity.
-   *
+   * 
    * @param groupName
    *        The name of this group, for preferences purposes.
    * @param markColor
@@ -197,8 +279,22 @@ public abstract class DefaultTokenMarker implements TokenMarker {
   }
 
   /**
+   * Adds a new keyword set with some basic information. Uses global case-sensitivity.
+   * 
+   * @param groupName
+   *        The name of this group, for preferences purposes.
+   * @param profile
+   *        The color profile used to highlight these keywords.
+   * @return The new keyword set, so you can populate it.
+   */
+  public KeywordSet addKeywordSet(String groupName, ColorProfile profile) {
+    ColorProfileEntry entry = profile.get(groupName);
+    return addKeywordSet(groupName, entry.color, entry.fontStyle, caseSensitive);
+  }
+
+  /**
    * Adds a new keyword set with some basic information and specified case-sensitivity.
-   *
+   * 
    * @param groupName
    *        The name of this group, for preferences purposes.
    * @param markColor
@@ -218,10 +314,10 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
   /**
    * A class representing a set of symbols to mark.
-   *
+   * 
    * @author Josh Ventura
    */
-  protected class CharSymbolSet {
+  public static class CharSymbolSet {
     /** The name of this group of characters */
     public String name;
     /** A set of characters marked according to this rule. */
@@ -233,7 +329,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
     /**
      * Construct a new symbol set to mark, with basic information.
-     *
+     * 
      * @param group_name
      *        The name of this group of symbols.
      * @param markColor
@@ -247,20 +343,44 @@ public abstract class DefaultTokenMarker implements TokenMarker {
       fontStyle = font_style;
       chars = new HashSet<Character>();
     }
+
+    /**
+     * Construct a new symbol set to mark, with basic information.
+     * 
+     * @param group_name
+     *        The name of this group of symbols.
+     * @param colorProfileEntry
+     *        Profile entry containing font formatting information.
+     */
+    public CharSymbolSet(String group_name, ColorProfileEntry colorProfileEntry) {
+      this(group_name, colorProfileEntry.color, colorProfileEntry.fontStyle);
+    }
+
+    /**
+     * Construct a new symbol set to mark, reading from a color profile.
+     * 
+     * @param group_name
+     *        The name of this group of symbols.
+     * @param profile
+     *        The color profile used to highlight these keywords.
+     */
+    public CharSymbolSet(String group_name, ColorProfile profile) {
+      this(group_name, profile.get(group_name));
+    }
   }
 
   /** List of all symbol sets to mark */
   public ArrayList<CharSymbolSet> tmChars = new ArrayList<CharSymbolSet>();
 
   /** This is the pattern we will use to isolate identifiers. **/
-  public Pattern identifier_pattern = Pattern.compile("[a-z_A-Z]([a-z_A-Z0-9]*)");
+  public Pattern identifier_pattern = Pattern.compile("[a-z_A-Z]([a-z_A-Z0-9]*)"); //$NON-NLS-1$
 
   /**
    * This is a class for specifying anything else we want to skip or mark.
    * You should use this, for example, to specify how to identify numeric literals
    * and, at your option, how to color them differently.
    **/
-  public class SimpleToken {
+  public static class SimpleToken {
     /** The name of this token */
     public String name;
     /** The pattern that constitutes the token */
@@ -285,6 +405,30 @@ public abstract class DefaultTokenMarker implements TokenMarker {
       pattern = Pattern.compile(regex);
       fontStyle = font_style;
       color = markColor;
+    }
+
+    /**
+     * @param token_name
+     *        The name of this token or token type.
+     * @param regex
+     *        The regular expression used to test for this token.
+     * @param entry
+     *        The ColorProfileEntry containing formatting information for this token.
+     */
+    public SimpleToken(String token_name, String regex, ColorProfileEntry entry) {
+      this(token_name, regex, entry.fontStyle, entry.color);
+    }
+
+    /**
+     * @param token_name
+     *        The name of this token or token type.
+     * @param regex
+     *        The regular expression used to test for this token.
+     * @param profile
+     *        The ColorProfile from which to retrieve formatting information for this token.
+     */
+    public SimpleToken(String token_name, String regex, ColorProfile profile) {
+      this(token_name, regex, profile.get(token_name));
     }
   }
 
@@ -324,7 +468,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
     /**
      * Construct new empty schemeInfo with a type.
-     *
+     * 
      * @param scheme_type
      *        The type of this scheme; one of the {@link SchemeType} constants.
      */
@@ -335,7 +479,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
     /**
      * Construct new empty schemeInfo with both fields.
-     *
+     * 
      * @param scheme_type
      *        The type of this scheme; one of the {@link SchemeType} constants.
      * @param scheme_id
@@ -354,7 +498,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
     /**
      * Construct our extended TokenMarker info with the works.
-     *
+     * 
      * @param fs
      *        The font style to use.
      * @param col
@@ -376,7 +520,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
   /**
    * Mark new or invalidated lines.
-   *
+   * 
    * @param code
    *        The code to mark.
    */
@@ -460,8 +604,8 @@ public abstract class DefaultTokenMarker implements TokenMarker {
       if (ischeme < 0) {
         for (int si = 0; si < schemes.size(); si++) {
           Matcher m =
-              schemes.get(si).begin.matcher(line.toString()).region(i, line.length())
-                  .useTransparentBounds(true);
+              schemes.get(si).begin.matcher(line.toString()).region(i, line.length()).useTransparentBounds(
+                  true);
           if (!m.find()) {
             continue;
           }
@@ -562,8 +706,8 @@ public abstract class DefaultTokenMarker implements TokenMarker {
           boolean fnd = false;
           String f = line.substring(i, lookingat.end());
           for (int sn = 0; sn < tmKeywords.size(); sn++) {
-            if (tmKeywords.get(sn).words.contains(tmKeywords.get(sn).caseSensitive? f : f
-                .toLowerCase())) {
+            if (tmKeywords.get(sn).words.contains(tmKeywords.get(sn).caseSensitive? f
+                : f.toLowerCase())) {
               res.add(bi++, new TokenMarkerInfoEx(tmKeywords.get(sn).fontStyle,
                   tmKeywords.get(sn).color, lookingat.start(), lookingat.end(), 0, new SchemeInfo(
                       SchemeType.KEYWORD, sn)));

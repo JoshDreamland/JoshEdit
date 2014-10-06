@@ -10,6 +10,7 @@ package org.lateralgm.joshedit;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Collection;
 
 import org.lateralgm.joshedit.JoshText.LineChangeListener;
 
@@ -83,4 +84,7 @@ public interface TokenMarker extends LineChangeListener {
    *        The code to format.
    */
   void formatCode(Code code);
+
+  /** Retrieve a collection of all default color profiles for this marker. */
+  Collection<ColorProfile> defaultProfiles();
 }

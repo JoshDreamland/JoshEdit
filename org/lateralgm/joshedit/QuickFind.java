@@ -67,8 +67,8 @@ public class QuickFind extends JToolBar implements FindNavigator {
   private static final ImageIcon I_SET;
 
   static {
-    S_FIND = Runner.editorInterface.getString("QuickFind.FIND") + ": "; //$NON-NLS-1$
-    S_REPL = Runner.editorInterface.getString("QuickFind.REPLACE") + ": "; //$NON-NLS-1$
+    S_FIND = Runner.editorInterface.getString("QuickFind.FIND_LBL"); //$NON-NLS-1$
+    S_REPL = Runner.editorInterface.getString("QuickFind.REPLACE_LBL"); //$NON-NLS-1$
     B_HIGHL = Runner.editorInterface.getString("QuickFind.HIGHLIGHT"); //$NON-NLS-1$
     B_REPL = Runner.editorInterface.getString("QuickFind.REPLACE"); //$NON-NLS-1$
 

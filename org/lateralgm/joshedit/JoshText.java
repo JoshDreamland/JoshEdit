@@ -2817,8 +2817,8 @@ public class JoshText extends JComponent
 
       for (y--; y >= 0; y--) {
         tmall = marker.getStyles(code.get(y));
-        if (subFindMatchBackward(match, code.getsb(y), tmall, tmall.size() - 1, code.getsb(y)
-            .length(), blockType, y)) {
+        if (subFindMatchBackward(match, code.getsb(y), tmall, tmall.size() - 1,
+            code.getsb(y).length(), blockType, y)) {
           return;
         }
       }

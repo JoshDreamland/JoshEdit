@@ -1,23 +1,23 @@
 /**
  * @file ShaderHighlightingSchemes.java
  * @brief Class implementing an HLSL keyword container.
- * 
+ *
  * @section License
- * 
+ *
  *          Copyright (C) 2013-2014 Robert B. Colton
  *          Copyright (C) 2014 Josh Ventura
  *          This file is a part of the LateralGM IDE.
- * 
+ *
  *          This program is free software: you can redistribute it and/or modify
  *          it under the terms of the GNU General Public License as published by
  *          the Free Software Foundation, either version 3 of the License, or
  *          (at your option) any later version.
- * 
+ *
  *          This program is distributed in the hope that it will be useful,
  *          but WITHOUT ANY WARRANTY; without even the implied warranty of
  *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  *          GNU General Public License for more details.
- * 
+ *
  *          You should have received a copy of the GNU General Public License
  *          along with this program. If not, see <http://www.gnu.org/licenses/>.
  **/
@@ -121,14 +121,15 @@ public class ShaderHighlightingSchemes {
   public static CharSymbolSet cannedCharSymbols(ColorProfile profile) {
     CharSymbolSet css = new CharSymbolSet(S_OPS_AND_SEPS, profile);
     char[] ca = "{[()]}!@%^&*-/+=?:~<>.,;".toCharArray(); //$NON-NLS-1$
-    for (int i = 0; i < ca.length; i++)
+    for (int i = 0; i < ca.length; i++) {
       css.chars.add(ca[i]);
+    }
     return css;
   }
 
   /**
    * Put a given group of functions into a DefaultTokenMarker and return the keyword set added.
-   * 
+   *
    * @param functionSet
    *        Array of Functions to add.
    * @param profile
@@ -147,7 +148,7 @@ public class ShaderHighlightingSchemes {
 
   /**
    * Put a given group of constructs into a DefaultTokenMarker and return the keyword set added.
-   * 
+   *
    * @param constructSet
    *        Array of Functions to add.
    * @param profile
@@ -166,7 +167,7 @@ public class ShaderHighlightingSchemes {
 
   /**
    * Put a given group of operators into a DefaultTokenMarker and return the keyword set added.
-   * 
+   *
    * @param operatorSet
    *        Array of Functions to add.
    * @param profile
@@ -185,7 +186,7 @@ public class ShaderHighlightingSchemes {
 
   /**
    * Put a given group of constants into a DefaultTokenMarker and return the keyword set added.
-   * 
+   *
    * @param constantSet
    *        Array of Functions to add.
    * @param profile
@@ -204,7 +205,7 @@ public class ShaderHighlightingSchemes {
 
   /**
    * Put a given group of variables into a DefaultTokenMarker and return the keyword set added.
-   * 
+   *
    * @param variableSet
    *        Array of Functions to add.
    * @param profile
@@ -223,8 +224,8 @@ public class ShaderHighlightingSchemes {
 
   /** Get basic shader simple token markers for a given color profile. */
   public static SimpleToken[] cannedTokens(ColorProfile profile) {
-    return new SimpleToken[] { new SimpleToken(S_NUMERIC_LITERAL, "[0-9]+", profile), //$NON-NLS-1$       
-        new SimpleToken(S_HEX_LITERAL, "\\$[0-9A-Fa-f]+", profile) //$NON-NLS-1$  
+    return new SimpleToken[] { new SimpleToken(S_NUMERIC_LITERAL, "[0-9]+", profile), //$NON-NLS-1$
+        new SimpleToken(S_HEX_LITERAL, "\\$[0-9A-Fa-f]+", profile) //$NON-NLS-1$
     };
   }
 

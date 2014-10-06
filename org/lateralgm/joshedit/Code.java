@@ -218,8 +218,8 @@ public class Code extends ArrayList<Line> {
     for (int y = lineFrom; y >= 0; y--) {
       if (findme.length == 1) {
         int io =
-            find_prev_in(getsb(y), findme[0].toLowerCase(), y == lineFrom? posFrom : getsb(y)
-                .length());
+            find_prev_in(getsb(y), findme[0].toLowerCase(), y == lineFrom? posFrom
+                : getsb(y).length());
         if (io != -1) {
           return new FindResults(y, io, findme[0].length());
         }

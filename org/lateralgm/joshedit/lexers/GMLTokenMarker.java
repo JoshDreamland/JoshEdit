@@ -1,23 +1,23 @@
 /**
  * @file GMLTokenMarker.java
  * @brief Class implementing a GML lexer for syntax highlighting.
- * 
+ *
  * @section License
- * 
+ *
  *          Copyright (C) 2011 Josh Ventura <JoshV10@gmail.com>
  *          Copyright (C) 2013-2014 Robert B. Colton
  *          This file is a part of the LateralGM IDE.
- * 
+ *
  *          This program is free software: you can redistribute it and/or modify
  *          it under the terms of the GNU General Public License as published by
  *          the Free Software Foundation, either version 3 of the License, or
  *          (at your option) any later version.
- * 
+ *
  *          This program is distributed in the hope that it will be useful,
  *          but WITHOUT ANY WARRANTY; without even the implied warranty of
  *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  *          GNU General Public License for more details.
- * 
+ *
  *          You should have received a copy of the GNU General Public License
  *          along with this program. If not, see <http://www.gnu.org/licenses/>.
  **/
@@ -70,6 +70,14 @@ public class GMLTokenMarker extends DefaultTokenMarker {
   private static final Color FOREST = new Color(13, 135, 13);
   private static final Color DARK_RED = new Color(150, 0, 0);
 
+  private static final Color GREEN = new Color(13, 165, 13);
+  private static final Color BLUE = new Color(0, 0, 255);
+  private static final Color RED = new Color(255, 0, 0);
+  private static final Color MAGENTA = new Color(255, 0, 255);
+  private static final Color LIGHT_RED = new Color(255, 100, 100);
+  private static final Color CYAN = new Color(0, 255, 255);
+  private static final Color ORANGE = new Color(255, 128, 0);
+
   private static final ColorProfile PROFILE_ADVANCED_FAGGOTRY;
   static {
     HashMap<String, ColorProfileEntry> colors = new HashMap<String, ColorProfileEntry>();
@@ -80,11 +88,13 @@ public class GMLTokenMarker extends DefaultTokenMarker {
     colors.put(S_LINE_COMMENT, makeEntry(S_LINE_COMMENT, FOREST, Font.ITALIC));
     colors.put(S_DOUBLEQ_STRING, makeEntry(S_DOUBLEQ_STRING, BLUE_BLACK, Font.PLAIN));
     colors.put(S_SINGLEQ_STRING, makeEntry(S_SINGLEQ_STRING, BLUE_BLACK, Font.PLAIN));
+
     colors.put(S_FUNCTIONS, makeEntry(S_FUNCTIONS, HALFASS_TURQUOIS, Font.PLAIN));
     colors.put(S_CONSTRUCTS, makeEntry(S_CONSTRUCTS, NAVY, Font.PLAIN));
     colors.put(S_OPERATORS, makeEntry(S_OPERATORS, NAVY, Font.PLAIN));
     colors.put(S_CONSTANTS, makeEntry(S_CONSTANTS, DARK_RED, Font.PLAIN));
     colors.put(S_VARIABLES, makeEntry(S_VARIABLES, BLUE_BLACK, Font.ITALIC));
+
     colors.put(S_OPS_AND_SEPS, makeEntry(S_OPS_AND_SEPS, NAVY, Font.PLAIN));
     colors.put(S_NUMERIC_LITERAL, makeEntry(S_NUMERIC_LITERAL, DARK_RED, Font.PLAIN));
     colors.put(S_HEX_LITERAL, makeEntry(S_HEX_LITERAL, LIGHT_BLUE, Font.PLAIN));
@@ -96,22 +106,24 @@ public class GMLTokenMarker extends DefaultTokenMarker {
   static {
     HashMap<String, ColorProfileEntry> colors = new HashMap<String, ColorProfileEntry>();
 
-    colors.put(S_DOC_COMMENT, makeEntry(S_DOC_COMMENT, FAGGOTRY_BLUE, Font.BOLD));
-    colors.put(S_BLOCK_COMMENT, makeEntry(S_BLOCK_COMMENT, FOREST, Font.ITALIC));
-    colors.put(S_DOC_LINE_COMMENT, makeEntry(S_DOC_LINE_COMMENT, FAGGOTRY_BLUE, Font.BOLD));
-    colors.put(S_LINE_COMMENT, makeEntry(S_LINE_COMMENT, FOREST, Font.ITALIC));
-    colors.put(S_DOUBLEQ_STRING, makeEntry(S_DOUBLEQ_STRING, BLUE_BLACK, Font.PLAIN));
-    colors.put(S_SINGLEQ_STRING, makeEntry(S_SINGLEQ_STRING, BLUE_BLACK, Font.PLAIN));
-    colors.put(S_FUNCTIONS, makeEntry(S_FUNCTIONS, HALFASS_TURQUOIS, Font.PLAIN));
-    colors.put(S_CONSTRUCTS, makeEntry(S_CONSTRUCTS, NAVY, Font.PLAIN));
-    colors.put(S_OPERATORS, makeEntry(S_OPERATORS, NAVY, Font.PLAIN));
-    colors.put(S_CONSTANTS, makeEntry(S_CONSTANTS, DARK_RED, Font.PLAIN));
-    colors.put(S_VARIABLES, makeEntry(S_VARIABLES, BLUE_BLACK, Font.ITALIC));
-    colors.put(S_OPS_AND_SEPS, makeEntry(S_OPS_AND_SEPS, NAVY, Font.PLAIN));
-    colors.put(S_NUMERIC_LITERAL, makeEntry(S_NUMERIC_LITERAL, DARK_RED, Font.PLAIN));
-    colors.put(S_HEX_LITERAL, makeEntry(S_HEX_LITERAL, LIGHT_BLUE, Font.PLAIN));
+    colors.put(S_DOC_COMMENT, makeEntry(S_DOC_COMMENT, LIGHT_BLUE, Font.BOLD));
+    colors.put(S_BLOCK_COMMENT, makeEntry(S_BLOCK_COMMENT, GREEN, Font.ITALIC));
+    colors.put(S_DOC_LINE_COMMENT, makeEntry(S_DOC_LINE_COMMENT, LIGHT_BLUE, Font.BOLD));
+    colors.put(S_LINE_COMMENT, makeEntry(S_LINE_COMMENT, GREEN, Font.ITALIC));
+    colors.put(S_DOUBLEQ_STRING, makeEntry(S_DOUBLEQ_STRING, BLUE, Font.PLAIN));
+    colors.put(S_SINGLEQ_STRING, makeEntry(S_SINGLEQ_STRING, BLUE, Font.PLAIN));
 
-    PROFILE_CODE_BLOCKS = new ColorProfile("Advanced Faggotry", colors); //$NON-NLS-1$
+    colors.put(S_FUNCTIONS, makeEntry(S_FUNCTIONS, NAVY, Font.PLAIN));
+    colors.put(S_CONSTRUCTS, makeEntry(S_CONSTRUCTS, NAVY, Font.BOLD));
+    colors.put(S_OPERATORS, makeEntry(S_OPERATORS, NAVY, Font.BOLD));
+    colors.put(S_CONSTANTS, makeEntry(S_CONSTANTS, DARK_RED, Font.PLAIN));
+    colors.put(S_VARIABLES, makeEntry(S_VARIABLES, BLUE, Font.ITALIC));
+
+    colors.put(S_OPS_AND_SEPS, makeEntry(S_OPS_AND_SEPS, RED, Font.PLAIN));
+    colors.put(S_NUMERIC_LITERAL, makeEntry(S_NUMERIC_LITERAL, MAGENTA, Font.PLAIN));
+    colors.put(S_HEX_LITERAL, makeEntry(S_HEX_LITERAL, LIGHT_RED, Font.PLAIN));
+
+    PROFILE_CODE_BLOCKS = new ColorProfile("Code::Blocks", colors); //$NON-NLS-1$
   }
 
   private final ColorProfile profile = PROFILE_ADVANCED_FAGGOTRY;

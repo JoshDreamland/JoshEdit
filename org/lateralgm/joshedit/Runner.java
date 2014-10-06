@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.MissingResourceException;
 import java.util.Properties;
@@ -29,12 +28,11 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 
-import org.lateralgm.joshedit.lexers.CPPTokenMarker;
 import org.lateralgm.joshedit.lexers.GMLTokenMarker;
 
 public class Runner {
-  public static final ResourceBundle MESSAGES = ResourceBundle
-      .getBundle("org.lateralgm.joshedit.translate"); //$NON-NLS-1$
+  public static final ResourceBundle MESSAGES =
+      ResourceBundle.getBundle("org.lateralgm.joshedit.translate"); //$NON-NLS-1$
   public static final Preferences PREFS = Preferences.userRoot().node("/org/lateralgm/joshedit"); //$NON-NLS-1$
 
   public static EditorInterface editorInterface = new EditorInterface() {
@@ -166,8 +164,7 @@ public class Runner {
   public static ImageIcon getIconForKey(String key) {
     Properties iconProps = new Properties();
     InputStream is =
-        Runner.class.getClassLoader()
-            .getResourceAsStream("org/lateralgm/joshedit/icons.properties"); //$NON-NLS-1$
+        Runner.class.getClassLoader().getResourceAsStream("org/lateralgm/joshedit/icons.properties"); //$NON-NLS-1$
     try {
       iconProps.load(is);
     } catch (IOException e) {

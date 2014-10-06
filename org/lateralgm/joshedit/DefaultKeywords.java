@@ -143,7 +143,7 @@ public class DefaultKeywords {
 
     /**
      * Construct with most metrics.
-     * 
+     *
      * @param func
      *        The name of the function.
      * @param args

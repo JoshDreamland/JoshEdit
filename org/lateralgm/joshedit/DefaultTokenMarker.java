@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2011 Josh Ventura <JoshV10@gmail.com>
- * 
+ *
  * This file is part of JoshEdit. JoshEdit is free software.
  * You can use, modify, and distribute it under the terms of
  * the GNU General Public License, version 3 or later.
@@ -22,7 +22,7 @@ import org.lateralgm.joshedit.Line.LINE_ATTRIBS;
 /**
  * A default implementation of TokenMarker taking regular expressions for everything,
  * allowing simplified implementation of language token marking rules.
- * 
+ *
  * @author Josh Ventura
  */
 public abstract class DefaultTokenMarker implements TokenMarker {
@@ -40,7 +40,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
   /**
    * Construct with case sensitivity option.
-   * 
+   *
    * @param caseSens
    *        True if this language is in general case sensitive.
    **/
@@ -55,7 +55,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
   /**
    * Class for storing information about a syntax block, such as comments or strings.
    * These are filtered out and handled before any other token type.
-   * 
+   *
    * @author Josh Ventura
    */
   public static class BlockDescriptor {
@@ -84,7 +84,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
     /**
      * Construct with all information.
-     * 
+     *
      * @param block_name
      *        The name of this block type.
      * @param begin_regex
@@ -117,7 +117,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
     /**
      * Construct with all information, reading from a color profile.
-     * 
+     *
      * @param blockName
      *        The name of this block type.
      * @param beginRegex
@@ -141,7 +141,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
     /**
      * Construct with all information, reading from a color profile.
-     * 
+     *
      * @param blockName
      *        The name of this block type.
      * @param begin_regex
@@ -164,7 +164,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
     /**
      * Convenience constructor for when multiline is true and the end marker cannot be escaped.
-     * 
+     *
      * @param blockName
      *        The name of this block type.
      * @param beginRegex
@@ -183,7 +183,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
     /**
      * Convenience constructor for when multiline is true and the end marker cannot be escaped.
-     * 
+     *
      * @param block_name
      *        The name of this block type.
      * @param begin_regex
@@ -200,7 +200,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
     /**
      * Convenience constructor for when multiline is true and the end marker cannot be escaped.
-     * 
+     *
      * @param block_name
      *        The name of this block type.
      * @param begin_regex
@@ -221,7 +221,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
   /**
    * A class for representing a set of keywords to mark.
-   * 
+   *
    * @author Josh Ventura
    */
   public static class KeywordSet {
@@ -238,7 +238,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
     /**
      * Construct a new keyword set with some basic information.
-     * 
+     *
      * @param groupName
      *        The name of this group, for preferences purposes.
      * @param markColor
@@ -265,7 +265,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
   /**
    * Adds a new keyword set with some basic information. Uses global case-sensitivity.
-   * 
+   *
    * @param groupName
    *        The name of this group, for preferences purposes.
    * @param markColor
@@ -280,7 +280,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
   /**
    * Adds a new keyword set with some basic information. Uses global case-sensitivity.
-   * 
+   *
    * @param groupName
    *        The name of this group, for preferences purposes.
    * @param profile
@@ -294,7 +294,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
   /**
    * Adds a new keyword set with some basic information and specified case-sensitivity.
-   * 
+   *
    * @param groupName
    *        The name of this group, for preferences purposes.
    * @param markColor
@@ -314,7 +314,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
   /**
    * A class representing a set of symbols to mark.
-   * 
+   *
    * @author Josh Ventura
    */
   public static class CharSymbolSet {
@@ -329,7 +329,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
     /**
      * Construct a new symbol set to mark, with basic information.
-     * 
+     *
      * @param group_name
      *        The name of this group of symbols.
      * @param markColor
@@ -346,7 +346,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
     /**
      * Construct a new symbol set to mark, with basic information.
-     * 
+     *
      * @param group_name
      *        The name of this group of symbols.
      * @param colorProfileEntry
@@ -358,7 +358,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
     /**
      * Construct a new symbol set to mark, reading from a color profile.
-     * 
+     *
      * @param group_name
      *        The name of this group of symbols.
      * @param profile
@@ -468,7 +468,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
     /**
      * Construct new empty schemeInfo with a type.
-     * 
+     *
      * @param scheme_type
      *        The type of this scheme; one of the {@link SchemeType} constants.
      */
@@ -479,7 +479,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
     /**
      * Construct new empty schemeInfo with both fields.
-     * 
+     *
      * @param scheme_type
      *        The type of this scheme; one of the {@link SchemeType} constants.
      * @param scheme_id
@@ -498,7 +498,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
     /**
      * Construct our extended TokenMarker info with the works.
-     * 
+     *
      * @param fs
      *        The font style to use.
      * @param col
@@ -520,7 +520,7 @@ public abstract class DefaultTokenMarker implements TokenMarker {
 
   /**
    * Mark new or invalidated lines.
-   * 
+   *
    * @param code
    *        The code to mark.
    */

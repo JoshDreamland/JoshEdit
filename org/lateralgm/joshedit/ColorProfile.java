@@ -44,7 +44,7 @@ public class ColorProfile implements Iterable<ColorProfile.ColorProfileEntry> {
 
   /**
    * Create an entry from basic required information in its rawest form.
-   * 
+   *
    * @param nlsKey
    *        The internationalization key of this entry, to be looked up in the HighlightBlocks
    *        namespace. Example: COMMENT -> HighlightBlocks.COMMENT -> Comment.
@@ -63,7 +63,7 @@ public class ColorProfile implements Iterable<ColorProfile.ColorProfileEntry> {
 
   /**
    * Create an entry from basic required information in its (nearly) rawest form.
-   * 
+   *
    * @param nlsKey
    *        The internationalization key of this entry, to be looked up in the HighlightBlocks
    *        namespace. Example: COMMENT -> HighlightBlocks.COMMENT -> Comment.

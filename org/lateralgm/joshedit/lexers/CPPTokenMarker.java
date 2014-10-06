@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2011, 2014 Josh Ventura <JoshV10@gmail.com>
- * 
+ *
  * This file is part of JoshEdit. JoshEdit is free software.
  * You can use, modify, and distribute it under the terms of
  * the GNU General Public License, version 3 or later.

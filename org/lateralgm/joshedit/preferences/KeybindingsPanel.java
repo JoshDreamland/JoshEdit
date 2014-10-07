@@ -7,7 +7,7 @@
  * the GNU General Public License, version 3 or later.
  */
 
-package org.lateralgm.joshedit;
+package org.lateralgm.joshedit.preferences;
 
 import java.awt.Component;
 import java.awt.event.InputEvent;
@@ -34,7 +34,9 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
 
-import org.lateralgm.joshedit.KeybindingsPanel.KeystrokeTableModel.Row;
+import org.lateralgm.joshedit.JoshText;
+import org.lateralgm.joshedit.Runner;
+import org.lateralgm.joshedit.preferences.KeybindingsPanel.KeystrokeTableModel.Row;
 
 /**
  * A panel class containing keybinding options.

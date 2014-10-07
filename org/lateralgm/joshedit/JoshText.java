@@ -71,6 +71,7 @@ import javax.swing.event.CaretListener;
 import org.lateralgm.joshedit.FindDialog.FindNavigator;
 import org.lateralgm.joshedit.Selection.ST;
 import org.lateralgm.joshedit.TokenMarker.TokenMarkerInfo;
+import org.lateralgm.joshedit.preferences.KeybindingsPanel;
 
 /**
  * The main component class; instantiate this, and you're good to go.

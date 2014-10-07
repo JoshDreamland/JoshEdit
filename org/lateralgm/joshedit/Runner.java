@@ -29,6 +29,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 
 import org.lateralgm.joshedit.lexers.GMLTokenMarker;
+import org.lateralgm.joshedit.preferences.KeybindingsPanel;
 
 public class Runner {
   public static final ResourceBundle MESSAGES =

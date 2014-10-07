@@ -46,7 +46,7 @@ class SyntaxDesc {
 
     public IndentRule(String r) {
       rule = Pattern.compile(r);
-      bi = new Block("", "");
+      bi = new Block("", ""); //$NON-NLS-1$ //$NON-NLS-2$
     }
 
     public IndentRule(String r, Block b) {
@@ -93,7 +93,6 @@ class SyntaxDesc {
       if (ir.get(i).rule.matcher(line).matches()) {
         return i;
       }
-      System.out.println("False.");
     }
     return -1;
   }
@@ -102,6 +101,6 @@ class SyntaxDesc {
     if (i > -1 && i < ir.size()) {
       return ir.get(i).bi.indent;
     }
-    return "INVALID:" + i;
+    return "INVALID:" + i; //$NON-NLS-1$
   }
 }

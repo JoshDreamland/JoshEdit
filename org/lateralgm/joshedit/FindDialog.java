@@ -91,10 +91,13 @@ public class FindDialog extends JDialog implements WindowListener, ActionListene
   /** The currently active JoshText. */
   public JoshText selectedJoshText = null;
 
+  /** Listener to be informed when the find dialog is created. */
   public interface FindDialogCreationListener {
+    /** Invoked upon the creation of a FindDialog. */
     void dialogCreated(FindDialog findDialog);
   }
 
+  /** Add a global {@link FindDialogCreationListener}. */
   public static void addDialogCreationListener(FindDialogCreationListener listener) {
     createListeners.add(listener);
   }
@@ -103,12 +106,12 @@ public class FindDialog extends JDialog implements WindowListener, ActionListene
 
   /** Construct, creating everything. */
   private FindDialog() {
-    super((Frame) null, "Find/Replace");
+    super((Frame) null, Runner.editorInterface.getString("FindDialog.TITLE")); //$NON-NLS-1$
     applyLayout();
     addWindowListener(this);
     pack();
     setMinimumSize(getSize());
-    setIconImage(Runner.editorInterface.getIconForKey("JoshText.FIND").getImage());
+    setIconImage(Runner.editorInterface.getIconForKey("JoshText.FIND").getImage()); //$NON-NLS-1$
   }
 
   /** @return Returns the static FindDialog instance. */
@@ -179,27 +182,27 @@ public class FindDialog extends JDialog implements WindowListener, ActionListene
     gl.setAutoCreateGaps(true);
     setLayout(gl);
 
-    JLabel lFind = new JLabel("Find: ");
+    JLabel lFind = new JLabel(Runner.editorInterface.getString("FindDialog.FIND_LABEL")); //$NON-NLS-1$
     tFind = new JComboBox<String>();
     tFind.setEditable(true);
     tFind.getEditor().addActionListener(new EnterListener());
 
-    JLabel lReplace = new JLabel("Replace: ");
+    JLabel lReplace = new JLabel(Runner.editorInterface.getString("FindDialog.REPLACE_LABEL")); //$NON-NLS-1$
     tReplace = new JComboBox<String>();
     tReplace.setEditable(true);
     tReplace.getEditor().addActionListener(new EnterListener());
 
     JPanel options = new JPanel();
     options.setLayout(new BoxLayout(options, BoxLayout.PAGE_AXIS));
-    options.setBorder(BorderFactory.createTitledBorder("Options"));
-    options.add(whole = new JCheckBox("Whole word"));
-    options.add(start = new JCheckBox("Start of word"));
-    options.add(wrap = new JCheckBox("Wrap at EOF"));
+    options.setBorder(BorderFactory.createTitledBorder(Runner.editorInterface.getString("FindDialog.OPTIONS"))); //$NON-NLS-1$
+    options.add(whole = new JCheckBox(Runner.editorInterface.getString("FindDialog.WHOLE_WORD"))); //$NON-NLS-1$
+    options.add(start = new JCheckBox(Runner.editorInterface.getString("FindDialog.WORD_START"))); //$NON-NLS-1$
+    options.add(wrap = new JCheckBox(Runner.editorInterface.getString("FindDialog.WRAP_EOF"))); //$NON-NLS-1$
     wrap.setSelected(true);
-    options.add(sens = new JCheckBox("Case sensitive"));
-    options.add(esc = new JCheckBox("Escape sequences"));
-    options.add(regex = new JCheckBox("Regular expression"));
-    options.add(backward = new JCheckBox("Search backwards"));
+    options.add(sens = new JCheckBox(Runner.editorInterface.getString("FindDialog.CASE_SENSITIVE"))); //$NON-NLS-1$
+    options.add(esc = new JCheckBox(Runner.editorInterface.getString("FindDialog.ESCAPE_SEQS"))); //$NON-NLS-1$
+    options.add(regex = new JCheckBox(Runner.editorInterface.getString("FindDialog.REGEX"))); //$NON-NLS-1$
+    options.add(backward = new JCheckBox(Runner.editorInterface.getString("FindDialog.BACKWARDS"))); //$NON-NLS-1$
 
     new ButGroup(whole, start);
     new ButGroup(esc, regex);
@@ -213,35 +216,35 @@ public class FindDialog extends JDialog implements WindowListener, ActionListene
 
     JPanel scope = new JPanel();
     scope.setLayout(new BoxLayout(scope, BoxLayout.PAGE_AXIS));
-    scope.setBorder(BorderFactory.createTitledBorder("Scope"));
+    scope.setBorder(BorderFactory.createTitledBorder(Runner.editorInterface.getString("FindDialog.SCOPE"))); //$NON-NLS-1$
 
     ButtonGroup bg = new ButtonGroup();
 
     // TODO: Modularize to avoid ties to LGM.
-    bg.add(scGame = new JRadioButton("Game"));
+    bg.add(scGame = new JRadioButton(Runner.editorInterface.getString("FindDialog.GAME"))); //$NON-NLS-1$
     scope.add(scGame);
-    bg.add(scObject = new JRadioButton("Object"));
+    bg.add(scObject = new JRadioButton(Runner.editorInterface.getString("FindDialog.OBJECT"))); //$NON-NLS-1$
     scope.add(scObject);
-    bg.add(scEvent = new JRadioButton("Event"));
+    bg.add(scEvent = new JRadioButton(Runner.editorInterface.getString("FindDialog.EVENT"))); //$NON-NLS-1$
     scope.add(scEvent);
-    bg.add(scCode = new JRadioButton("Code", true));
+    bg.add(scCode = new JRadioButton(Runner.editorInterface.getString("FindDialog.CODE"), true)); //$NON-NLS-1$
     scope.add(scCode);
-    bg.add(scSel = new JRadioButton("Selection"));
+    bg.add(scSel = new JRadioButton(Runner.editorInterface.getString("FindDialog.SELECTION"))); //$NON-NLS-1$
     scope.add(scSel);
 
-    bFind = new JButton("Find");
+    bFind = new JButton(Runner.editorInterface.getString("FindDialog.FIND")); //$NON-NLS-1$
     bFind.addActionListener(this);
-    bReplace = new JButton("Replace");
+    bReplace = new JButton(Runner.editorInterface.getString("FindDialog.REPLACE")); //$NON-NLS-1$
     bReplace.addActionListener(this);
-    bRepAll = new JButton("Replace all");
+    bRepAll = new JButton(Runner.editorInterface.getString("FindDialog.REPLACE_ALL")); //$NON-NLS-1$
     bRepAll.addActionListener(this);
-    JButton bClose = new JButton("Close");
+    JButton bClose = new JButton(Runner.editorInterface.getString("FindDialog.CLOSE")); //$NON-NLS-1$
 
     bFind.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         if (selectedJoshText == null) {
-          System.err.println("No text editor selected. Ever.");
+          System.err.println("No text editor selected. Ever."); //$NON-NLS-1$
           return;
         }
         setVisible(false);
@@ -259,7 +262,7 @@ public class FindDialog extends JDialog implements WindowListener, ActionListene
       @Override
       public void actionPerformed(ActionEvent e) {
         if (selectedJoshText == null) {
-          System.err.println("No text editor selected. Ever.");
+          System.err.println("No text editor selected. Ever."); //$NON-NLS-1$
           return;
         }
         setVisible(false);
@@ -278,14 +281,15 @@ public class FindDialog extends JDialog implements WindowListener, ActionListene
       @Override
       public void actionPerformed(ActionEvent e) {
         if (selectedJoshText == null) {
-          System.err.println("No text editor selected. Ever.");
+          System.err.println("No text editor selected. Ever."); //$NON-NLS-1$
           return;
         }
         setVisible(false);
         selectedJoshText.finder.updateParameters((String) tFind.getEditor().getItem(),
             (String) tReplace.getEditor().getItem());
         int results = selectedJoshText.finder.replaceAll();
-        JOptionPane.showMessageDialog(null, results + " Occurences Replaced");
+        JOptionPane.showMessageDialog(null,
+            results + Runner.editorInterface.getString("FindDialog.OCCURRENCES_REPL")); //$NON-NLS-1$
       }
     });
 

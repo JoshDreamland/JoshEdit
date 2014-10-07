@@ -21,6 +21,7 @@ import java.awt.event.MouseEvent;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -118,6 +119,7 @@ public class QuickFind extends JToolBar implements FindNavigator {
   /** The most recent find result. */
   protected FindResults lastResult = null;
 
+  /** True if the Find/Replace text should be bolded on hover. */
   public boolean boldFontOnHover = false;
 
   /**
@@ -142,6 +144,7 @@ public class QuickFind extends JToolBar implements FindNavigator {
     add(settings = new JButton(I_SET));
     highlight.setFont(FONT);
     swapFnR.setFont(FONT);
+    swapFnR.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 6));
 
     setMaximumSize(new Dimension(Integer.MAX_VALUE, 20));
     setPreferredSize(new Dimension(320, 24));
@@ -336,7 +339,7 @@ public class QuickFind extends JToolBar implements FindNavigator {
       }
       return;
     }
-    String[] findme = ftext.split("\r?\n");
+    String[] findme = ftext.split("\r?\n"); //$NON-NLS-1$
 
     lastResult =
         joshText.code.findNext(findme, joshText.caret.row,
@@ -361,7 +364,7 @@ public class QuickFind extends JToolBar implements FindNavigator {
     if (FindDialog.regex.isSelected()) {
       return;
     }
-    String[] findme = ftext.split("\r?\n");
+    String[] findme = ftext.split("\r?\n"); //$NON-NLS-1$
     lastResult = joshText.code.findPrevious(findme, joshText.caret.row, joshText.caret.col);
     if (lastResult != null) {
       selectFind(lastResult);
@@ -432,7 +435,7 @@ public class QuickFind extends JToolBar implements FindNavigator {
 
       return count;
     }
-    String[] findme = ftext.split("\r?\n");
+    String[] findme = ftext.split("\r?\n"); //$NON-NLS-1$
 
     Boolean resultsExist = true;
     while (resultsExist) {

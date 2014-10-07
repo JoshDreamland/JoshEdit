@@ -39,7 +39,9 @@ public class LineNumberPanel extends JPanel {
   /** Indicates whether line numbering starts at 0 */
   protected boolean startZero;
 
+  /** The foreground (font) color of this panel. */
   public Color fgColor = new Color(170, 170, 170);
+  /** The background color of this panel. */
   public Color bgColor = new Color(220, 220, 220);
 
   /**
@@ -139,7 +141,7 @@ public class LineNumberPanel extends JPanel {
     g.fillRect(0, 0, getWidth(), getHeight());
     g.setColor(fgColor);
 
-    g.setFont(new Font("Monospace", Font.PLAIN, 12));
+    g.setFont(new Font("Monospace", Font.PLAIN, 12)); //$NON-NLS-1$
 
     for (int y = start; lineNum < lines && y <= end; lineNum++, y += gh) {
       String str = Integer.toString(lineNum);

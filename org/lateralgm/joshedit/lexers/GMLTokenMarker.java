@@ -75,8 +75,6 @@ public class GMLTokenMarker extends DefaultTokenMarker {
   private static final Color RED = new Color(255, 0, 0);
   private static final Color MAGENTA = new Color(255, 0, 255);
   private static final Color LIGHT_RED = new Color(255, 100, 100);
-  private static final Color CYAN = new Color(0, 255, 255);
-  private static final Color ORANGE = new Color(255, 128, 0);
 
   private static final ColorProfile PROFILE_ADVANCED_FAGGOTRY;
   static {

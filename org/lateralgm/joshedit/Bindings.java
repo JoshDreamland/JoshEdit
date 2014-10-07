@@ -43,6 +43,8 @@ public class Bindings extends JPanel {
   /** Can it, ECJ. */
   private static final long serialVersionUID = 1L;
 
+  private static final String EMPTY_STRING = ""; //$NON-NLS-1$
+
   /** The default mappings file. */
   private static final ResourceBundle DEFAULTS =
       ResourceBundle.getBundle("org.lateralgm.joshedit.defaults"); //$NON-NLS-1$
@@ -110,7 +112,8 @@ public class Bindings extends JPanel {
      */
     @Override
     public String getColumnName(int columnIndex) {
-      return columnIndex == 0? "Description" : "Keystroke";
+      return columnIndex == 0? Runner.editorInterface.getString("Bindings.DESCRIPTION") //$NON-NLS-1$
+          : Runner.editorInterface.getString("Bindings.KEYSTROKES"); //$NON-NLS-1$
     }
 
     /** @return Return the number of rows (or possible keybindings). */
@@ -154,25 +157,25 @@ public class Bindings extends JPanel {
    * @return The keystroke's human-language description.
    */
   private static String keyToEnglish(String key2) {
-    String pieces[] = key2.split("\\+");
+    String pieces[] = key2.split("\\+"); //$NON-NLS-1$
     if (pieces.length == 0) {
       return null;
     }
     int mods = 0;
     if (pieces.length > 1) {
-      if (pieces[0].contains("C")) {
+      if (pieces[0].contains("C")) { //$NON-NLS-1$
         mods |= InputEvent.CTRL_DOWN_MASK;
       }
-      if (pieces[0].contains("S")) {
+      if (pieces[0].contains("S")) { //$NON-NLS-1$
         mods |= InputEvent.SHIFT_DOWN_MASK;
       }
-      if (pieces[0].contains("A")) {
+      if (pieces[0].contains("A")) { //$NON-NLS-1$
         mods |= InputEvent.ALT_DOWN_MASK;
       }
-      if (pieces[0].contains("M")) {
+      if (pieces[0].contains("M")) { //$NON-NLS-1$
         mods |= InputEvent.META_DOWN_MASK;
       }
-      if (pieces[0].contains("G")) {
+      if (pieces[0].contains("G")) { //$NON-NLS-1$
         mods |= InputEvent.ALT_GRAPH_DOWN_MASK;
       }
     }
@@ -180,7 +183,7 @@ public class Bindings extends JPanel {
     if (mods == 0) {
       return lastPiece;
     }
-    return InputEvent.getModifiersExText(mods) + " + " + lastPiece;
+    return InputEvent.getModifiersExText(mods) + " + " + lastPiece; //$NON-NLS-1$
   }
 
   /** Renderer that writes human-language depictions of keystrokes. */
@@ -196,20 +199,22 @@ public class Bindings extends JPanel {
      */
     @Override
     public void setValue(Object value) {
-      super.setValue((value == null)? "" : value instanceof String? keyToEnglish((String) value)
+      super.setValue((value == null)? EMPTY_STRING
+          : value instanceof String? keyToEnglish((String) value)
           : value);
     }
   }
 
   /** A keystroke selection box to prompt for a key combination. */
   class KeystrokeSelector extends JTextField {
+
     /** Shut up, ECJ. */
     private static final long serialVersionUID = 1L;
 
     /** The internal representation of the keystroke. */
-    public String coreValue = "";
+    public String coreValue = EMPTY_STRING;
     /** The initial internal representation of the keystroke. */
-    private String beginValue = "";
+    private String beginValue = EMPTY_STRING;
     /** The table in which we are nested. */
     private JTable myTable;
     /** The row on which we are placed. */
@@ -235,12 +240,12 @@ public class Bindings extends JPanel {
         return;
       }
       if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-        coreValue = "";
-        super.setText("<Not set>");
+        coreValue = EMPTY_STRING;
+        super.setText(Runner.editorInterface.getString("Bindings.2")); //$NON-NLS-1$
         return;
       }
 
-      System.out.println(e.getModifiersEx() + " " + e.getKeyCode());
+      System.out.println(e.getModifiersEx() + " " + e.getKeyCode()); //$NON-NLS-1$
 
       // Modifiers by themselves invalid
       if (e.getKeyCode() == KeyEvent.VK_CONTROL || e.getKeyCode() == KeyEvent.VK_ALT
@@ -255,24 +260,24 @@ public class Bindings extends JPanel {
       }
 
       // Generate name
-      String mods = "";
+      String mods = EMPTY_STRING;
       if (e.isControlDown()) {
-        mods += "C";
+        mods += "C"; //$NON-NLS-1$
       }
       if (e.isAltDown()) {
-        mods += "A";
+        mods += "A"; //$NON-NLS-1$
       }
       if (e.isShiftDown()) {
-        mods += "S";
+        mods += "S"; //$NON-NLS-1$
       }
       if (e.isMetaDown()) {
-        mods += "M";
+        mods += "M"; //$NON-NLS-1$
       }
       if (e.isAltGraphDown()) {
-        mods += "G";
+        mods += "G"; //$NON-NLS-1$
       }
       if (mods.length() > 0) {
-        mods += "+";
+        mods += "+"; //$NON-NLS-1$
       }
 
       String name = mods + KeyEvent.getKeyText(e.getKeyCode());
@@ -297,10 +302,12 @@ public class Bindings extends JPanel {
       for (Row i : ((KeystrokeTableModel) myTable.getModel()).rows) {
         if (i.key.equals(name) && row != myRow) {
           boolean ret =
-              JOptionPane.showConfirmDialog(null, "Key combination already set for \"" + i.desc
-                  + ".\" Reassign?", "Shortcut conflict", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+              JOptionPane.showConfirmDialog(null,
+                  String.format(Runner.editorInterface.getString("Bindings.ALREADY_SET"), i.desc), //$NON-NLS-1$
+                  Runner.editorInterface.getString("Bindings.CONFLICT_CAP"), //$NON-NLS-1$
+                  JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
           if (ret) {
-            i.key = "";
+            i.key = EMPTY_STRING;
             myTable.repaint();
           }
           return ret;
@@ -389,7 +396,7 @@ public class Bindings extends JPanel {
     super();
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 
-    add(new JLabel("Use the list below to edit key bindings."));
+    add(new JLabel(Runner.editorInterface.getString("Bindings.LIST_EXPLANATION"))); //$NON-NLS-1$
 
     KeystrokeTableModel model = new KeystrokeTableModel();
     // DefaultTableColumnModel colmodel = new DefaultTableColumnModel();
@@ -400,7 +407,7 @@ public class Bindings extends JPanel {
     c.setCellEditor(new KeystrokeEditor());
     // c.setCellEditor(new DefaultCellEditor(new KeystrokeSelector()));
 
-    System.out.println("Populate bindings");
+    System.out.println("Populate bindings"); //$NON-NLS-1$
     populateBindings(model);
 
     /*
@@ -435,7 +442,7 @@ public class Bindings extends JPanel {
         }
       }
     } catch (BackingStoreException e) {
-      System.err.println("Failed to read JoshEdit keybindings!");
+      System.err.println("Failed to read JoshEdit keybindings!"); //$NON-NLS-1$
     }
     if (model.getRowCount() == 0) {
       for (String key : DEFAULTS.keySet()) {
@@ -450,8 +457,8 @@ public class Bindings extends JPanel {
     for (Entry<String, ArrayList<String>> i : items.entrySet()) {
       String act = i.getKey();
       for (String key : i.getValue()) {
-        model.addRow(getString("bindings." + act, act), key);
-        act = "";
+        model.addRow(getString("bindings." + act, act), key); //$NON-NLS-1$
+        act = EMPTY_STRING;
       }
     }
   }
@@ -493,7 +500,7 @@ public class Bindings extends JPanel {
         return;
       }
     } catch (BackingStoreException e) {
-      System.err.println("Failed to read JoshEdit keybindings!");
+      System.err.println("Failed to read JoshEdit keybindings!"); //$NON-NLS-1$
     }
 
     for (String key : DEFAULTS.keySet()) {

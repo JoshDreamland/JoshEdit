@@ -289,7 +289,8 @@ public class FindDialog extends JDialog implements WindowListener, ActionListene
             (String) tReplace.getEditor().getItem());
         int results = selectedJoshText.finder.replaceAll();
         JOptionPane.showMessageDialog(null,
-            results + Runner.editorInterface.getString("FindDialog.OCCURRENCES_REPL")); //$NON-NLS-1$
+            String.format(Runner.editorInterface.getString("FindDialog.OCCURRENCES_REPL"), //$NON-NLS-1$
+                results));
       }
     });
 

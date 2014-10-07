@@ -21,6 +21,7 @@ import java.awt.Window;
 import java.awt.event.AWTEventListener;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -40,8 +41,9 @@ import javax.swing.PopupFactory;
 import javax.swing.UIManager;
 
 /**
+ * Class to handle code completion.
+ *
  * @author IsmAvatar
- *         Class to handle code completion.
  */
 // TODO: doCodeSize(true); <- call that when the auto completion is confirmed
 // otherwise it doesnt update the client area, i propose making a system
@@ -50,14 +52,14 @@ public class CompletionMenu {
   /** The text area in which to handle code completion. */
   protected JoshText area;
   /** The scroll pane to house completion results. */
-  private JScrollPane scroll;
+  private final JScrollPane scroll;
   /** Array of available completions. */
   private final Completion[] completions;
   /** Completion options from which the user can select. */
   private Completion[] options;
   private String word;
-  private JList<Completion> completionList;
-  private KeyHandler keyHandler;
+  private final JList<Completion> completionList;
+  private final KeyHandler keyHandler;
   // protected int wordOffset;
   // protected int wordPos;
   // protected int wordLength;
@@ -70,6 +72,22 @@ public class CompletionMenu {
   // FIXME: For some reason this completion menu can not accept focus allowing VK_TAB to not be
   // dispatched.
 
+  /**
+   * @param owner
+   *        The owning Frame, for focus handling.
+   * @param a
+   *        The JoshText we'll be completing code in.
+   * @param y
+   *        The row we're being created on.
+   * @param x1
+   *        The index of the first character of the current word to complete.
+   * @param x2
+   *        The index of the last character of the current word to complete.
+   * @param caret
+   *        The current caret position on this row.
+   * @param c
+   *        The set of completions to choose between.
+   */
   public CompletionMenu(Frame owner, JoshText a, int y, int x1, int x2, int caret, Completion[] c) {
     area = a;
     row = y;
@@ -81,7 +99,7 @@ public class CompletionMenu {
     keyHandler = new KeyHandler();
     completionList = new JList<Completion>();
     completionList.setFixedCellHeight(12);
-    completionList.setFont(new Font("Monospace", Font.PLAIN, 10));
+    completionList.setFont(new Font("Monospace", Font.PLAIN, 10)); //$NON-NLS-1$
     completionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     completionList.addKeyListener(keyHandler);
     completionList.addMouseListener(new MouseAdapter() {
@@ -107,15 +125,18 @@ public class CompletionMenu {
     reset();
   }
 
+  /** Show our completion pop-up. */
   public void show() {
     ph.show(loc.x, loc.y);
   }
 
+  /** Dispose our completion pop-up. */
   public void dispose() {
     ph.dispose();
     area.requestFocusInWindow();
   }
 
+  /** Update the location of our completion pop-up on-screen. */
   public void setLocation() {
     Point p = area.getLocationOnScreen();
     int y = (row + 1) * area.metrics.lineHeight();
@@ -177,11 +198,13 @@ public class CompletionMenu {
     completionList.requestFocusInWindow();
   }
 
+  /** Set the current completion selection in the completions list. */
   public void select(int n) {
     completionList.setSelectedIndex(n);
     completionList.ensureIndexIsVisible(n);
   }
 
+  /** Set the current completion selection in the completions list, relative to the current index. */
   public void selectRelative(int n) {
     int s = completionList.getModel().getSize();
     if (s <= 1) {
@@ -191,6 +214,7 @@ public class CompletionMenu {
     select((s + ((i + n) % s)) % s);
   }
 
+  /** Apply the currently selected code completion option to the code. */
   public boolean apply() {
     return apply('\0');
   }
@@ -208,6 +232,7 @@ public class CompletionMenu {
     return false;
   }
 
+  /** Replace the current text selection with a given string. */
   public void setSelectedText(String s) {
     area.sel.insert(s);
   }
@@ -227,12 +252,14 @@ public class CompletionMenu {
     protected Component contents;
     protected int lastX, lastY;
 
+    /** Construct with an invoker and content. */
     public PopupHandler(Window invoker, Component contents) {
       this.invoker = invoker;
       this.contents = contents;
       install();
     }
 
+    /** Set current content. */
     public void setContents(Component contents) {
       this.contents = contents;
       show(lastX, lastY);
@@ -245,6 +272,7 @@ public class CompletionMenu {
       invoker.addComponentListener(this);
     }
 
+    /** Called at termination. */
     public void dispose() {
       if (pop != null) {
         pop.hide();
@@ -259,6 +287,7 @@ public class CompletionMenu {
       invoker.removeComponentListener(this);
     }
 
+    /** Display the completion menu at the given coordinates. */
     public void show(int x, int y) {
       lastX = x;
       lastY = y;
@@ -269,6 +298,7 @@ public class CompletionMenu {
       pop.show();
     }
 
+    /** Hide this pop-up. */
     public void hide() {
       if (pop != null) {
         pop.hide();
@@ -277,16 +307,20 @@ public class CompletionMenu {
       pop = null;
     }
 
+    /** Listener interface to observe when this pop-up is hidden. */
     public static interface HideListener extends EventListener {
+      /** Invoked when a {@link PopupHandler#hide()} is called on our pop-up. */
       void hidePerformed(boolean wasVisible);
     }
 
     protected List<HideListener> hll = new ArrayList<HideListener>();
 
+    /** Add a {@link HideListener} to our pop-up. */
     public void addHideListener(HideListener e) {
       hll.add(e);
     }
 
+    /** Remove a {@link HideListener} from our pop-up. */
     public void removeHideListener(HideListener e) {
       hll.remove(e);
     }
@@ -326,7 +360,7 @@ public class CompletionMenu {
           // Ask UIManager about should we consume event that closes
           // popup. This made to match native apps behaviour.
           // Consume the event so that normal processing stops.
-          if (UIManager.getBoolean("PopupMenu.consumeEventOnClose")) {
+          if (UIManager.getBoolean("PopupMenu.consumeEventOnClose")) { //$NON-NLS-1$
             me.consume();
           }
           break;
@@ -404,15 +438,52 @@ public class CompletionMenu {
     }
   }
 
+  /** An abstract class for anything the code completion menu can help to complete. */
   public abstract static class Completion {
     protected String name;
 
+    /**
+     * Check if this code completion is applicable for the current code fragment.
+     *
+     * @param start
+     *        The current input; the word so far.
+     */
     public boolean match(String start) {
       return match(start, name) >= 0;
     }
 
+    /**
+     * Apply this completion to an editor.
+     *
+     * @param a
+     *        The editor to which to apply this completion.
+     * @param input
+     *        The current input word fragment.
+     * @param row
+     *        The editor row the caret is currently on.
+     * @param wordStart
+     *        The index of the start of the word on this row.
+     * @param wordEnd
+     *        The index of the end of the word on this row.
+     * @return Return whether this completion was applied successfully.
+     */
     public abstract boolean apply(JoshText a, char input, int row, int wordStart, int wordEnd);
 
+    /**
+     * Convenience method to replace a section of text in the editor with new text.
+     *
+     * @param d
+     *        The editor to which to apply this completion.
+     * @param row
+     *        The editor row the caret is currently on.
+     * @param start
+     *        The index of the start of the section of text to replace.
+     * @param end
+     *        The index of the end of the section of text to replace.
+     * @param text
+     *        The text with which to replace the given region.
+     * @return Return whether this completion was applied successfully.
+     */
     public static boolean replace(JoshText d, int row, int start, int end, String text) {
       // d.sel.insert(text);
       d.code.getsb(row).replace(start, end, text);
@@ -424,13 +495,19 @@ public class CompletionMenu {
       // {
       // d.replace(offset,length,text,null);
       // }
-      // catch (BadLocationException ble)
-      // {
+      // catch (BadLocationException ble) {}
       return true;
-      // }
-      // return true;
     }
 
+    /**
+     * Given the full completion name, check if this completion is a match for the current input
+     * fragment.
+     *
+     * @param input
+     *        The current input; the word so far.
+     * @param name
+     *        The full name of this entry when completed, as known.
+     */
     public static int match(String input, String name) {
       if (input.equals(name)) {
         return 0;
@@ -446,8 +523,8 @@ public class CompletionMenu {
       if (nl.startsWith(il)) {
         return 3;
       }
-      String re = "(?<!(^|_))" + (name.matches("[A-Z_]+")? "." : "[a-z_]");
-      String ns = name.replaceAll(re, "").toLowerCase();
+      String re = "(?<!(^|_))" + (name.matches("[A-Z_]+")? "." : "[a-z_]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+      String ns = name.replaceAll(re, "").toLowerCase(); //$NON-NLS-1$
       if (il.equals(ns)) {
         return 4;
       }
@@ -463,7 +540,9 @@ public class CompletionMenu {
     }
   }
 
+  /** Class for completing a simple keyword. */
   public static class WordCompletion extends Completion {
+    /** Construct with the word to be completed. */
     public WordCompletion(String w) {
       name = w;
     }
@@ -484,8 +563,9 @@ public class CompletionMenu {
   }
 
   /**
+   * Class to handle key presses in the code completion pane.
+   *
    * @author IsmAvatar
-   *         Class to handle key presses in the code completion pane.
    */
   private class KeyHandler extends KeyAdapter {
     /** Invoke default super constructor. */
@@ -555,7 +635,7 @@ public class CompletionMenu {
     /** Handle key type. */
     @Override
     public void keyTyped(KeyEvent e) {
-      if ((e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0) {
+      if ((e.getModifiersEx() & InputEvent.CTRL_DOWN_MASK) != 0) {
         return;
       }
       char c = e.getKeyChar();

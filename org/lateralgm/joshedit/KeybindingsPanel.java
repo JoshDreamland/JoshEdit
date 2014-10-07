@@ -34,12 +34,12 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumn;
 
-import org.lateralgm.joshedit.Bindings.KeystrokeTableModel.Row;
+import org.lateralgm.joshedit.KeybindingsPanel.KeystrokeTableModel.Row;
 
 /**
  * A panel class containing keybinding options.
  */
-public class Bindings extends JPanel {
+public class KeybindingsPanel extends JPanel {
   /** Can it, ECJ. */
   private static final long serialVersionUID = 1L;
 
@@ -392,7 +392,7 @@ public class Bindings extends JPanel {
   }
 
   /** Construct and set up. */
-  public Bindings() {
+  public KeybindingsPanel() {
     super();
     setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
 

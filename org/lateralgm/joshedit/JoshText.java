@@ -346,7 +346,7 @@ public class JoshText extends JComponent
     setTransferHandler(new JoshTextTransferHandler());
 
     // The mapping of keystrokes and action names
-    Bindings.readMappings(getInputMap());
+    KeybindingsPanel.readMappings(getInputMap());
 
     mapActions();
 

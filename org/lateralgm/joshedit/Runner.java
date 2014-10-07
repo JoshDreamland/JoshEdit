@@ -126,7 +126,7 @@ public class Runner {
     f.getContentPane().setLayout(new BoxLayout(f.getContentPane(), BoxLayout.PAGE_AXIS));
 
     JTabbedPane tabs = new JTabbedPane();
-    tabs.addTab("Bindings", new Bindings());
+    tabs.addTab("Bindings", new KeybindingsPanel());
     f.add(tabs);
 
     JPanel repanel = new JPanel();

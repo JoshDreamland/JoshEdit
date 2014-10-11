@@ -9,10 +9,13 @@
 
 package org.lateralgm.joshedit;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.MissingResourceException;
 import java.util.Properties;
@@ -28,7 +31,13 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 
+import org.lateralgm.joshedit.TokenMarker.LanguageDescription;
+import org.lateralgm.joshedit.lexers.CPPTokenMarker;
+import org.lateralgm.joshedit.lexers.GLESTokenMarker;
+import org.lateralgm.joshedit.lexers.GLSLTokenMarker;
 import org.lateralgm.joshedit.lexers.GMLTokenMarker;
+import org.lateralgm.joshedit.lexers.HLSLTokenMarker;
+import org.lateralgm.joshedit.preferences.HighlightPreferences;
 import org.lateralgm.joshedit.preferences.KeybindingsPanel;
 
 public class Runner {
@@ -66,7 +75,7 @@ public class Runner {
 
   public static void createAndShowGUI() {
     showCodeWindow(true);
-    // showBindingsWindow(false);
+    showBindingsWindow(false);
   }
 
   public static void showCodeWindow(boolean closeExit) {
@@ -128,13 +137,32 @@ public class Runner {
 
     JTabbedPane tabs = new JTabbedPane();
     tabs.addTab("Bindings", new KeybindingsPanel());
+    tabs.addTab(
+        "Colors",
+        new HighlightPreferences(new LanguageDescription[][] {
+            CPPTokenMarker.getLanguageDescriptions(), GMLTokenMarker.getLanguageDescriptions(),
+            GLSLTokenMarker.getLanguageDescriptions(), GLESTokenMarker.getLanguageDescriptions(),
+            HLSLTokenMarker.getLanguageDescriptions() }));
     f.add(tabs);
 
     JPanel repanel = new JPanel();
     repanel.setLayout(new BoxLayout(repanel, BoxLayout.LINE_AXIS));
-    repanel.add(new JButton("OK"));
-    repanel.add(new JButton("Cancel"));
+    JButton ok, cancel;
+    repanel.add(ok = new JButton("OK"));
+    repanel.add(cancel = new JButton("Cancel"));
     f.add(repanel);
+    ok.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        System.exit(0);
+      }
+    });
+    cancel.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        System.exit(0);
+      }
+    });
 
     f.pack();
     f.setLocationRelativeTo(null);

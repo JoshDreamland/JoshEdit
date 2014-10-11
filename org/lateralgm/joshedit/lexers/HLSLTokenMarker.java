@@ -1,6 +1,6 @@
 /**
- * @file GLSLESTokenMarker.java
- * @brief Class implementing a GLSLES lexer for syntax highlighting.
+ * @file HLSLTokenMarker.java
+ * @brief Class implementing an HLSL lexer for syntax highlighting.
  *
  * @section License
  *
@@ -34,14 +34,14 @@ import org.lateralgm.joshedit.DefaultKeywords.Keyword;
 import org.lateralgm.joshedit.DefaultTokenMarker;
 
 /**
- * Sample GLSLES token marker class based on the default token marker.
+ * Sample HLSL token marker class based on the default token marker.
  */
-public class GLESTokenMarker extends DefaultTokenMarker implements HasKeywords {
+public class HLSLTokenMarker extends DefaultTokenMarker implements HasKeywords {
 
-  private static class GLSLESDescription implements LanguageDescription {
+  private static class HLSLDescription implements LanguageDescription {
     @Override
     public String getName() {
-      return "GLSL ES"; //$NON-NLS-1$
+      return "HLSL"; //$NON-NLS-1$
     }
 
     @Override
@@ -52,7 +52,7 @@ public class GLESTokenMarker extends DefaultTokenMarker implements HasKeywords {
 
   /** Retrieve information about the languages supported by this TokenMarker. */
   public static LanguageDescription[] getLanguageDescriptions() {
-    return new LanguageDescription[] { new GLSLESDescription() };
+    return new LanguageDescription[] { new HLSLDescription() };
   }
 
   private final ColorProfile profile = ShaderHighlightingSchemes.ASS_BLASTERS_DX;
@@ -60,18 +60,18 @@ public class GLESTokenMarker extends DefaultTokenMarker implements HasKeywords {
   static KeywordSet resNames, scrNames, constructs, functions, operators, constants, variables;
 
   /** Construct, populating language data. */
-  public GLESTokenMarker() {
+  public HLSLTokenMarker() {
     super();
 
     for (BlockDescriptor blockDescriptor : ShaderHighlightingSchemes.cannedSchemes(profile)) {
       schemes.add(blockDescriptor);
     }
 
-    functions = ShaderHighlightingSchemes.putFunctionSet(GLESKeywords.FUNCTIONS, profile, this);
-    constructs = ShaderHighlightingSchemes.putConstructSet(GLESKeywords.CONSTRUCTS, profile, this);
-    operators = ShaderHighlightingSchemes.putOperatorSet(GLESKeywords.OPERATORS, profile, this);
-    constants = ShaderHighlightingSchemes.putConstantSet(GLESKeywords.CONSTANTS, profile, this);
-    variables = ShaderHighlightingSchemes.putVariableSet(GLESKeywords.VARIABLES, profile, this);
+    functions = ShaderHighlightingSchemes.putFunctionSet(HLSLKeywords.FUNCTIONS, profile, this);
+    constructs = ShaderHighlightingSchemes.putConstructSet(HLSLKeywords.CONSTRUCTS, profile, this);
+    operators = ShaderHighlightingSchemes.putOperatorSet(HLSLKeywords.OPERATORS, profile, this);
+    constants = ShaderHighlightingSchemes.putConstantSet(HLSLKeywords.CONSTANTS, profile, this);
+    variables = ShaderHighlightingSchemes.putVariableSet(HLSLKeywords.VARIABLES, profile, this);
 
     tmKeywords.add(functions);
     tmKeywords.add(constructs);
@@ -88,9 +88,9 @@ public class GLESTokenMarker extends DefaultTokenMarker implements HasKeywords {
 
   @Override
   public Keyword[][] getKeywords() {
-    DefaultKeywords.Keyword[][] GLES_KEYWORDS =
-        { GLESKeywords.CONSTRUCTS, GLESKeywords.FUNCTIONS, GLESKeywords.VARIABLES,
-            GLESKeywords.OPERATORS, GLESKeywords.CONSTANTS };
-    return GLES_KEYWORDS;
+    DefaultKeywords.Keyword[][] HLSL_KEYWORDS =
+        { HLSLKeywords.CONSTRUCTS, HLSLKeywords.FUNCTIONS, HLSLKeywords.VARIABLES,
+            HLSLKeywords.OPERATORS, HLSLKeywords.CONSTANTS };
+    return HLSL_KEYWORDS;
   }
 }

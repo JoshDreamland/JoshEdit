@@ -85,6 +85,18 @@ public interface TokenMarker extends LineChangeListener {
    */
   void formatCode(Code code);
 
-  /** Retrieve a collection of all default color profiles for this marker. */
-  Collection<ColorProfile> defaultProfiles();
+  /** Describes a language */
+  public interface LanguageDescription {
+    /** Retrieve the name of this language. */
+    String getName();
+
+    /** Retrieve a collection of all default color profiles for this marker. */
+    Collection<ColorProfile> defaultProfiles();
+  }
+
+  /*
+   * Static methods
+   * /** Retrieve information about the languages supported by this TokenMarker. * /
+   * static LanguageDescription[] getLanguageDescriptions();
+   */
 }

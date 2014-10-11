@@ -5,6 +5,7 @@
  * @section License
  *
  *          Copyright (C) 2013-2014 Robert B. Colton
+ *          Copyright (C) 2014 Josh Ventura <JoshV10@gmail.com>
  *          This file is a part of the LateralGM IDE.
  *
  *          This program is free software: you can redistribute it and/or modify
@@ -36,6 +37,23 @@ import org.lateralgm.joshedit.DefaultTokenMarker;
  * Sample GLSL token marker class based on the default token marker.
  */
 public class GLSLTokenMarker extends DefaultTokenMarker implements HasKeywords {
+
+  private static class GLSLDescription implements LanguageDescription {
+    @Override
+    public String getName() {
+      return "GLSL"; //$NON-NLS-1$
+    }
+
+    @Override
+    public Collection<ColorProfile> defaultProfiles() {
+      return Arrays.asList(new ColorProfile[] { ShaderHighlightingSchemes.ASS_BLASTERS_DX });
+    }
+  }
+
+  /** Retrieve information about the languages supported by this TokenMarker. */
+  public static LanguageDescription[] getLanguageDescriptions() {
+    return new LanguageDescription[] { new GLSLDescription() };
+  }
 
   private final ColorProfile profile = ShaderHighlightingSchemes.ASS_BLASTERS_DX;
 
@@ -74,11 +92,6 @@ public class GLSLTokenMarker extends DefaultTokenMarker implements HasKeywords {
         { GLSLKeywords.CONSTRUCTS, GLSLKeywords.FUNCTIONS, GLSLKeywords.VARIABLES,
             GLSLKeywords.OPERATORS, GLSLKeywords.CONSTANTS };
     return GLSL_KEYWORDS;
-  }
-
-  @Override
-  public Collection<ColorProfile> defaultProfiles() {
-    return Arrays.asList(new ColorProfile[] { ShaderHighlightingSchemes.ASS_BLASTERS_DX });
   }
 
 }

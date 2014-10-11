@@ -4,7 +4,7 @@
  *
  * @section License
  *
- *          Copyright (C) 2011 Josh Ventura <JoshV10@gmail.com>
+ *          Copyright (C) 2011, 2014 Josh Ventura <JoshV10@gmail.com>
  *          Copyright (C) 2013-2014 Robert B. Colton
  *          This file is a part of the LateralGM IDE.
  *
@@ -46,6 +46,23 @@ import org.lateralgm.joshedit.DefaultTokenMarker;
  * Sample GML token marker class based on the default token marker.
  */
 public class GMLTokenMarker extends DefaultTokenMarker {
+
+  private static class GMLDescription implements LanguageDescription {
+    @Override
+    public String getName() {
+      return "GML"; //$NON-NLS-1$
+    }
+
+    @Override
+    public Collection<ColorProfile> defaultProfiles() {
+      return Arrays.asList(new ColorProfile[] { PROFILE_CODE_BLOCKS, PROFILE_ADVANCED_FAGGOTRY });
+    }
+  }
+
+  /** Retrieve information about the languages supported by this TokenMarker. */
+  public static LanguageDescription[] getLanguageDescriptions() {
+    return new LanguageDescription[] { new GMLDescription() };
+  }
 
   private static final String S_HEX_LITERAL = "HEX_LITERAL"; //$NON-NLS-1$
   private static final String S_NUMERIC_LITERAL = "NUMERIC_LITERAL"; //$NON-NLS-1$
@@ -125,12 +142,6 @@ public class GMLTokenMarker extends DefaultTokenMarker {
   }
 
   private final ColorProfile profile = PROFILE_ADVANCED_FAGGOTRY;
-
-  /** Collection of all built-in profiles */
-  @Override
-  public Collection<ColorProfile> defaultProfiles() {
-    return Arrays.asList(new ColorProfile[] { PROFILE_CODE_BLOCKS, PROFILE_ADVANCED_FAGGOTRY });
-  }
 
   static KeywordSet resNames, scrNames, constructs, functions, operators, constants, variables;
 

@@ -12,6 +12,7 @@ import static org.lateralgm.joshedit.ColorProfile.makeEntry;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -25,6 +26,23 @@ import org.lateralgm.joshedit.DefaultTokenMarker;
  * Sample C++ token marker class based on the default token marker.
  */
 public class CPPTokenMarker extends DefaultTokenMarker {
+
+  private static class CPPDescription implements LanguageDescription {
+    @Override
+    public String getName() {
+      return "C++"; //$NON-NLS-1$
+    }
+
+    @Override
+    public Collection<ColorProfile> defaultProfiles() {
+      return Arrays.asList(new ColorProfile[] { PROFILE_CODE_BLOCKS });
+    }
+  }
+
+  /** Retrieve information about the languages supported by this TokenMarker. */
+  public static LanguageDescription[] getLanguageDescriptions() {
+    return new LanguageDescription[] { new CPPDescription() };
+  }
 
   private static final String S_PREPROCESSOR = "PREPROCESSOR"; //$NON-NLS-1$
   private static final String S_DOUBLEQ_STRING = "DOUBLEQ_STRING"; //$NON-NLS-1$
@@ -50,7 +68,7 @@ public class CPPTokenMarker extends DefaultTokenMarker {
   private static final Color FOREST = new Color(13, 165, 13);
   private static final Color LIGHT_BLUE = new Color(128, 128, 255);
 
-  private static final ColorProfile CODE_BLOCKS;
+  private static final ColorProfile PROFILE_CODE_BLOCKS;
   static {
     Map<String, ColorProfileEntry> colors = new HashMap<String, ColorProfile.ColorProfileEntry>();
 
@@ -68,10 +86,10 @@ public class CPPTokenMarker extends DefaultTokenMarker {
     colors.put(S_HEX_LITERAL, makeEntry(S_HEX_LITERAL, LIGHT_RED, Font.PLAIN));
     colors.put(S_NUMERIC_LITERAL, makeEntry(S_NUMERIC_LITERAL, MAGENTA, Font.PLAIN));
 
-    CODE_BLOCKS = new ColorProfile("Code::Blocks", Collections.unmodifiableMap(colors)); //$NON-NLS-1$
+    PROFILE_CODE_BLOCKS = new ColorProfile("Code::Blocks", Collections.unmodifiableMap(colors)); //$NON-NLS-1$
   }
 
-  private final ColorProfile profile = CODE_BLOCKS;
+  private final ColorProfile profile = PROFILE_CODE_BLOCKS;
 
   /** Construct, populating language data. */
   public CPPTokenMarker() {
@@ -106,10 +124,5 @@ public class CPPTokenMarker extends DefaultTokenMarker {
 
     otherTokens.add(new SimpleToken(S_HEX_LITERAL, "0[Xx][0-9A-Fa-f]+[FfUuLlDd]*", profile)); //$NON-NLS-1$
     otherTokens.add(new SimpleToken(S_NUMERIC_LITERAL, "[0-9]+[FfUuLlDd]*", profile)); //$NON-NLS-1$
-  }
-
-  @Override
-  public Collection<ColorProfile> defaultProfiles() {
-    return Collections.emptyList();
   }
 }

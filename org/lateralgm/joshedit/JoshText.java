@@ -1691,8 +1691,8 @@ public class JoshText extends JComponent
    *        The mouse event to handle.
    */
   protected void handleMouseEvent(MouseEvent e) {
-    // / FIXME: Double-click-and-drag is supposed to wrap the start and
-    // / end caret positions to word endings.
+    // FIXME: Double-click-and-drag is supposed to wrap the start and
+    // end caret positions to word endings.
 
     if (e.getID() == MouseEvent.MOUSE_PRESSED) {
       requestFocusInWindow();
@@ -2663,14 +2663,8 @@ public class JoshText extends JComponent
     public void paint(Graphics g, Insets i, CodeMetrics gm, int line_start, int line_end) {
       Color c = g.getColor();
 
-      // It should be assumed that line_start is smaller than line end
-      // if (line_start > line_end) {
-      // JOptionPane.showMessageDialog(null,"line start larger than line end!");
-      // }
-
       // TODO: Make sure we haven't deleted a selection of code that fires a bracket repaint on a
-      // line
-      // that was deleted. Current check suffices to fix the exception. - Robert
+      // line that was deleted. Current check suffices to fix the exception. - Robert
       if (matchLine < line_end) {
         if (matching == MatchState.MATCHING) {
           g.setColor(new Color(100, 100, 100));

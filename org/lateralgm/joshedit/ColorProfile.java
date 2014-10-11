@@ -76,6 +76,11 @@ public class ColorProfile implements Iterable<ColorProfile.ColorProfileEntry> {
     return new ColorProfileEntry(translate(nlsKey), color, transform);
   }
 
+  /** Get the name of this Color Profile */
+  public String getName() {
+    return name;
+  }
+
   /** Look up an entry by its key name. */
   public ColorProfileEntry get(String key) {
     return colors.get(key);

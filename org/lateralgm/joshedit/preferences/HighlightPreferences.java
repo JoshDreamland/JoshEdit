@@ -1,15 +1,13 @@
 package org.lateralgm.joshedit.preferences;
 
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.LayoutManager;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
@@ -17,16 +15,14 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JColorChooser;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.ScrollPaneConstants;
-import javax.swing.ScrollPaneLayout;
 import javax.swing.Spring;
 import javax.swing.SpringLayout;
+import javax.swing.SpringLayout.Constraints;
 import javax.swing.SwingConstants;
 
 import org.lateralgm.joshedit.ColorProfile;
@@ -61,14 +57,13 @@ public class HighlightPreferences extends JTabbedPane {
     /** holy i dont even stfu ecj */
     private static final long serialVersionUID = 1L;
 
-    Map<String, StylesPanel> stylePanels = new HashMap<>();
+    Map<String, JScrollPane> stylePanels = new HashMap<>();
 
     /**/JPanel boxPanel;
     /*  */JComboBox<ProfileItem> languagePicker = new JComboBox<>();
     /*  */JButton addLangButton = new JButton(Runner.editorInterface.getString("LangPanel.NEW")); //$NON-NLS-1$
     /*  */JButton delLangButton = new JButton(Runner.editorInterface.getString("LangPanel.DELETE")); //$NON-NLS-1$
-    /**/JScrollPane scrollPane = new JScrollPane(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
-        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+    /**/JScrollPane scrollPane = null;
 
     public LanguagePanel(LanguageDescription lang) {
       setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
@@ -105,10 +100,15 @@ public class HighlightPreferences extends JTabbedPane {
     }
 
     private void displayCard(ColorProfile prof) {
-      // ////scrollPane.removeAll();
-      scrollPane.add(new StylesPanel(prof), 0, 0);
-      scrollPane.setLayout(new ScrollPaneLayout());
-      scrollPane.setSize(new Dimension(64, 64));
+      if (scrollPane != null) {
+        remove(scrollPane);
+      }
+      if (stylePanels.containsKey(prof.getName())) {
+        scrollPane = stylePanels.get(prof.getName());
+      } else {
+        scrollPane = new JScrollPane(new StylesPanel(prof));
+        stylePanels.put(prof.getName(), scrollPane);
+      }
       add(scrollPane);
     }
   }
@@ -116,66 +116,98 @@ public class HighlightPreferences extends JTabbedPane {
   private static final class StylesPanel extends JPanel {
     /** WRAAAAAAAAAAAAAAAAAAAAAH */
     private static final long serialVersionUID = 1L;
+    List<UiRow> rows = new ArrayList<>();
 
     SpringLayout springLayout = new SpringLayout();
 
     StylesPanel(ColorProfile prof) {
       setLayout(springLayout);
       for (ColorProfileEntry e : prof.values()) {
-        add(new JLabel(e.nlsName));
-        add(new JCheckBox("Bold", (e.fontStyle & Font.BOLD) != 0));
-        add(new JCheckBox("Italic", (e.fontStyle & Font.ITALIC) != 0));
-        add(new JEColorButton(e.color, "Pick a color"));
+        rows.add(new UiRow(e));
       }
-      packLayout(4, prof.values().size(), 4);
+      packLayout(3);
     }
 
-    private void packLayout(int cols, int rows, int padding) {
-      int totalWidth = 0, totalHeight = 0;
-      // Align all cells in each column and make them the same width.
-      Spring x = Spring.constant(padding);
-      for (int c = 0; c < cols; c++) {
-        Spring width = Spring.constant(0);
-        for (int r = 0; r < rows; r++) {
-          width = Spring.max(width, getConstraintsForCell(r, c, cols).getWidth());
-        }
-        totalWidth += width.getValue();
-        for (int r = 0; r < rows; r++) {
-          SpringLayout.Constraints constraints = getConstraintsForCell(r, c, cols);
-          constraints.setX(x);
-          constraints.setWidth(width);
-        }
-        x = Spring.sum(x, Spring.sum(width, Spring.constant(padding)));
+    private final class UiRow {
+      private final String S_BOLD = Runner.editorInterface.getString("LangPanel.BOLD"); //$NON-NLS-1$
+      private final String S_ITAL = Runner.editorInterface.getString("LangPanel.ITALIC"); //$NON-NLS-1$
+      private final String S_PICK_COLOR = Runner.editorInterface.getString("LangPanel.PICK_COLOR"); //$NON-NLS-1$
+
+      JLabel label;
+      JCheckBox chkBold;
+      JCheckBox chkItal;
+      JEColorButton colorButton;
+
+      UiRow(ColorProfileEntry e) {
+        StylesPanel.this.add(label = new JLabel(e.nlsName));
+        StylesPanel.this.add(chkBold = new JCheckBox(S_BOLD, (e.fontStyle & Font.BOLD) != 0));
+        StylesPanel.this.add(chkItal = new JCheckBox(S_ITAL, (e.fontStyle & Font.ITALIC) != 0));
+        StylesPanel.this.add(colorButton = new JEColorButton(e.color, S_PICK_COLOR));
+        label.setMaximumSize(new Dimension(Integer.MAX_VALUE, label.getPreferredSize().height));
       }
 
-      // Align all cells in each row and make them the same height.
-      Spring y = Spring.constant(padding);
-      for (int r = 0; r < rows; r++) {
-        Spring height = Spring.constant(0);
-        for (int c = 0; c < cols; c++) {
-          height = Spring.max(height, getConstraintsForCell(r, c, cols).getHeight());
-        }
-        totalHeight += height.getValue();
-        for (int c = 0; c < cols; c++) {
-          SpringLayout.Constraints constraints = getConstraintsForCell(r, c, cols);
-          constraints.setY(y);
-          constraints.setHeight(height);
-        }
-        y = Spring.sum(y, Spring.sum(height, Spring.constant(padding)));
+      int componentCount() {
+        return 4;
       }
 
-      // Set the parent's size.
-      SpringLayout.Constraints pCons = springLayout.getConstraints(this);
-      pCons.setConstraint(SpringLayout.SOUTH, y);
-      pCons.setConstraint(SpringLayout.EAST, x);
-
-      // setPreferredSize(new Dimension(totalWidth, totalHeight));
-      setSize(new Dimension(520, totalHeight));
+      public Constraints[] getConstraints() {
+        return new Constraints[] { springLayout.getConstraints(label),
+            springLayout.getConstraints(chkBold), springLayout.getConstraints(chkItal),
+            springLayout.getConstraints(colorButton) };
+      }
     }
 
-    /* Used by makeCompactGrid. */
-    private SpringLayout.Constraints getConstraintsForCell(int row, int col, int cols) {
-      return springLayout.getConstraints(getComponent(row * cols + col));
+    private void packLayout(int padding) {
+      // Prepare to stash maxima
+      Spring[] maxWidths = new Spring[rows.get(0).componentCount()];
+      Spring[] maxHeights = new Spring[rows.size()];
+      for (int i = 0; i < maxWidths.length; ++i) {
+        maxWidths[i] = Spring.constant(0);
+      }
+
+      final Spring padSpring = Spring.constant(padding);
+      Constraints parentConstraints = springLayout.getConstraints(this);
+
+      // Compute maximum widths of columns and heights of rows
+      int i = 0;
+      for (UiRow row : rows) {
+        maxHeights[i] = Spring.constant(0);
+        int j = 0;
+        for (Constraints c : row.getConstraints()) {
+          maxWidths[j] = Spring.max(maxWidths[j], c.getWidth());
+          maxHeights[i] = Spring.max(maxHeights[i], c.getHeight());
+          ++j;
+        }
+        ++i;
+      }
+
+      // Compute column coordinates
+      Spring x = padSpring;
+      Spring[] xs = new Spring[maxWidths.length];
+      for (i = 0; i < xs.length; ++i) {
+        xs[i] = x;
+        x = Spring.sum(padSpring, Spring.sum(x, maxWidths[i]));
+      }
+
+      // Apply computed coordinate springs to each component
+      i = 0;
+      Spring y = padSpring;
+      for (UiRow row : rows) {
+        int j = 0;
+        for (Constraints c : row.getConstraints()) {
+          c.setX(xs[j]);
+          c.setY(y);
+          c.setWidth(maxWidths[j]);
+          c.setHeight(maxHeights[i]);
+          ++j;
+        }
+        y = Spring.sum(padSpring, Spring.sum(y, maxHeights[i]));
+        ++i;
+      }
+
+      // Set our size to our sums
+      parentConstraints.setConstraint(SpringLayout.SOUTH, y);
+      parentConstraints.setConstraint(SpringLayout.EAST, x);
     }
   }
 

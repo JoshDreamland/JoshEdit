@@ -101,6 +101,11 @@ public class ColorProfile implements Iterable<ColorProfile.ColorProfileEntry> {
     return colors.entrySet();
   }
 
+  /** Retrieve the map used by this profile, for copying purposes. */
+  public Map<String, ColorProfileEntry> getMap() {
+    return colors;
+  }
+
   @Override
   public Iterator<ColorProfileEntry> iterator() {
     return colors.values().iterator();

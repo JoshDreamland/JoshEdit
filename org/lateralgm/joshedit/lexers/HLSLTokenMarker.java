@@ -45,6 +45,11 @@ public class HLSLTokenMarker extends DefaultTokenMarker implements HasKeywords {
     }
 
     @Override
+    public String getUnixName() {
+      return "hlsl"; //$NON-NLS-1$
+    }
+
+    @Override
     public Collection<ColorProfile> defaultProfiles() {
       return Arrays.asList(new ColorProfile[] { ShaderHighlightingSchemes.ASS_BLASTERS_DX });
     }

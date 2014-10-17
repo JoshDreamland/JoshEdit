@@ -34,6 +34,11 @@ public class CPPTokenMarker extends DefaultTokenMarker {
     }
 
     @Override
+    public String getUnixName() {
+      return "cpp"; //$NON-NLS-1$
+    }
+
+    @Override
     public Collection<ColorProfile> defaultProfiles() {
       return Arrays.asList(new ColorProfile[] { PROFILE_CODE_BLOCKS });
     }

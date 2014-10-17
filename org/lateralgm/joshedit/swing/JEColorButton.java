@@ -1,8 +1,8 @@
 package org.lateralgm.joshedit.swing;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -42,7 +42,7 @@ public class JEColorButton extends JButton implements ActionListener {
 
   /**
    * Construct with a color.
-   * 
+   *
    * @param c
    *        The initial color.
    * @param cap
@@ -68,16 +68,21 @@ public class JEColorButton extends JButton implements ActionListener {
   }
 
   @Override
+  public Dimension getPreferredSize() {
+    return new Dimension(48, super.getPreferredSize().height);
+  }
+
+  @Override
   public void paintComponent(Graphics g) {
     super.paintComponent(g);
-    Rectangle clip = g.getClipBounds();
-    clip.width -= paddingH << 1;
-    clip.height -= paddingV << 1;
+    Dimension size = getSize();
+    size.width -= paddingH << 1;
+    size.height -= paddingV << 1;
 
     g.setColor(color);
-    g.fillRect(paddingH, paddingV, clip.width, clip.height);
+    g.fillRect(paddingH, paddingV, size.width, size.height);
     g.setColor(Color.BLACK);
-    g.drawRect(paddingH, paddingV, clip.width, clip.height);
+    g.drawRect(paddingH, paddingV, size.width, size.height);
   }
 
   @Override

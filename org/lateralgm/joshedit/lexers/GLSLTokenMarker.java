@@ -45,6 +45,11 @@ public class GLSLTokenMarker extends DefaultTokenMarker implements HasKeywords {
     }
 
     @Override
+    public String getUnixName() {
+      return "glsl"; //$NON-NLS-1$
+    }
+
+    @Override
     public Collection<ColorProfile> defaultProfiles() {
       return Arrays.asList(new ColorProfile[] { ShaderHighlightingSchemes.ASS_BLASTERS_DX });
     }

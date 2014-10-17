@@ -90,6 +90,9 @@ public interface TokenMarker extends LineChangeListener {
     /** Retrieve the name of this language. */
     String getName();
 
+    /** Retrieve a unique Unix-compliant name for this language. */
+    String getUnixName();
+
     /** Retrieve a collection of all default color profiles for this marker. */
     Collection<ColorProfile> defaultProfiles();
   }

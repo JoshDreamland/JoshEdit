@@ -142,7 +142,8 @@ public class Runner {
         new HighlightPreferences(new LanguageDescription[][] {
             CPPTokenMarker.getLanguageDescriptions(), GMLTokenMarker.getLanguageDescriptions(),
             GLSLTokenMarker.getLanguageDescriptions(), GLESTokenMarker.getLanguageDescriptions(),
-            HLSLTokenMarker.getLanguageDescriptions() }));
+            HLSLTokenMarker.getLanguageDescriptions() },
+            Preferences.userRoot().node("org/joshedit"))); //$NON-NLS-1$
     f.add(tabs);
 
     JPanel repanel = new JPanel();

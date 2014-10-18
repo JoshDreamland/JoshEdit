@@ -41,6 +41,8 @@ import javax.swing.JTabbedPane;
 import javax.swing.Spring;
 import javax.swing.SpringLayout;
 import javax.swing.SpringLayout.Constraints;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.SwingConstants;
 
 import org.lateralgm.joshedit.ColorProfile;
@@ -48,6 +50,8 @@ import org.lateralgm.joshedit.ColorProfile.ColorProfileEntry;
 import org.lateralgm.joshedit.Runner;
 import org.lateralgm.joshedit.TokenMarker.LanguageDescription;
 import org.lateralgm.joshedit.swing.JEColorButton;
+import org.lateralgm.joshedit.swing.JEColorButton.ColorChangeEvent;
+import org.lateralgm.joshedit.swing.JEColorButton.ColorListener;
 
 /**
  * Syntax highlighting preferences panel.
@@ -59,17 +63,17 @@ public class HighlightPreferences extends JTabbedPane {
   private static final long serialVersionUID = 1L;
 
   private static final class ProfileItem {
-    public final ColorProfile prof;
-    public final String fileName;
+    public final ColorProfile profile;
+    public final Preferences prefsEntry;
 
     @Override
     public String toString() {
-      return prof.getName();
+      return profile.getName();
     }
 
-    public ProfileItem(ColorProfile prof, String fileName) {
-      this.prof = prof;
-      this.fileName = fileName;
+    public ProfileItem(ColorProfile prof, Preferences fileName) {
+      this.profile = prof;
+      this.prefsEntry = fileName;
     }
   }
 
@@ -94,19 +98,18 @@ public class HighlightPreferences extends JTabbedPane {
       languagePicker.setEditable(false);
       add(buildBoxPanel());
 
-      ProfileItem last = null;
       for (ColorProfile profile : lang.defaultProfiles()) {
-        languagePicker.addItem(last = new ProfileItem(profile, null));
+        languagePicker.addItem(new ProfileItem(profile, null));
       }
       try {
         for (String scheme : prefs.childrenNames()) {
-          ColorProfile prof = propertiesToColorProfile(prefsReadProperties(prefs.node(scheme)));
-          languagePicker.addItem(last = new ProfileItem(prof, scheme));
+          Preferences schemeNode = prefs.node(scheme);
+          ColorProfile prof = propertiesToColorProfile(prefsReadProperties(schemeNode));
+          languagePicker.addItem(new ProfileItem(prof, schemeNode));
         }
       } catch (BackingStoreException e) {
         e.printStackTrace();
       }
-      displayCard(last);
 
       languagePicker.addItemListener(this);
       addLangButton.addActionListener(new ActionListener() {
@@ -121,10 +124,14 @@ public class HighlightPreferences extends JTabbedPane {
           deleteClicked();
         }
       });
+
+      if (languagePicker.getItemCount() > 0) {
+        displayCard((ProfileItem) languagePicker.getSelectedItem());
+      }
     }
 
     private void addClicked() {
-      ColorProfile curProfile = ((ProfileItem) languagePicker.getSelectedItem()).prof;
+      ColorProfile curProfile = ((ProfileItem) languagePicker.getSelectedItem()).profile;
       String curName = curProfile.getName();
       String defNameFmt = Runner.editorInterface.getString("LangPanel.MY_COPY"); //$NON-NLS-1$
       String msg = Runner.editorInterface.getString("LangPanel.ENTER_NAME_PROMPT"); //$NON-NLS-1$
@@ -146,12 +153,24 @@ public class HighlightPreferences extends JTabbedPane {
         e.printStackTrace();
       }
 
+      Preferences node = prefs.node(newNixName);
       ColorProfile nProf = new ColorProfile(newName, curProfile.getMap());
-      languagePicker.addItem(new ProfileItem(nProf, newNixName));
+      prefsPutProperties(node, profileToProperties(nProf));
+      ProfileItem profileItem = new ProfileItem(nProf, node);
+      languagePicker.addItem(profileItem);
+      languagePicker.setSelectedItem(profileItem);
     }
 
     private void deleteClicked() {
-
+      ProfileItem item = (ProfileItem) languagePicker.getSelectedItem();
+      if (item.prefsEntry != null) {
+        languagePicker.removeItem(item);
+        try {
+          item.prefsEntry.removeNode();
+        } catch (BackingStoreException e) {
+          e.printStackTrace();
+        }
+      }
     }
 
     private Component buildBoxPanel() {
@@ -176,8 +195,8 @@ public class HighlightPreferences extends JTabbedPane {
     }
 
     private void displayCard(ProfileItem item) {
-      ColorProfile prof = item.prof;
-      boolean builtIn = item.fileName == null;
+      ColorProfile prof = item.profile;
+      boolean builtIn = item.prefsEntry == null;
       delLangButton.setEnabled(!builtIn);
       if (scrollPane != null) {
         remove(scrollPane);
@@ -185,7 +204,7 @@ public class HighlightPreferences extends JTabbedPane {
       if (stylePanels.containsKey(prof.getName())) {
         scrollPane = stylePanels.get(prof.getName());
       } else {
-        scrollPane = new JScrollPane(new StylesPanel(prof, builtIn));
+        scrollPane = new JScrollPane(new StylesPanel(prof, item.prefsEntry));
         stylePanels.put(prof.getName(), scrollPane);
       }
       add(scrollPane);
@@ -199,11 +218,16 @@ public class HighlightPreferences extends JTabbedPane {
     List<UiRow> rows = new ArrayList<>();
 
     SpringLayout springLayout = new SpringLayout();
+    private final Preferences prefsNode;
 
-    StylesPanel(ColorProfile prof, boolean builtIn) {
+    StylesPanel(ColorProfile prof, Preferences prefsNode) {
+      this.prefsNode = prefsNode;
+
       setLayout(springLayout);
-      for (ColorProfileEntry e : prof.values()) {
-        rows.add(new UiRow(e, !builtIn));
+
+      boolean builtIn = prefsNode == null;
+      for (Entry<String, ColorProfileEntry> e : prof.entrySet()) {
+        rows.add(new UiRow(e.getKey(), e.getValue(), !builtIn));
       }
       packLayout(3);
     }
@@ -213,20 +237,54 @@ public class HighlightPreferences extends JTabbedPane {
       private final String S_ITAL = Runner.editorInterface.getString("LangPanel.ITALIC"); //$NON-NLS-1$
       private final String S_PICK_COLOR = Runner.editorInterface.getString("LangPanel.PICK_COLOR"); //$NON-NLS-1$
 
-      JLabel label;
-      JCheckBox chkBold;
-      JCheckBox chkItal;
-      JEColorButton colorButton;
+      private final JLabel label;
+      private final JCheckBox chkBold;
+      private final JCheckBox chkItal;
+      private final JEColorButton colorButton;
 
-      UiRow(ColorProfileEntry e, boolean editable) {
+      private final String prefsKey;
+
+      UiRow(String key, ColorProfileEntry e, boolean editable) {
+        this.prefsKey = key;
+
         StylesPanel.this.add(label = new JLabel(e.nlsName));
         StylesPanel.this.add(chkBold = new JCheckBox(S_BOLD, (e.fontStyle & Font.BOLD) != 0));
         StylesPanel.this.add(chkItal = new JCheckBox(S_ITAL, (e.fontStyle & Font.ITALIC) != 0));
         StylesPanel.this.add(colorButton = new JEColorButton(e.color, S_PICK_COLOR));
+
         chkBold.setEnabled(editable);
         chkItal.setEnabled(editable);
         colorButton.setEnabled(editable);
+        if (editable) {
+          chkBold.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              updatePrefs();
+            }
+          });
+          chkItal.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+              updatePrefs();
+            }
+          });
+          colorButton.addColorListener(new ColorListener() {
+            @Override
+            public void colorChanged(ColorChangeEvent event) {
+              updatePrefs();
+            }
+          });
+        }
         label.setMaximumSize(new Dimension(Integer.MAX_VALUE, label.getPreferredSize().height));
+      }
+
+      protected void updatePrefs() {
+        Color color = colorButton.getColor();
+        boolean bold = chkBold.isSelected();
+        boolean italic = chkItal.isSelected();
+        System.out.println("prefsNode.put(" + BLOCK_NAMESPACE + prefsKey + ", "
+            + encode(color, bold, italic) + ");");
+        prefsNode.put(BLOCK_NAMESPACE + prefsKey, encode(color, bold, italic));
       }
 
       int componentCount() {
@@ -241,6 +299,10 @@ public class HighlightPreferences extends JTabbedPane {
     }
 
     private void packLayout(int padding) {
+      if (rows.size() < 1) {
+        return;
+      }
+
       // Prepare to stash maxima
       Spring[] maxWidths = new Spring[rows.get(0).componentCount()];
       Spring[] maxHeights = new Spring[rows.size()];
@@ -304,8 +366,8 @@ public class HighlightPreferences extends JTabbedPane {
     }
   }
 
-  private static final String BLOCK_NAMESPACE = "BLOCK."; //$NON-NLS-1$
-  private static final String EDITOR_NAMESPACE = "EDITOR."; //$NON-NLS-1$
+  private static final String BLOCK_NAMESPACE = "Block."; //$NON-NLS-1$
+  private static final String EDITOR_NAMESPACE = "Editor."; //$NON-NLS-1$
 
   /**
    * Read a color profile from a properties file.
@@ -327,15 +389,18 @@ public class HighlightPreferences extends JTabbedPane {
   public static ColorProfile propertiesToColorProfile(Properties props) {
     String name = ""; //$NON-NLS-1$
     Map<String, ColorProfileEntry> colors = new HashMap<>();
+    String blockPrefix = BLOCK_NAMESPACE.toUpperCase();
+    String editorPrefix = EDITOR_NAMESPACE.toUpperCase();
     for (Entry<Object, Object> entry : props.entrySet()) {
       String key = ((String) entry.getKey()).toUpperCase();
-      String value = ((String) entry.getValue()).toLowerCase();
+      String value = (String) entry.getValue();
       if (key.equals("NAME")) { //$NON-NLS-1$
         name = value;
         continue;
       }
-      if (!key.startsWith(BLOCK_NAMESPACE)) {
-        if (key.startsWith(EDITOR_NAMESPACE)) {
+      if (!key.startsWith(blockPrefix)) {
+        if (key.startsWith(editorPrefix)) {
+          System.out.println("FIXME: Ignoring editor attributes");
           continue;
         }
         System.err.println(String.format("Property \"%s\" not recognized", (String) entry.getKey())); //$NON-NLS-1$
@@ -369,7 +434,7 @@ public class HighlightPreferences extends JTabbedPane {
   public static Properties profileToProperties(ColorProfile profile) {
     Properties props = new Properties();
     for (Entry<String, ColorProfileEntry> ent : profile.entrySet()) {
-      props.setProperty("Block." + ent.getKey(), encode(ent.getValue())); //$NON-NLS-1$
+      props.setProperty(BLOCK_NAMESPACE + ent.getKey(), encode(ent.getValue()));
     }
 
     props.setProperty("Name", profile.getName()); //$NON-NLS-1$
@@ -382,12 +447,16 @@ public class HighlightPreferences extends JTabbedPane {
       Pattern.compile("rgb\\(\\s*([0-9]+)\\s*,\\s*([0-9]+)\\s*,\\s*([0-9]+)\\)"); //$NON-NLS-1$
 
   private static ColorProfileEntry decode(String key, String value) {
-    boolean bold = value.contains("bold"); //$NON-NLS-1$
-    //@formatter:off
-    int transform = value.contains("ital") //$NON-NLS-1$
-            ? bold? Font.BOLD | Font.ITALIC : Font.ITALIC
-            : bold? Font.BOLD : Font.PLAIN;
-    //@formatter:on
+    value = value.toLowerCase();
+
+    int transform = Font.PLAIN;
+    if (value.contains("ital")) { //$NON-NLS-1$
+      transform |= Font.ITALIC;
+    }
+    if (value.contains("bold")) { //$NON-NLS-1$
+      transform |= Font.BOLD;
+    }
+
     Matcher m = RGB_PATTERN.matcher(value);
     Color color = Color.BLACK;
     if (m.find()) {
@@ -399,18 +468,23 @@ public class HighlightPreferences extends JTabbedPane {
     return ColorProfile.makeEntry(key, color, transform);
   }
 
-  private static String encode(ColorProfileEntry value) {
-    int r = value.color.getRed();
-    int g = value.color.getGreen();
-    int b = value.color.getBlue();
+  private static String encode(Color color, boolean bold, boolean ital) {
+    int r = color.getRed();
+    int g = color.getGreen();
+    int b = color.getBlue();
     String res = String.format("rgb(%d, %d, %d)", r, g, b); //$NON-NLS-1$
-    if ((value.fontStyle & Font.BOLD) != 0) {
+    if (bold) {
       res += " bold"; //$NON-NLS-1$
     }
-    if ((value.fontStyle & Font.ITALIC) != 0) {
+    if (ital) {
       res += " italic";  //$NON-NLS-1$
     }
     return res;
+  }
+
+  private static String encode(ColorProfileEntry value) {
+    return encode(value.color, (value.fontStyle & Font.BOLD) != 0,
+        (value.fontStyle & Font.ITALIC) != 0);
   }
 
   private static void prefsPutProperties(Preferences prefs, Properties props) {

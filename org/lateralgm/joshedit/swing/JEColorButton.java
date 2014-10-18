@@ -5,6 +5,8 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
@@ -14,7 +16,7 @@ import javax.swing.JColorChooser;
  *
  * @author Josh Ventura
  */
-public class JEColorButton extends JButton implements ActionListener {
+public class JEColorButton extends JButton {
   /** ... */
   private static final long serialVersionUID = 1L;
 
@@ -26,7 +28,7 @@ public class JEColorButton extends JButton implements ActionListener {
 
   /** Default constructor. */
   public JEColorButton() {
-    addActionListener(this);
+    addActionListener(new ClickListener());
   }
 
   /**
@@ -36,8 +38,8 @@ public class JEColorButton extends JButton implements ActionListener {
    *        The initial color.
    */
   public JEColorButton(Color c) {
+    this();
     color = c;
-    addActionListener(this);
   }
 
   /**
@@ -49,9 +51,13 @@ public class JEColorButton extends JButton implements ActionListener {
    *        The color picker window caption.
    */
   public JEColorButton(Color c, String cap) {
-    color = c;
+    this(c);
     caption = cap;
-    addActionListener(this);
+  }
+
+  /** Fetch the currently selected color. */
+  public Color getColor() {
+    return color;
   }
 
   /**
@@ -85,8 +91,63 @@ public class JEColorButton extends JButton implements ActionListener {
     g.drawRect(paddingH, paddingV, size.width, size.height);
   }
 
-  @Override
-  public void actionPerformed(ActionEvent e) {
-    color = JColorChooser.showDialog(this, caption, color);
+  /** Event fired when the current color changes. */
+  public static final class ColorChangeEvent {
+    private final Color oldColor;
+    private final Color newColor;
+    private final JEColorButton sender;
+
+    /** Full constructor. */
+    public ColorChangeEvent(Color oldColor, Color newColor, JEColorButton sender) {
+      this.oldColor = oldColor;
+      this.newColor = newColor;
+      this.sender = sender;
+    }
+
+    /** Get the color which was previously selected. */
+    public Color getOldColor() {
+      return oldColor;
+    }
+
+    /** Get the newly-selected color. */
+    public Color getNewColor() {
+      return newColor;
+    }
+
+    /** Get the button which generated this event. */
+    public JEColorButton getSender() {
+      return sender;
+    }
+  }
+
+  /** Fire off a color change event to all listeners. */
+  public void fireColorChange(ColorChangeEvent event) {
+    for (ColorListener listener : colorListeners) {
+      listener.colorChanged(event);
+    }
+  }
+
+  /** Interface to listen for changes to the selected color. */
+  public interface ColorListener {
+    /** Invoked when a new color is chosen. */
+    void colorChanged(ColorChangeEvent event);
+  }
+
+  private final List<ColorListener> colorListeners = new ArrayList<>();
+
+  /** Add a {@link ColorListener} to this color button. */
+  public void addColorListener(ColorListener colorListener) {
+    colorListeners.add(colorListener);
+  }
+
+  private final class ClickListener implements ActionListener {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+      Color oColor = color;
+      color = JColorChooser.showDialog(JEColorButton.this, caption, color);
+      if (!color.equals(oColor)) {
+        fireColorChange(new ColorChangeEvent(oColor, color, JEColorButton.this));
+      }
+    }
   }
 }

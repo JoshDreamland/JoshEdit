@@ -160,9 +160,16 @@ public class HighlightPreferences extends JTabbedPane {
     }
 
     private void deleteClicked() {
+      String confMessage = Runner.editorInterface.getString("LangPanel.CONFIRM_DELETE"); //$NON-NLS-1$
+      String deleteTitle = Runner.editorInterface.getString("LangPanel.DELETE_PROF_TITLE"); //$NON-NLS-1$
+      int confirm =
+          JOptionPane.showConfirmDialog(this, confMessage, deleteTitle, JOptionPane.WARNING_MESSAGE);
+      if (confirm != JOptionPane.OK_OPTION)
+        return;
       ProfileItem item = (ProfileItem) languagePicker.getSelectedItem();
       if (item.prefsEntry != null) {
         languagePicker.removeItem(item);
+        stylePanels.remove(item.profile.getName());
         try {
           item.prefsEntry.removeNode();
         } catch (BackingStoreException e) {

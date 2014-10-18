@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -27,6 +28,15 @@ public class ColorProfile implements Iterable<ColorProfile.ColorProfileEntry> {
   private final Color noMatchingCharColor;
   private final Color backgroundColor;
   private final Color defaultFontColor;
+
+  private static final String LINE_NUMBER_COLOR = "LINE_NUMBER_COLOR"; //$NON-NLS-1$
+  private static final String LINE_NUMBER_PANEL_COLOR = "LINE_NUMBER_PANEL_COLOR"; //$NON-NLS-1$
+  private static final String WHITESPACE_COLOR = "WHITESPACE_COLOR"; //$NON-NLS-1$
+  private static final String LINE_HIGHLIGHT_COLOR = "LINE_HIGHLIGHT_COLOR"; //$NON-NLS-1$
+  private static final String MATCHING_CHAR_COLOR = "MATCHING_CHAR_COLOR"; //$NON-NLS-1$
+  private static final String NO_MATCHING_CHAR_COLOR = "NO_MATCHING_CHAR_COLOR"; //$NON-NLS-1$
+  private static final String BACKGROUND_COLOR = "BACKGROUND_COLOR"; //$NON-NLS-1$
+  private static final String DEFAULT_FONT_COLOR = "DEFAULT_FONT_COLOR"; //$NON-NLS-1$
 
   /** Builder to construct a new {@link ColorProfile}. */
   public static final class Builder {
@@ -138,6 +148,44 @@ public class ColorProfile implements Iterable<ColorProfile.ColorProfileEntry> {
       return new ColorProfile(name, colors, lineNumberColor, lineNumberPanelColor, whitespaceColor,
           lineHighlightColor, matchingCharColor, noMatchingCharColor, backgroundColor,
           defaultFontColor);
+    }
+
+    /**
+     * Set a color field in this builder by its properties name, eg, "LINE_NUMBER_COLOR" for
+     * "lineNumberColor".
+     *
+     * @param property
+     *        The property name, such as "LINE_NUMBER_COLOR".
+     * @param color
+     *        The color to assign to this property.
+     */
+    public void setColorByProperty(String property, Color color) {
+      switch (property) {
+        case LINE_NUMBER_COLOR:
+          this.lineNumberColor = color;
+          break;
+        case LINE_NUMBER_PANEL_COLOR:
+          this.lineNumberPanelColor = color;
+          break;
+        case WHITESPACE_COLOR:
+          this.whitespaceColor = color;
+          break;
+        case LINE_HIGHLIGHT_COLOR:
+          this.lineHighlightColor = color;
+          break;
+        case MATCHING_CHAR_COLOR:
+          this.matchingCharColor = color;
+          break;
+        case NO_MATCHING_CHAR_COLOR:
+          this.noMatchingCharColor = color;
+          break;
+        case BACKGROUND_COLOR:
+          this.backgroundColor = color;
+          break;
+        case DEFAULT_FONT_COLOR:
+          this.defaultFontColor = color;
+          break;
+      }
     }
   }
 
@@ -313,6 +361,20 @@ public class ColorProfile implements Iterable<ColorProfile.ColorProfileEntry> {
   @Override
   public Iterator<ColorProfileEntry> iterator() {
     return colors.values().iterator();
+  }
+
+  /** Get a collection of map entries for each plain-color field of this profile by properties name. */
+  public Iterable<Entry<String, Color>> colorProperties() {
+    Map<String, Color> map = new LinkedHashMap<>();
+    map.put(LINE_NUMBER_COLOR, lineNumberColor);
+    map.put(LINE_NUMBER_PANEL_COLOR, lineNumberPanelColor);
+    map.put(WHITESPACE_COLOR, whitespaceColor);
+    map.put(LINE_HIGHLIGHT_COLOR, lineHighlightColor);
+    map.put(MATCHING_CHAR_COLOR, matchingCharColor);
+    map.put(NO_MATCHING_CHAR_COLOR, noMatchingCharColor);
+    map.put(BACKGROUND_COLOR, backgroundColor);
+    map.put(DEFAULT_FONT_COLOR, defaultFontColor);
+    return map.entrySet();
   }
 
   // Private helpers

@@ -29,11 +29,8 @@ import static org.lateralgm.joshedit.ColorProfile.makeEntry;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.lateralgm.joshedit.ColorProfile;
-import org.lateralgm.joshedit.ColorProfile.ColorProfileEntry;
 import org.lateralgm.joshedit.DefaultKeywords.Constant;
 import org.lateralgm.joshedit.DefaultKeywords.Construct;
 import org.lateralgm.joshedit.DefaultKeywords.Function;

@@ -26,6 +26,11 @@ import javax.swing.JPanel;
 
 /** Panel to display line numbers. */
 public class LineNumberPanel extends JPanel {
+  /** The default foreground color for light themes. */
+  public static final Color DEFAULT_LIGHT_BACKGROUND = new Color(220, 220, 220);
+  /** The default background color for light themes. */
+  public static final Color DEFAULT_LIGHT_FOREGROUND = new Color(170, 170, 170);
+
   /** Shut up, ECJ. */
   private static final long serialVersionUID = 1L;
 
@@ -40,9 +45,9 @@ public class LineNumberPanel extends JPanel {
   protected boolean startZero;
 
   /** The foreground (font) color of this panel. */
-  private Color fgColor = new Color(170, 170, 170);
+  private Color fgColor = DEFAULT_LIGHT_FOREGROUND;
   /** The background color of this panel. */
-  private Color bgColor = new Color(220, 220, 220);
+  private Color bgColor = DEFAULT_LIGHT_BACKGROUND;
 
   /**
    * @param metrics
@@ -83,6 +88,7 @@ public class LineNumberPanel extends JPanel {
     repaint();
   }
 
+  /** Set the colors used to render this panel from a {@link ColorProfile}. */
   public void setColorProfile(ColorProfile prof) {
     if (prof.getLineNumberColor() != null) {
       fgColor = prof.getLineNumberColor();

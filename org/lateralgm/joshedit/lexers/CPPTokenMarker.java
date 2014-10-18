@@ -14,13 +14,10 @@ import java.awt.Color;
 import java.awt.Font;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.lateralgm.joshedit.ColorProfile;
-import org.lateralgm.joshedit.ColorProfile.ColorProfileEntry;
 import org.lateralgm.joshedit.DefaultTokenMarker;
+import org.lateralgm.joshedit.LineNumberPanel;
 
 /**
  * Sample C++ token marker class based on the default token marker.
@@ -90,6 +87,17 @@ public class CPPTokenMarker extends DefaultTokenMarker {
         .add(S_OPS_AND_SEPS, makeEntry(S_OPS_AND_SEPS, RED, Font.PLAIN))
         .add(S_HEX_LITERAL, makeEntry(S_HEX_LITERAL, LIGHT_RED, Font.PLAIN))
         .add(S_NUMERIC_LITERAL, makeEntry(S_NUMERIC_LITERAL, MAGENTA, Font.PLAIN))
+
+        .setBackgroundColor(Color.WHITE)
+        .setDefaultFontColor(Color.BLACK)
+        .setLineHighlightColor(new Color(230, 240, 255))
+        .setWhitespaceColor(Color.RED)
+        .setMatchingCharColor(new Color(100, 100, 100))
+        .setNoMatchingCharColor(Color.RED)
+
+        .setLineNumberColor(LineNumberPanel.DEFAULT_LIGHT_FOREGROUND)
+        .setLineNumberPanelColor(LineNumberPanel.DEFAULT_LIGHT_BACKGROUND)
+
         .build();
     //@formatter:on
   }

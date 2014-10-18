@@ -403,7 +403,8 @@ public class HighlightPreferences extends JTabbedPane {
       }
       if (!key.startsWith(blockPrefix)) {
         if (key.startsWith(editorPrefix)) {
-          System.out.println("FIXME: Ignoring editor attributes");
+          Color color = decodeColor(value.toLowerCase());
+          builder.setColorByProperty(key.substring(EDITOR_NAMESPACE.length()), color);
           continue;
         }
         System.err.println(String.format("Property \"%s\" not recognized", (String) entry.getKey())); //$NON-NLS-1$
@@ -439,6 +440,9 @@ public class HighlightPreferences extends JTabbedPane {
     for (Entry<String, ColorProfileEntry> ent : profile.entrySet()) {
       props.setProperty(BLOCK_NAMESPACE + ent.getKey(), encode(ent.getValue()));
     }
+    for (Entry<String, Color> ent : profile.colorProperties()) {
+      props.setProperty(EDITOR_NAMESPACE + ent.getKey(), encodeColor(ent.getValue()));
+    }
 
     props.setProperty("Name", profile.getName()); //$NON-NLS-1$
     props.setProperty("Name", profile.getName()); //$NON-NLS-1$
@@ -460,6 +464,11 @@ public class HighlightPreferences extends JTabbedPane {
       transform |= Font.BOLD;
     }
 
+    Color color = decodeColor(value);
+    return ColorProfile.makeEntry(key, color, transform);
+  }
+
+  private static Color decodeColor(String value) {
     Matcher m = RGB_PATTERN.matcher(value);
     Color color = Color.BLACK;
     if (m.find()) {
@@ -468,14 +477,11 @@ public class HighlightPreferences extends JTabbedPane {
       int b = Integer.parseInt(m.group(3));
       color = new Color(r, g, b);
     }
-    return ColorProfile.makeEntry(key, color, transform);
+    return color;
   }
 
   private static String encode(Color color, boolean bold, boolean ital) {
-    int r = color.getRed();
-    int g = color.getGreen();
-    int b = color.getBlue();
-    String res = String.format("rgb(%d, %d, %d)", r, g, b); //$NON-NLS-1$
+    String res = encodeColor(color);
     if (bold) {
       res += " bold"; //$NON-NLS-1$
     }
@@ -483,6 +489,13 @@ public class HighlightPreferences extends JTabbedPane {
       res += " italic";  //$NON-NLS-1$
     }
     return res;
+  }
+
+  private static String encodeColor(Color color) {
+    int r = color.getRed();
+    int g = color.getGreen();
+    int b = color.getBlue();
+    return String.format("rgb(%d, %d, %d)", r, g, b); //$NON-NLS-1$
   }
 
   private static String encode(ColorProfileEntry value) {

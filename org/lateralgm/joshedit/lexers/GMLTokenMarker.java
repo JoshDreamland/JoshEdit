@@ -31,16 +31,15 @@ import java.awt.Font;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 
 import org.lateralgm.joshedit.ColorProfile;
-import org.lateralgm.joshedit.ColorProfile.ColorProfileEntry;
 import org.lateralgm.joshedit.DefaultKeywords.Constant;
 import org.lateralgm.joshedit.DefaultKeywords.Construct;
 import org.lateralgm.joshedit.DefaultKeywords.Function;
 import org.lateralgm.joshedit.DefaultKeywords.Operator;
 import org.lateralgm.joshedit.DefaultKeywords.Variable;
 import org.lateralgm.joshedit.DefaultTokenMarker;
+import org.lateralgm.joshedit.LineNumberPanel;
 
 /**
  * Sample GML token marker class based on the default token marker.
@@ -118,6 +117,16 @@ public class GMLTokenMarker extends DefaultTokenMarker {
         .add(S_OPS_AND_SEPS, makeEntry(S_OPS_AND_SEPS, NAVY, Font.PLAIN))
         .add(S_NUMERIC_LITERAL, makeEntry(S_NUMERIC_LITERAL, DARK_RED, Font.PLAIN))
         .add(S_HEX_LITERAL, makeEntry(S_HEX_LITERAL, LIGHT_BLUE, Font.PLAIN))
+
+        .setBackgroundColor(Color.WHITE)
+        .setDefaultFontColor(Color.BLACK)
+        .setLineHighlightColor(new Color(230, 240, 255))
+        .setWhitespaceColor(Color.RED)
+        .setMatchingCharColor(new Color(100, 100, 100))
+        .setNoMatchingCharColor(Color.RED)
+
+        .setLineNumberColor(LineNumberPanel.DEFAULT_LIGHT_FOREGROUND)
+        .setLineNumberPanelColor(LineNumberPanel.DEFAULT_LIGHT_BACKGROUND)
         .build();
     //@formatter:on
   }
@@ -125,7 +134,7 @@ public class GMLTokenMarker extends DefaultTokenMarker {
   private static final ColorProfile PROFILE_CODE_BLOCKS;
   static {
     //@formatter:off (It's amazing how stupid Eclipse's formatter is)
-    PROFILE_CODE_BLOCKS = ColorProfile.newBuilder("Code::Blocks")
+    PROFILE_CODE_BLOCKS = ColorProfile.newBuilder("Code::Blocks") //$NON-NLS-1$
         .add(S_DOC_COMMENT, makeEntry(S_DOC_COMMENT, LIGHT_BLUE, Font.BOLD))
         .add(S_BLOCK_COMMENT, makeEntry(S_BLOCK_COMMENT, GREEN, Font.ITALIC))
         .add(S_DOC_LINE_COMMENT, makeEntry(S_DOC_LINE_COMMENT, LIGHT_BLUE, Font.BOLD))
@@ -142,6 +151,16 @@ public class GMLTokenMarker extends DefaultTokenMarker {
         .add(S_OPS_AND_SEPS, makeEntry(S_OPS_AND_SEPS, RED, Font.PLAIN))
         .add(S_NUMERIC_LITERAL, makeEntry(S_NUMERIC_LITERAL, MAGENTA, Font.PLAIN))
         .add(S_HEX_LITERAL, makeEntry(S_HEX_LITERAL, LIGHT_RED, Font.PLAIN))
+
+        .setBackgroundColor(Color.WHITE)
+        .setDefaultFontColor(Color.BLACK)
+        .setLineHighlightColor(new Color(230, 240, 255))
+        .setWhitespaceColor(Color.RED)
+        .setMatchingCharColor(new Color(100, 100, 100))
+        .setNoMatchingCharColor(Color.RED)
+
+        .setLineNumberColor(LineNumberPanel.DEFAULT_LIGHT_FOREGROUND)
+        .setLineNumberPanelColor(LineNumberPanel.DEFAULT_LIGHT_BACKGROUND)
         .build();
     //@formatter:on
   }

@@ -100,50 +100,50 @@ public class GMLTokenMarker extends DefaultTokenMarker {
 
   private static final ColorProfile PROFILE_ADVANCED_FAGGOTRY;
   static {
-    HashMap<String, ColorProfileEntry> colors = new HashMap<String, ColorProfileEntry>();
+    //@formatter:off (It's amazing how stupid Eclipse's formatter is)
+    PROFILE_ADVANCED_FAGGOTRY = ColorProfile.newBuilder("Advanced Faggotry") //$NON-NLS-1$
+        .add(S_DOC_COMMENT, makeEntry(S_DOC_COMMENT, FAGGOTRY_BLUE, Font.BOLD))
+        .add(S_BLOCK_COMMENT, makeEntry(S_BLOCK_COMMENT, FOREST, Font.ITALIC))
+        .add(S_DOC_LINE_COMMENT, makeEntry(S_DOC_LINE_COMMENT, FAGGOTRY_BLUE, Font.BOLD))
+        .add(S_LINE_COMMENT, makeEntry(S_LINE_COMMENT, FOREST, Font.ITALIC))
+        .add(S_DOUBLEQ_STRING, makeEntry(S_DOUBLEQ_STRING, BLUE_BLACK, Font.PLAIN))
+        .add(S_SINGLEQ_STRING, makeEntry(S_SINGLEQ_STRING, BLUE_BLACK, Font.PLAIN))
 
-    colors.put(S_DOC_COMMENT, makeEntry(S_DOC_COMMENT, FAGGOTRY_BLUE, Font.BOLD));
-    colors.put(S_BLOCK_COMMENT, makeEntry(S_BLOCK_COMMENT, FOREST, Font.ITALIC));
-    colors.put(S_DOC_LINE_COMMENT, makeEntry(S_DOC_LINE_COMMENT, FAGGOTRY_BLUE, Font.BOLD));
-    colors.put(S_LINE_COMMENT, makeEntry(S_LINE_COMMENT, FOREST, Font.ITALIC));
-    colors.put(S_DOUBLEQ_STRING, makeEntry(S_DOUBLEQ_STRING, BLUE_BLACK, Font.PLAIN));
-    colors.put(S_SINGLEQ_STRING, makeEntry(S_SINGLEQ_STRING, BLUE_BLACK, Font.PLAIN));
+        .add(S_FUNCTIONS, makeEntry(S_FUNCTIONS, HALFASS_TURQUOIS, Font.PLAIN))
+        .add(S_CONSTRUCTS, makeEntry(S_CONSTRUCTS, NAVY, Font.PLAIN))
+        .add(S_OPERATORS, makeEntry(S_OPERATORS, NAVY, Font.PLAIN))
+        .add(S_CONSTANTS, makeEntry(S_CONSTANTS, DARK_RED, Font.PLAIN))
+        .add(S_VARIABLES, makeEntry(S_VARIABLES, BLUE_BLACK, Font.ITALIC))
 
-    colors.put(S_FUNCTIONS, makeEntry(S_FUNCTIONS, HALFASS_TURQUOIS, Font.PLAIN));
-    colors.put(S_CONSTRUCTS, makeEntry(S_CONSTRUCTS, NAVY, Font.PLAIN));
-    colors.put(S_OPERATORS, makeEntry(S_OPERATORS, NAVY, Font.PLAIN));
-    colors.put(S_CONSTANTS, makeEntry(S_CONSTANTS, DARK_RED, Font.PLAIN));
-    colors.put(S_VARIABLES, makeEntry(S_VARIABLES, BLUE_BLACK, Font.ITALIC));
-
-    colors.put(S_OPS_AND_SEPS, makeEntry(S_OPS_AND_SEPS, NAVY, Font.PLAIN));
-    colors.put(S_NUMERIC_LITERAL, makeEntry(S_NUMERIC_LITERAL, DARK_RED, Font.PLAIN));
-    colors.put(S_HEX_LITERAL, makeEntry(S_HEX_LITERAL, LIGHT_BLUE, Font.PLAIN));
-
-    PROFILE_ADVANCED_FAGGOTRY = new ColorProfile("Advanced Faggotry", colors); //$NON-NLS-1$
+        .add(S_OPS_AND_SEPS, makeEntry(S_OPS_AND_SEPS, NAVY, Font.PLAIN))
+        .add(S_NUMERIC_LITERAL, makeEntry(S_NUMERIC_LITERAL, DARK_RED, Font.PLAIN))
+        .add(S_HEX_LITERAL, makeEntry(S_HEX_LITERAL, LIGHT_BLUE, Font.PLAIN))
+        .build();
+    //@formatter:on
   }
 
   private static final ColorProfile PROFILE_CODE_BLOCKS;
   static {
-    HashMap<String, ColorProfileEntry> colors = new HashMap<String, ColorProfileEntry>();
+    //@formatter:off (It's amazing how stupid Eclipse's formatter is)
+    PROFILE_CODE_BLOCKS = ColorProfile.newBuilder("Code::Blocks")
+        .add(S_DOC_COMMENT, makeEntry(S_DOC_COMMENT, LIGHT_BLUE, Font.BOLD))
+        .add(S_BLOCK_COMMENT, makeEntry(S_BLOCK_COMMENT, GREEN, Font.ITALIC))
+        .add(S_DOC_LINE_COMMENT, makeEntry(S_DOC_LINE_COMMENT, LIGHT_BLUE, Font.BOLD))
+        .add(S_LINE_COMMENT, makeEntry(S_LINE_COMMENT, GREEN, Font.ITALIC))
+        .add(S_DOUBLEQ_STRING, makeEntry(S_DOUBLEQ_STRING, BLUE, Font.PLAIN))
+        .add(S_SINGLEQ_STRING, makeEntry(S_SINGLEQ_STRING, BLUE, Font.PLAIN))
 
-    colors.put(S_DOC_COMMENT, makeEntry(S_DOC_COMMENT, LIGHT_BLUE, Font.BOLD));
-    colors.put(S_BLOCK_COMMENT, makeEntry(S_BLOCK_COMMENT, GREEN, Font.ITALIC));
-    colors.put(S_DOC_LINE_COMMENT, makeEntry(S_DOC_LINE_COMMENT, LIGHT_BLUE, Font.BOLD));
-    colors.put(S_LINE_COMMENT, makeEntry(S_LINE_COMMENT, GREEN, Font.ITALIC));
-    colors.put(S_DOUBLEQ_STRING, makeEntry(S_DOUBLEQ_STRING, BLUE, Font.PLAIN));
-    colors.put(S_SINGLEQ_STRING, makeEntry(S_SINGLEQ_STRING, BLUE, Font.PLAIN));
+        .add(S_FUNCTIONS, makeEntry(S_FUNCTIONS, NAVY, Font.PLAIN))
+        .add(S_CONSTRUCTS, makeEntry(S_CONSTRUCTS, NAVY, Font.BOLD))
+        .add(S_OPERATORS, makeEntry(S_OPERATORS, NAVY, Font.BOLD))
+        .add(S_CONSTANTS, makeEntry(S_CONSTANTS, DARK_RED, Font.PLAIN))
+        .add(S_VARIABLES, makeEntry(S_VARIABLES, BLUE, Font.ITALIC))
 
-    colors.put(S_FUNCTIONS, makeEntry(S_FUNCTIONS, NAVY, Font.PLAIN));
-    colors.put(S_CONSTRUCTS, makeEntry(S_CONSTRUCTS, NAVY, Font.BOLD));
-    colors.put(S_OPERATORS, makeEntry(S_OPERATORS, NAVY, Font.BOLD));
-    colors.put(S_CONSTANTS, makeEntry(S_CONSTANTS, DARK_RED, Font.PLAIN));
-    colors.put(S_VARIABLES, makeEntry(S_VARIABLES, BLUE, Font.ITALIC));
-
-    colors.put(S_OPS_AND_SEPS, makeEntry(S_OPS_AND_SEPS, RED, Font.PLAIN));
-    colors.put(S_NUMERIC_LITERAL, makeEntry(S_NUMERIC_LITERAL, MAGENTA, Font.PLAIN));
-    colors.put(S_HEX_LITERAL, makeEntry(S_HEX_LITERAL, LIGHT_RED, Font.PLAIN));
-
-    PROFILE_CODE_BLOCKS = new ColorProfile("Code::Blocks", colors); //$NON-NLS-1$
+        .add(S_OPS_AND_SEPS, makeEntry(S_OPS_AND_SEPS, RED, Font.PLAIN))
+        .add(S_NUMERIC_LITERAL, makeEntry(S_NUMERIC_LITERAL, MAGENTA, Font.PLAIN))
+        .add(S_HEX_LITERAL, makeEntry(S_HEX_LITERAL, LIGHT_RED, Font.PLAIN))
+        .build();
+    //@formatter:on
   }
 
   private final ColorProfile profile = PROFILE_ADVANCED_FAGGOTRY;

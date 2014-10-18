@@ -41,8 +41,6 @@ import javax.swing.JTabbedPane;
 import javax.swing.Spring;
 import javax.swing.SpringLayout;
 import javax.swing.SpringLayout.Constraints;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.SwingConstants;
 
 import org.lateralgm.joshedit.ColorProfile;
@@ -154,7 +152,7 @@ public class HighlightPreferences extends JTabbedPane {
       }
 
       Preferences node = prefs.node(newNixName);
-      ColorProfile nProf = new ColorProfile(newName, curProfile.getMap());
+      ColorProfile nProf = new ColorProfile(newName, curProfile);
       prefsPutProperties(node, profileToProperties(nProf));
       ProfileItem profileItem = new ProfileItem(nProf, node);
       languagePicker.addItem(profileItem);
@@ -282,8 +280,6 @@ public class HighlightPreferences extends JTabbedPane {
         Color color = colorButton.getColor();
         boolean bold = chkBold.isSelected();
         boolean italic = chkItal.isSelected();
-        System.out.println("prefsNode.put(" + BLOCK_NAMESPACE + prefsKey + ", "
-            + encode(color, bold, italic) + ");");
         prefsNode.put(BLOCK_NAMESPACE + prefsKey, encode(color, bold, italic));
       }
 
@@ -387,15 +383,15 @@ public class HighlightPreferences extends JTabbedPane {
 
   /** Parse a {@link Properties} object into a {@link ColorProfile}. */
   public static ColorProfile propertiesToColorProfile(Properties props) {
-    String name = ""; //$NON-NLS-1$
-    Map<String, ColorProfileEntry> colors = new HashMap<>();
     String blockPrefix = BLOCK_NAMESPACE.toUpperCase();
     String editorPrefix = EDITOR_NAMESPACE.toUpperCase();
+    ColorProfile.Builder builder = ColorProfile.newBuilder();
+
     for (Entry<Object, Object> entry : props.entrySet()) {
       String key = ((String) entry.getKey()).toUpperCase();
       String value = (String) entry.getValue();
       if (key.equals("NAME")) { //$NON-NLS-1$
-        name = value;
+        builder.setName(value);
         continue;
       }
       if (!key.startsWith(blockPrefix)) {
@@ -407,10 +403,10 @@ public class HighlightPreferences extends JTabbedPane {
         continue;
       }
       key = key.substring(BLOCK_NAMESPACE.length());
-      ColorProfileEntry ent = decode(key, value);
-      colors.put(key, ent);
+      builder.addProfileEntry(key, decode(key, value));
     }
-    return new ColorProfile(name, colors);
+
+    return builder.build();
   }
 
   /**

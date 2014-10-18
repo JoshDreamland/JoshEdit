@@ -75,23 +75,23 @@ public class CPPTokenMarker extends DefaultTokenMarker {
 
   private static final ColorProfile PROFILE_CODE_BLOCKS;
   static {
-    Map<String, ColorProfileEntry> colors = new HashMap<String, ColorProfile.ColorProfileEntry>();
-
-    colors.put(S_FORMAL_COMMENT, makeEntry(S_FORMAL_COMMENT, LIGHT_BLUE, Font.BOLD));
-    colors.put(S_LAZY_COMMENT, makeEntry(S_LAZY_COMMENT, LIGHT_BLUE, Font.BOLD));
-    colors.put(S_BLOCK_COMMENT, makeEntry(S_BLOCK_COMMENT, FOREST, Font.ITALIC));
-    colors.put(S_DOC_LINE_COMMENT, makeEntry(S_DOC_LINE_COMMENT, LIGHT_BLUE, Font.BOLD));
-    colors.put(S_LAZY_LINE_COMMENT, makeEntry(S_LAZY_LINE_COMMENT, LIGHT_BLUE, Font.BOLD));
-    colors.put(S_LINE_COMMENT, makeEntry(S_LINE_COMMENT, FOREST, Font.ITALIC));
-    colors.put(S_DOUBLEQ_STRING, makeEntry(S_DOUBLEQ_STRING, BLUE, Font.PLAIN));
-    colors.put(S_CHARACTER_LIT, makeEntry(S_CHARACTER_LIT, ORANGE, Font.PLAIN));
-    colors.put(S_PREPROCESSOR, makeEntry(S_PREPROCESSOR, CYAN, Font.PLAIN));
-    colors.put(S_CONSTRUCTS, makeEntry(S_CONSTRUCTS, NAVY, Font.BOLD));
-    colors.put(S_OPS_AND_SEPS, makeEntry(S_OPS_AND_SEPS, RED, Font.PLAIN));
-    colors.put(S_HEX_LITERAL, makeEntry(S_HEX_LITERAL, LIGHT_RED, Font.PLAIN));
-    colors.put(S_NUMERIC_LITERAL, makeEntry(S_NUMERIC_LITERAL, MAGENTA, Font.PLAIN));
-
-    PROFILE_CODE_BLOCKS = new ColorProfile("Code::Blocks", Collections.unmodifiableMap(colors)); //$NON-NLS-1$
+    //@formatter:off (It's amazing how stupid Eclipse's formatter is)
+    PROFILE_CODE_BLOCKS = ColorProfile.newBuilder("Code::Blocks")  //$NON-NLS-1$
+        .add(S_FORMAL_COMMENT, makeEntry(S_FORMAL_COMMENT, LIGHT_BLUE, Font.BOLD))
+        .add(S_LAZY_COMMENT, makeEntry(S_LAZY_COMMENT, LIGHT_BLUE, Font.BOLD))
+        .add(S_BLOCK_COMMENT, makeEntry(S_BLOCK_COMMENT, FOREST, Font.ITALIC))
+        .add(S_DOC_LINE_COMMENT, makeEntry(S_DOC_LINE_COMMENT, LIGHT_BLUE, Font.BOLD))
+        .add(S_LAZY_LINE_COMMENT, makeEntry(S_LAZY_LINE_COMMENT, LIGHT_BLUE, Font.BOLD))
+        .add(S_LINE_COMMENT, makeEntry(S_LINE_COMMENT, FOREST, Font.ITALIC))
+        .add(S_DOUBLEQ_STRING, makeEntry(S_DOUBLEQ_STRING, BLUE, Font.PLAIN))
+        .add(S_CHARACTER_LIT, makeEntry(S_CHARACTER_LIT, ORANGE, Font.PLAIN))
+        .add(S_PREPROCESSOR, makeEntry(S_PREPROCESSOR, CYAN, Font.PLAIN))
+        .add(S_CONSTRUCTS, makeEntry(S_CONSTRUCTS, NAVY, Font.BOLD))
+        .add(S_OPS_AND_SEPS, makeEntry(S_OPS_AND_SEPS, RED, Font.PLAIN))
+        .add(S_HEX_LITERAL, makeEntry(S_HEX_LITERAL, LIGHT_RED, Font.PLAIN))
+        .add(S_NUMERIC_LITERAL, makeEntry(S_NUMERIC_LITERAL, MAGENTA, Font.PLAIN))
+        .build();
+    //@formatter:on
   }
 
   private final ColorProfile profile = PROFILE_CODE_BLOCKS;

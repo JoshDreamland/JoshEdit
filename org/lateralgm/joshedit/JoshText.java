@@ -81,6 +81,8 @@ public class JoshText extends JComponent
   /** Make the compiler shut up. */
   private static final long serialVersionUID = 1L;
 
+  // Settings
+
   /** Any settings which affect the behavior of this JoshText. */
   public static class Settings {
     /** True if the tab character is used, false to use spaces */
@@ -100,7 +102,25 @@ public class JoshText extends JComponent
     public static boolean renderTabs;
   }
 
+  // Colors
+
+  private Color whitespaceColor = Color.RED;
+  private Color lineHighlightColor = new Color(230, 240, 255);
+  private Color matchingCharColor = new Color(100, 100, 100);
+  private Color noMatchingCharColor = Color.RED;
+  private Color backgroundColor = Color.WHITE;
+  private Color defaultFontColor = Color.BLACK;
+
+  // Fonts
+
+  /** The font for which we have cached derived fonts. This prevents drawing with stale fonts. */
+  private Font baseFont = null;
+
+  /** Map of derived fonts by the flags with which they were derived from the base font. */
+  private final HashMap<Integer, Font> specialFonts = new HashMap<Integer, Font>();
+
   // Components
+
   /** The code contained in this JoshText; an array of lines. */
   Code code;
   /** Information about what is selected. */
@@ -112,28 +132,22 @@ public class JoshText extends JComponent
 
   /** The TokenMarker that will be polled for character formatting. */
   private TokenMarker marker;
-  /**
-   * All Highlighters which will be called to highlight their lines or
-   * characters.
-   */
+  /** All Highlighters which will be called to highlight their lines or characters. */
   public ArrayList<Highlighter> highlighters = new ArrayList<Highlighter>();
 
   // Dimensions
+
   /** The width of the largest UTF-8 character our font contains. */
   private final int monoAdvance;
   /** The height of the largest UTF-8 character our font contains. */
   private final int lineHeight;
-  /**
-   * The largest height above the base line of any UTF-8 character our font
-   * contains.
-   */
+  /** The largest height above the base line of any UTF-8 character our font contains. */
   private final int lineAscent;
   /** The distance we need to keep between the baselines of each line of text. */
   private final int lineLeading;
 
   /** Our longest row, and how many other rows are this long */
-  private int maxRowSize; // This is the size of the longest row, not the
-  // index.
+  private int maxRowSize; // This is the size of the longest row, not the index.
 
   /**
    * A queue of all messages that need displayed in our status bar.
@@ -143,6 +157,16 @@ public class JoshText extends JComponent
 
   /** Find and Replace Navigator; eg, QuickFind. */
   public FindNavigator finder;
+
+  /** The file chooser we'll poll for user-specified filenames. */
+  private JEFileChooser fileChooser = new DefaultJEFileChooser();
+
+  /** Code completion syntax descriptor. */
+  SyntaxDesc myLang;
+
+  // ===============================================================================================
+  // ===== Arbitrary Code Highlighting =============================================================
+  // ===============================================================================================
 
   /**
    * A Highlighter is a class that gets painted before the text
@@ -165,6 +189,56 @@ public class JoshText extends JComponent
      */
     void paint(Graphics g, Insets i, CodeMetrics gm, int line_start, int line_end);
   }
+
+  // ===============================================================================================
+  // == Classes for dealing with filename prompts ==================================================
+  // ===============================================================================================
+
+  /**
+   * Interface for injecting custom FileChooser dialogs.
+   */
+  public static interface JEFileChooser {
+    /** Display a dialog requesting a load filename from the user. */
+    String getLoadFilename();
+
+    /** Display a dialog requesting a save filename from the user. */
+    String getSaveFilename();
+  }
+
+  private class DefaultJEFileChooser implements JEFileChooser {
+    JFileChooser fileChooser = new JFileChooser();
+
+    @Override
+    public String getLoadFilename() {
+      if (fileChooser.showSaveDialog(JoshText.this) != JFileChooser.APPROVE_OPTION) {
+        return null;
+      }
+      return fileChooser.getSelectedFile().getPath();
+    }
+
+    @Override
+    public String getSaveFilename() {
+      if (fileChooser.showOpenDialog(JoshText.this) != JFileChooser.APPROVE_OPTION) {
+        return null;
+      }
+      return fileChooser.getSelectedFile().getPath();
+    }
+
+  }
+
+  /** Get the currently set FileChooser. */
+  public JEFileChooser getFileChooser() {
+    return fileChooser;
+  }
+
+  /** Change the FileChooser which will be polled for save and load filenames. */
+  public void setFileChooser(JEFileChooser fileChooser) {
+    this.fileChooser = fileChooser;
+  }
+
+  // ===============================================================================================
+  // == Classes for passing around font metrics ====================================================
+  // ===============================================================================================
 
   /**
    * An interface for passing glyph and string metrics associated with this
@@ -213,50 +287,6 @@ public class JoshText extends JComponent
     int lineHeight();
   }
 
-  /**
-   * Interface for injecting custom FileChooser dialogs.
-   */
-  public static interface JEFileChooser {
-    /** Display a dialog requesting a load filename from the user. */
-    String getLoadFilename();
-
-    /** Display a dialog requesting a save filename from the user. */
-    String getSaveFilename();
-  }
-
-  private class DefaultJEFileChooser implements JEFileChooser {
-    JFileChooser fileChooser = new JFileChooser();
-
-    @Override
-    public String getLoadFilename() {
-      if (fileChooser.showSaveDialog(JoshText.this) != JFileChooser.APPROVE_OPTION) {
-        return null;
-      }
-      return fileChooser.getSelectedFile().getPath();
-    }
-
-    @Override
-    public String getSaveFilename() {
-      if (fileChooser.showOpenDialog(JoshText.this) != JFileChooser.APPROVE_OPTION) {
-        return null;
-      }
-      return fileChooser.getSelectedFile().getPath();
-    }
-
-  }
-
-  private JEFileChooser fileChooser = new DefaultJEFileChooser();
-
-  /** Get the currently set FileChooser. */
-  public JEFileChooser getFileChooser() {
-    return fileChooser;
-  }
-
-  /** Change the FileChooser which will be polled for save and load filenames. */
-  public void setFileChooser(JEFileChooser fileChooser) {
-    this.fileChooser = fileChooser;
-  }
-
   /** Our own code metric information. */
   CodeMetrics metrics = new CodeMetrics() {
     @Override
@@ -289,6 +319,10 @@ public class JoshText extends JComponent
       return lineHeight;
     }
   };
+
+  // ===============================================================================================
+  // == Classes for grouping similar characters ====================================================
+  // ===============================================================================================
 
   /**
    * Character "type", such as letter (1), whitespace (2), symbol (0), etc.
@@ -330,8 +364,9 @@ public class JoshText extends JComponent
     chType['\n'] = ChType.WHITE;
   }
 
-  /** Code completion syntax descriptor. */
-  SyntaxDesc myLang;
+  // ===============================================================================================
+  // == Constructors ===============================================================================
+  // ===============================================================================================
 
   /** Default constructor; delegates to JoshText(String[]). */
   public JoshText() {
@@ -348,8 +383,8 @@ public class JoshText extends JComponent
     // Drawing stuff
     setPreferredSize(new Dimension(320, 240));
     setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-    setBackground(Color.WHITE);
-    setForeground(Color.BLACK);
+    setBackground(backgroundColor);
+    setForeground(defaultFontColor);
     setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
     setOpaque(true);
     getInsets().left = 4;
@@ -397,7 +432,7 @@ public class JoshText extends JComponent
         public void paint(Graphics g, Insets i, CodeMetrics gm, int line_start, int line_end) {
           if (sel.row == caret.row) {
             Color rc = g.getColor();
-            g.setColor(new Color(230, 240, 255));
+            g.setColor(lineHighlightColor);
             Rectangle clip = g.getClipBounds();
             g.fillRect(i.left + clip.x, i.top + caret.row * gm.lineHeight(), clip.width,
                 gm.lineHeight());
@@ -422,6 +457,35 @@ public class JoshText extends JComponent
 
     doCodeSize(true);
   }
+
+  // ===============================================================================================
+  // == Settings functions =========================================================================
+  // ===============================================================================================
+
+  void setColorProfile(ColorProfile profile) {
+    if (profile.getWhitespaceColor() != null) {
+      whitespaceColor = profile.getWhitespaceColor();
+    }
+    if (profile.getLineHighlightColor() != null) {
+      lineHighlightColor = profile.getLineHighlightColor();
+    }
+    if (profile.getMatchingCharColor() != null) {
+      matchingCharColor = profile.getMatchingCharColor();
+    }
+    if (profile.getNoMatchingCharColor() != null) {
+      noMatchingCharColor = profile.getNoMatchingCharColor();
+    }
+    if (profile.getBackgroundColor() != null) {
+      backgroundColor = profile.getBackgroundColor();
+    }
+    if (profile.getDefaultFontColor() != null) {
+      defaultFontColor = profile.getDefaultFontColor();
+    }
+  }
+
+  // ===============================================================================================
+  // ===== Getting and setting text ================================================================
+  // ===============================================================================================
 
   /**
    * Set the contents of this editor from an array of strings.
@@ -536,21 +600,6 @@ public class JoshText extends JComponent
   }
 
   /**
-   * Applies a TokenMarker that will be polled for character formatting
-   *
-   * @param tm
-   *        the TokenMarker to apply
-   */
-  public void setTokenMarker(TokenMarker tm) {
-    if (marker != null) {
-      removeLineChangeListener(marker);
-    }
-    marker = tm;
-    addLineChangeListener(marker);
-    fireLineChange(0, code.size());
-  }
-
-  /**
    * Read code fom a given file into this editor.
    *
    * @param name
@@ -609,9 +658,29 @@ public class JoshText extends JComponent
     }
   }
 
-  // ==========================================================
-  // == Map action names to their implementations =============
-  // ==========================================================
+  // ===============================================================================================
+  // ===== Syntax highlighting (token marking) =====================================================
+  // ===============================================================================================
+
+  /**
+   * Applies a TokenMarker that will be polled for character formatting
+   *
+   * @param tm
+   *        the TokenMarker to apply
+   */
+  public void setTokenMarker(TokenMarker tm) {
+    if (marker != null) {
+      removeLineChangeListener(marker);
+    }
+    marker = tm;
+    addLineChangeListener(marker);
+    fireLineChange(0, code.size());
+  }
+
+  // ===============================================================================================
+  // == Map action names to their implementations ==================================================
+  // ===============================================================================================
+
   /** Delete the current line, including the newline character. */
   public void LineDel() {
     // delete the line where the caret is
@@ -799,123 +868,123 @@ public class JoshText extends JComponent
 
   /** Cut action. */
   public AbstractAction actCut = new AbstractAction("CUT") { //$NON-NLS-1$
-    private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      Cut();
-    }
-  };
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          Cut();
+        }
+      };
 
   /** Copy action. */
   public AbstractAction actCopy = new AbstractAction("COPY") { //$NON-NLS-1$
-    private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      Copy();
-    }
-  };
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          Copy();
+        }
+      };
 
   /** Paste action. */
   public AbstractAction actPaste = new AbstractAction("PASTE") { //$NON-NLS-1$
-    private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      Paste();
-    }
-  };
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          Paste();
+        }
+      };
 
   /** Undo action. */
   public AbstractAction actUndo = new AbstractAction("UNDO") { //$NON-NLS-1$
-    private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      Undo();
-    }
-  };
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          Undo();
+        }
+      };
 
   /** Redo action. */
   public AbstractAction actRedo = new AbstractAction("REDO") { //$NON-NLS-1$
-    private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      Redo();
-    }
-  };
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          Redo();
+        }
+      };
 
   /** Find action. */
   public AbstractAction actFind = new AbstractAction("FIND") { //$NON-NLS-1$
-    private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      ShowFind();
-    }
-  };
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          ShowFind();
+        }
+      };
 
   /** QuickFind action. */
   public AbstractAction actQuickFind = new AbstractAction("QUICKFIND") { //$NON-NLS-1$
-    private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      ShowQuickFind();
-    }
-  };
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          ShowQuickFind();
+        }
+      };
 
   /** Line Delete action. */
   public AbstractAction actLineDel = new AbstractAction("LINEDEL") { //$NON-NLS-1$
-    private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      LineDel();
-    }
-  };
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          LineDel();
+        }
+      };
 
   /** Line Duplicate action. */
   public AbstractAction actLineDup = new AbstractAction("LINEDUP") { //$NON-NLS-1$
-    private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      LineDup();
-    }
-  };
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          LineDup();
+        }
+      };
 
   /** Line Swap action. */
   public AbstractAction actLineSwap = new AbstractAction("LINESWAP") { //$NON-NLS-1$
-    private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      LineSwap();
-    }
-  };
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          LineSwap();
+        }
+      };
 
   /** Line Un-Swap action. */
   public AbstractAction actLineUnSwap = new AbstractAction("LINEUNSWAP") { //$NON-NLS-1$
-    private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      LineUnSwap();
-    }
-  };
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          LineUnSwap();
+        }
+      };
 
   /** Select All action. */
   public AbstractAction actSelAll = new AbstractAction("SELALL") { //$NON-NLS-1$
-    private static final long serialVersionUID = 1L;
+        private static final long serialVersionUID = 1L;
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-      SelectAll();
-    }
-  };
+        @Override
+        public void actionPerformed(ActionEvent e) {
+          SelectAll();
+        }
+      };
 
   /** Map the AbstractActions declared in JoshText to keyboard hotkeys. */
   private void mapActions() {
@@ -1506,7 +1575,7 @@ public class JoshText extends JComponent
         final int incby = Settings.indentSizeInSpaces * monoAdvance, xxp = xx;
         xx = ((xx + incby) / incby) * incby;
         if (Settings.renderTabs) {
-          g.setColor(new Color(255, 0, 0));
+          g.setColor(whitespaceColor);
           g.drawLine(xxp + 2, ty - (lineHeight / 3), xx - 2, ty - (lineHeight / 3));
           g.drawLine(xxp + 2, ty - (lineHeight / 3) - (lineHeight / 5), xxp + 2, ty
               - (lineHeight / 3) + (lineHeight / 5));
@@ -1522,17 +1591,6 @@ public class JoshText extends JComponent
     }
     return xx;
   }
-
-  /**
-   * This is the font for which we have cached derived fonts. This prevents drawing with stale
-   * fonts.
-   */
-  private Font baseFont = null;
-  /**
-   * This is a map of our derived fonts by the flags with which they were derived from the base
-   * font.
-   */
-  private final HashMap<Integer, Font> specialFonts = new HashMap<Integer, Font>();
 
   /**
    * Paint the line with the given index to the given Graphics object,
@@ -1650,7 +1708,9 @@ public class JoshText extends JComponent
     repaint(col, row, w, h);
   }
 
-  // Input handling
+  // ===============================================================================================
+  // ===== Input handling ==========================================================================
+  // ===============================================================================================
 
   /**
    * Translates a mouse coordinate to a text coordinate (y = row, x = col).
@@ -1691,9 +1751,6 @@ public class JoshText extends JComponent
    *        The mouse event to handle.
    */
   protected void handleMouseEvent(MouseEvent e) {
-    // FIXME: Double-click-and-drag is supposed to wrap the start and
-    // end caret positions to word endings.
-
     if (e.getID() == MouseEvent.MOUSE_PRESSED) {
       requestFocusInWindow();
       // if ((e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) != 0
@@ -2332,7 +2389,9 @@ public class JoshText extends JComponent
     }
   }
 
-  // Inner classes (mostly drag and drop)
+  // ===============================================================================================
+  // ===== Handling Drag and Drop ==================================================================
+  // ===============================================================================================
 
   /**
    * Listens for mouse events for the purposes of detecting drag gestures.
@@ -2443,12 +2502,12 @@ public class JoshText extends JComponent
     /** Construct, establishing listeners. */
     public JoshTextTransferHandler() {
       addPropertyChangeListener("dropLocation", new PropertyChangeListener() { //$NON-NLS-1$
-        @Override
-        public void propertyChange(PropertyChangeEvent pce) {
-          repaintDropLocation(pce.getOldValue());
-          repaintDropLocation(pce.getNewValue());
-        }
-      });
+            @Override
+            public void propertyChange(PropertyChangeEvent pce) {
+              repaintDropLocation(pce.getOldValue());
+              repaintDropLocation(pce.getNewValue());
+            }
+          });
     }
 
     /**
@@ -2539,7 +2598,9 @@ public class JoshText extends JComponent
     }
   }
 
-  // Scrollable
+  // ===============================================================================================
+  // ===== Be Scrollable ===========================================================================
+  // ===============================================================================================
 
   /** @see javax.swing.Scrollable#getPreferredScrollableViewportSize() */
   @Override
@@ -2629,9 +2690,9 @@ public class JoshText extends JComponent
     // WHOGIVESAFUCK.jpg
   }
 
-  // -----------------------------------------------------------------
-  // ----- Mark Matching Brackets ------------------------------------
-  // -----------------------------------------------------------------
+  // ===============================================================================================
+  // ===== Mark Matching Brackets ==================================================================
+  // ===============================================================================================
 
   /**
    * @author Josh Ventura
@@ -2667,11 +2728,11 @@ public class JoshText extends JComponent
       // line that was deleted. Current check suffices to fix the exception. - Robert
       if (matchLine < line_end) {
         if (matching == MatchState.MATCHING) {
-          g.setColor(new Color(100, 100, 100));
+          g.setColor(matchingCharColor);
           g.drawRect(line_wid_at(matchLine, matchPos), matchLine * lineHeight, monoAdvance,
               lineHeight);
         } else if (matching == MatchState.NO_MATCH) {
-          g.setColor(new Color(255, 0, 0));
+          g.setColor(noMatchingCharColor);
           g.fillRect(line_wid_at(matchLine, matchPos), matchLine * lineHeight, monoAdvance,
               lineHeight);
         }
@@ -2953,9 +3014,9 @@ public class JoshText extends JComponent
     }
   }
 
-  // -----------------------------------------------------------------
-  // ----- Be Undoable -----------------------------------------------
-  // -----------------------------------------------------------------
+  // ===============================================================================================
+  // ===== Undo/Redo functionality =================================================================
+  // ===============================================================================================
 
   /**
    * A class of a dozen types an UndoPatch can have.
@@ -3175,13 +3236,12 @@ public class JoshText extends JComponent
   }
 
   /**
-   * An array of all available UndoPatches to be reverted (as in Undo) or
-   * re-applied (as in Redo).
+   * An array of all available UndoPatches to be reverted (as in Undo) or re-applied (as in Redo).
    */
   private final ArrayList<UndoPatch> undoPatches = new ArrayList<UndoPatch>();
   /**
-   * A control variable that determines whether a new
-   * UndoPatch can be merged with an old if it is compatible.
+   * A control variable that determines whether a new {@link UndoPatch} can be merged with an old if
+   * they are compatible.
    */
   private boolean undoCanMerge = true;
   /**

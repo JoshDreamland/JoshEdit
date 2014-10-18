@@ -85,24 +85,25 @@ public class ShaderHighlightingSchemes {
   public static final ColorProfile ASS_BLASTERS_DX;
 
   static {
-    Map<String, ColorProfileEntry> colors = new HashMap<String, ColorProfileEntry>();
+    //@formatter:off (It's amazing how stupid Eclipse's formatter is)
+    ASS_BLASTERS_DX = ColorProfile.newBuilder("Ass Blasters DX") //$NON-NLS-1$
+        .add(S_DOC_COMMENT, makeEntry(S_DOC_COMMENT, LIGHT_BLUE, Font.BOLD))
+        .add(S_BLOCK_COMMENT, makeEntry(S_BLOCK_COMMENT, FOREST, Font.ITALIC))
+        .add(S_DOC_LINE_COMMENT, makeEntry(S_DOC_LINE_COMMENT, LIGHT_BLUE, Font.BOLD))
+        .add(S_LINE_COMMENT, makeEntry(S_LINE_COMMENT, FOREST, Font.ITALIC))
+        .add(S_DOUBLEQ_STRING, makeEntry(S_DOUBLEQ_STRING, BLUE, Font.PLAIN))
+        .add(S_SINGLEQ_STRING, makeEntry(S_SINGLEQ_STRING, BLUE, Font.PLAIN))
+        .add(S_FUNCTIONS, makeEntry(S_FUNCTIONS, HALFASS_TURQUOIS, Font.PLAIN))
+        .add(S_CONSTRUCTS, makeEntry(S_CONSTRUCTS, HALFASS_TURQUOIS, Font.BOLD))
+        .add(S_OPERATORS, makeEntry(S_OPERATORS, BLACK, Font.BOLD))
+        .add(S_CONSTANTS, makeEntry(S_CONSTANTS, DARK_RED, Font.PLAIN))
+        .add(S_VARIABLES, makeEntry(S_VARIABLES, BLUE, Font.ITALIC))
+        .add(S_OPS_AND_SEPS, makeEntry(S_OPS_AND_SEPS, DARK_RED, Font.PLAIN))
+        .add(S_NUMERIC_LITERAL, makeEntry(S_NUMERIC_LITERAL, BLUE_BLACK, Font.PLAIN))
+        .add(S_HEX_LITERAL, makeEntry(S_HEX_LITERAL, SLIGHTLY_LESS_LIGHT_BLUE, Font.PLAIN))
+        .build();
+    //@formatter:on
 
-    colors.put(S_DOC_COMMENT, makeEntry(S_DOC_COMMENT, LIGHT_BLUE, Font.BOLD));
-    colors.put(S_BLOCK_COMMENT, makeEntry(S_BLOCK_COMMENT, FOREST, Font.ITALIC));
-    colors.put(S_DOC_LINE_COMMENT, makeEntry(S_DOC_LINE_COMMENT, LIGHT_BLUE, Font.BOLD));
-    colors.put(S_LINE_COMMENT, makeEntry(S_LINE_COMMENT, FOREST, Font.ITALIC));
-    colors.put(S_DOUBLEQ_STRING, makeEntry(S_DOUBLEQ_STRING, BLUE, Font.PLAIN));
-    colors.put(S_SINGLEQ_STRING, makeEntry(S_SINGLEQ_STRING, BLUE, Font.PLAIN));
-    colors.put(S_FUNCTIONS, makeEntry(S_FUNCTIONS, HALFASS_TURQUOIS, Font.PLAIN));
-    colors.put(S_CONSTRUCTS, makeEntry(S_CONSTRUCTS, HALFASS_TURQUOIS, Font.BOLD));
-    colors.put(S_OPERATORS, makeEntry(S_OPERATORS, BLACK, Font.BOLD));
-    colors.put(S_CONSTANTS, makeEntry(S_CONSTANTS, DARK_RED, Font.PLAIN));
-    colors.put(S_VARIABLES, makeEntry(S_VARIABLES, BLUE, Font.ITALIC));
-    colors.put(S_OPS_AND_SEPS, makeEntry(S_OPS_AND_SEPS, DARK_RED, Font.PLAIN));
-    colors.put(S_NUMERIC_LITERAL, makeEntry(S_NUMERIC_LITERAL, BLUE_BLACK, Font.PLAIN));
-    colors.put(S_HEX_LITERAL, makeEntry(S_HEX_LITERAL, SLIGHTLY_LESS_LIGHT_BLUE, Font.PLAIN));
-
-    ASS_BLASTERS_DX = new ColorProfile("Ass Blasters DX", Collections.unmodifiableMap(colors)); //$NON-NLS-1$
   }
 
   /** Return a set of block descriptor schemes for the given color profile. */

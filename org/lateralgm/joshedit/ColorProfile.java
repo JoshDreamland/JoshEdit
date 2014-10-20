@@ -277,11 +277,11 @@ public class ColorProfile implements Iterable<ColorProfile.ColorProfileEntry> {
   /** An entry in a {@link ColorProfile}. */
   public static class ColorProfileEntry {
     /** The name as it appears to the user. This should be internationalized. */
-    public String nlsName;
+    public final String nlsName;
     /** The color of the font used to depict members of this entry. */
-    public Color color;
+    public final Color color;
     /** The font style, such as Font.BOLD or Font.ITALICS. */
-    public int fontStyle;
+    public final int fontStyle;
 
     /** Construct completely. */
     public ColorProfileEntry(String nlsName, Color color, int transform) {

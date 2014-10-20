@@ -74,8 +74,13 @@ public class JEColorButton extends JButton {
   }
 
   @Override
+  public Dimension getMinimumSize() {
+    return new Dimension(48, 22);
+  }
+
+  @Override
   public Dimension getPreferredSize() {
-    return new Dimension(48, super.getPreferredSize().height);
+    return new Dimension(48, 22);
   }
 
   @Override

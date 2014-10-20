@@ -28,15 +28,15 @@ import org.lateralgm.joshedit.DefaultKeywords.Variable;
  */
 public final class GMLKeywords {
   /** GML syntax construct keywords */
-  public static final DefaultKeywords.Construct[] CONSTRUCTS;
+  public static DefaultKeywords.Construct[] CONSTRUCTS;
   /** GML operator keywords */
-  public static final DefaultKeywords.Operator[] OPERATORS;
+  public static DefaultKeywords.Operator[] OPERATORS;
   /** GML global variable names */
-  public static final DefaultKeywords.Variable[] VARIABLES;
+  public static DefaultKeywords.Variable[] VARIABLES;
   /** GML constant names */
-  public static final DefaultKeywords.Constant[] CONSTANTS;
+  public static DefaultKeywords.Constant[] CONSTANTS;
   /** GML function names */
-  public static final DefaultKeywords.Function[] FUNCTIONS;
+  public static DefaultKeywords.Function[] FUNCTIONS;
 
   static {
     InputStream is = GMLKeywords.class.getResourceAsStream("gmlkeywords.properties"); //$NON-NLS-1$

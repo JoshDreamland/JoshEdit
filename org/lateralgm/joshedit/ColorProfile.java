@@ -3,7 +3,6 @@ package org.lateralgm.joshedit;
 import java.awt.Color;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -58,7 +57,7 @@ public class ColorProfile implements Iterable<ColorProfile.ColorProfileEntry> {
      */
     public Builder() {
       this.name = ""; //$NON-NLS-1$
-      this.colors = new HashMap<String, ColorProfile.ColorProfileEntry>();
+      this.colors = new LinkedHashMap<String, ColorProfile.ColorProfileEntry>();
     }
 
     /**
@@ -66,7 +65,7 @@ public class ColorProfile implements Iterable<ColorProfile.ColorProfileEntry> {
      */
     public Builder(String name) {
       this.name = name;
-      this.colors = new HashMap<String, ColorProfile.ColorProfileEntry>();
+      this.colors = new LinkedHashMap<String, ColorProfile.ColorProfileEntry>();
     }
 
     /**
@@ -209,7 +208,7 @@ public class ColorProfile implements Iterable<ColorProfile.ColorProfileEntry> {
   /** Construct, copying from another ColorProfile. */
   public ColorProfile(String name, ColorProfile otherProfile) {
     this.name = name;
-    this.colors = Collections.unmodifiableMap(otherProfile.colors);
+    this.colors = otherProfile.colors;
     this.lineNumberColor = otherProfile.lineNumberColor;
     this.lineNumberPanelColor = otherProfile.lineNumberPanelColor;
     this.whitespaceColor = otherProfile.whitespaceColor;
@@ -353,11 +352,6 @@ public class ColorProfile implements Iterable<ColorProfile.ColorProfileEntry> {
     return colors.entrySet();
   }
 
-  /** Retrieve the map used by this profile, for copying purposes. */
-  public Map<String, ColorProfileEntry> getMap() {
-    return colors;
-  }
-
   @Override
   public Iterator<ColorProfileEntry> iterator() {
     return colors.values().iterator();
@@ -375,6 +369,11 @@ public class ColorProfile implements Iterable<ColorProfile.ColorProfileEntry> {
     map.put(BACKGROUND_COLOR, backgroundColor);
     map.put(DEFAULT_FONT_COLOR, defaultFontColor);
     return map.entrySet();
+  }
+
+  /** Get the internationalized name of a Color field's property key. */
+  public static String getPropertyNlsName(String key) {
+    return Runner.editorInterface.getString("ThemeColor." + key); //$NON-NLS-1$
   }
 
   // Private helpers

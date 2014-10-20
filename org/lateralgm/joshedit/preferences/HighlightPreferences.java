@@ -38,6 +38,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.Spring;
 import javax.swing.SpringLayout;
 import javax.swing.SpringLayout.Constraints;
@@ -78,6 +79,8 @@ public class HighlightPreferences extends JTabbedPane {
   private static final class LanguagePanel extends JPanel implements ItemListener {
     /** holy i dont even stfu ecj */
     private static final long serialVersionUID = 1L;
+
+    private static final int SCROLLPANE_HEIGHT = 320;
 
     Map<String, JScrollPane> stylePanels = new HashMap<>();
 
@@ -209,7 +212,15 @@ public class HighlightPreferences extends JTabbedPane {
       if (stylePanels.containsKey(prof.getName())) {
         scrollPane = stylePanels.get(prof.getName());
       } else {
-        scrollPane = new JScrollPane(new StylesPanel(prof, item.prefsEntry));
+        scrollPane =
+            new JScrollPane(new StylesPanel(prof, item.prefsEntry),
+                ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        Dimension preferred = scrollPane.getPreferredSize();
+        if (preferred.height > SCROLLPANE_HEIGHT) {
+          scrollPane.setPreferredSize(new Dimension(preferred.width, SCROLLPANE_HEIGHT));
+        }
+        scrollPane.getVerticalScrollBar().setUnitIncrement(16);
         stylePanels.put(prof.getName(), scrollPane);
       }
       add(scrollPane);
@@ -220,7 +231,7 @@ public class HighlightPreferences extends JTabbedPane {
   private static final class StylesPanel extends JPanel {
     /** WRAAAAAAAAAAAAAAAAAAAAAH */
     private static final long serialVersionUID = 1L;
-    List<UiRow> rows = new ArrayList<>();
+    List<FormattingRow> rows = new ArrayList<>();
 
     SpringLayout springLayout = new SpringLayout();
     private final Preferences prefsNode;
@@ -232,16 +243,20 @@ public class HighlightPreferences extends JTabbedPane {
 
       boolean builtIn = prefsNode == null;
       for (Entry<String, ColorProfileEntry> e : prof.entrySet()) {
-        rows.add(new UiRow(e.getKey(), e.getValue(), !builtIn));
+        rows.add(new FormattingRow(e.getKey(), e.getValue(), !builtIn));
+      }
+      for (Entry<String, Color> e : prof.colorProperties()) {
+        rows.add(new FormattingRow(e.getKey(), e.getValue(), !builtIn));
       }
       packLayout(3);
     }
 
-    private final class UiRow {
+    private final class FormattingRow {
       private final String S_BOLD = Runner.editorInterface.getString("LangPanel.BOLD"); //$NON-NLS-1$
       private final String S_ITAL = Runner.editorInterface.getString("LangPanel.ITALIC"); //$NON-NLS-1$
       private final String S_PICK_COLOR = Runner.editorInterface.getString("LangPanel.PICK_COLOR"); //$NON-NLS-1$
 
+      private final boolean colorOnly;
       private final JLabel label;
       private final JCheckBox chkBold;
       private final JCheckBox chkItal;
@@ -249,7 +264,8 @@ public class HighlightPreferences extends JTabbedPane {
 
       private final String prefsKey;
 
-      UiRow(String key, ColorProfileEntry e, boolean editable) {
+      FormattingRow(String key, ColorProfileEntry e, boolean editable) {
+        colorOnly = false;
         this.prefsKey = key;
 
         StylesPanel.this.add(label = new JLabel(e.nlsName));
@@ -260,44 +276,118 @@ public class HighlightPreferences extends JTabbedPane {
         chkBold.setEnabled(editable);
         chkItal.setEnabled(editable);
         colorButton.setEnabled(editable);
+
         if (editable) {
-          chkBold.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-              updatePrefs();
-            }
-          });
-          chkItal.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-              updatePrefs();
-            }
-          });
-          colorButton.addColorListener(new ColorListener() {
-            @Override
-            public void colorChanged(ColorChangeEvent event) {
-              updatePrefs();
-            }
-          });
+          addCheckListeners();
+          addColorListener();
         }
+
         label.setMaximumSize(new Dimension(Integer.MAX_VALUE, label.getPreferredSize().height));
+      }
+
+      FormattingRow(String key, Color color, boolean editable) {
+        colorOnly = true;
+        this.prefsKey = key;
+
+        StylesPanel.this.add(label = new JLabel(ColorProfile.getPropertyNlsName(key)));
+        StylesPanel.this.add(colorButton = new JEColorButton(color, S_PICK_COLOR));
+        chkBold = chkItal = null;
+
+        colorButton.setEnabled(editable);
+
+        if (editable) {
+          addColorListener();
+        }
+
+        label.setMaximumSize(new Dimension(Integer.MAX_VALUE, label.getPreferredSize().height));
+      }
+
+      private void addColorListener() {
+        colorButton.addColorListener(new ColorListener() {
+          @Override
+          public void colorChanged(ColorChangeEvent event) {
+            updatePrefs();
+          }
+        });
+      }
+
+      private void addCheckListeners() {
+        chkBold.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            updatePrefs();
+          }
+        });
+        chkItal.addActionListener(new ActionListener() {
+          @Override
+          public void actionPerformed(ActionEvent e) {
+            updatePrefs();
+          }
+        });
       }
 
       protected void updatePrefs() {
         Color color = colorButton.getColor();
+        if (colorOnly) {
+          prefsNode.put(EDITOR_NAMESPACE + prefsKey, encodeColor(color));
+          return;
+        }
         boolean bold = chkBold.isSelected();
         boolean italic = chkItal.isSelected();
         prefsNode.put(BLOCK_NAMESPACE + prefsKey, encode(color, bold, italic));
       }
 
-      int componentCount() {
-        return 4;
+      /** The maximum height of elements of this row. */
+      private Spring maxHeight;
+
+      void computeMaxima(Spring[] maxWidths, Spring[] maxSpanWidths) {
+        if (colorOnly) {
+          Constraints c = springLayout.getConstraints(label);
+          maxSpanWidths[1] = Spring.max(maxSpanWidths[1], c.getWidth());
+          maxHeight = c.getHeight();
+          c = springLayout.getConstraints(colorButton);
+          maxWidths[3] = Spring.max(maxWidths[3], c.getWidth());
+          maxHeight = Spring.max(maxHeight, c.getHeight());
+          return;
+        }
+        int j = 0;
+        maxHeight = Spring.constant(0);
+        for (Constraints c : getConstraints()) {
+          maxWidths[j] = Spring.max(maxWidths[j], c.getWidth());
+          maxHeight = Spring.max(maxHeight, c.getHeight());
+          ++j;
+        }
       }
 
-      public Constraints[] getConstraints() {
+      private Spring applyMaxima(Spring[] maxWidths, Spring[] spanWidths, final Spring padSpring,
+          Spring[] xs, Spring y) {
+        if (colorOnly) {
+          constrain(springLayout.getConstraints(label), xs[0], y, spanWidths[1], maxHeight);
+          constrain(springLayout.getConstraints(colorButton), xs[3], y, maxWidths[3], maxHeight);
+        } else {
+          int j = 0;
+          for (Constraints c : getConstraints()) {
+            constrain(c, xs[j], y, maxWidths[j++], maxHeight);
+          }
+        }
+        return Spring.sum(padSpring, Spring.sum(y, maxHeight));
+      }
+
+      private void constrain(Constraints c, Spring x, Spring y, Spring width, Spring height) {
+        c.setX(x);
+        c.setY(y);
+        c.setWidth(width);
+        c.setHeight(height);
+      }
+
+      private Constraints[] getConstraints() {
         return new Constraints[] { springLayout.getConstraints(label),
             springLayout.getConstraints(chkBold), springLayout.getConstraints(chkItal),
             springLayout.getConstraints(colorButton) };
+      }
+
+      int componentCount() {
+        return 4;
       }
     }
 
@@ -308,54 +398,46 @@ public class HighlightPreferences extends JTabbedPane {
 
       // Prepare to stash maxima
       Spring[] maxWidths = new Spring[rows.get(0).componentCount()];
-      Spring[] maxHeights = new Spring[rows.size()];
+      Spring[] maxSpanWidths = new Spring[rows.get(1).componentCount() - 1];
       for (int i = 0; i < maxWidths.length; ++i) {
         maxWidths[i] = Spring.constant(0);
+      }
+      for (int i = 0; i < maxWidths.length - 1; ++i) {
+        maxSpanWidths[i] = Spring.constant(0);
       }
 
       final Spring padSpring = Spring.constant(padding);
       Constraints parentConstraints = springLayout.getConstraints(this);
 
       // Compute maximum widths of columns and heights of rows
-      int i = 0;
-      for (UiRow row : rows) {
-        maxHeights[i] = Spring.constant(0);
-        int j = 0;
-        for (Constraints c : row.getConstraints()) {
-          maxWidths[j] = Spring.max(maxWidths[j], c.getWidth());
-          maxHeights[i] = Spring.max(maxHeights[i], c.getHeight());
-          ++j;
-        }
-        ++i;
+      for (FormattingRow row : rows) {
+        row.computeMaxima(maxWidths, maxSpanWidths);
       }
 
       // Compute column coordinates
-      Spring x = padSpring;
+      Spring tWidth = maxWidths[0];
+      final Spring dualPad = Spring.sum(padSpring, padSpring);
       Spring[] xs = new Spring[maxWidths.length];
-      for (i = 0; i < xs.length; ++i) {
-        xs[i] = x;
-        x = Spring.sum(padSpring, Spring.sum(x, maxWidths[i]));
+      xs[0] = padSpring;
+
+      for (int i = 1; i < xs.length; ++i) {
+        // Set the current x coordinate to that maximum, plus the initial padding
+        xs[i] = Spring.sum(dualPad, tWidth);
+        // Compute the total width thus far as the sum of all column widths and the padding between
+        tWidth = Spring.sum(padSpring, Spring.sum(tWidth, maxWidths[i]));
+        // Use whichever is larger of the width of spanning columns and the current sum, for both
+        tWidth = maxSpanWidths[i - 1] = Spring.max(tWidth, maxSpanWidths[i - 1]);
       }
 
       // Apply computed coordinate springs to each component
-      i = 0;
       Spring y = padSpring;
-      for (UiRow row : rows) {
-        int j = 0;
-        for (Constraints c : row.getConstraints()) {
-          c.setX(xs[j]);
-          c.setY(y);
-          c.setWidth(maxWidths[j]);
-          c.setHeight(maxHeights[i]);
-          ++j;
-        }
-        y = Spring.sum(padSpring, Spring.sum(y, maxHeights[i]));
-        ++i;
+      for (FormattingRow row : rows) {
+        y = row.applyMaxima(maxWidths, maxSpanWidths, padSpring, xs, y);
       }
 
       // Set our size to our sums
       parentConstraints.setConstraint(SpringLayout.SOUTH, y);
-      parentConstraints.setConstraint(SpringLayout.EAST, x);
+      parentConstraints.setConstraint(SpringLayout.EAST, Spring.sum(tWidth, dualPad));
     }
   }
 
@@ -443,9 +525,6 @@ public class HighlightPreferences extends JTabbedPane {
     for (Entry<String, Color> ent : profile.colorProperties()) {
       props.setProperty(EDITOR_NAMESPACE + ent.getKey(), encodeColor(ent.getValue()));
     }
-
-    props.setProperty("Name", profile.getName()); //$NON-NLS-1$
-    props.setProperty("Name", profile.getName()); //$NON-NLS-1$
     props.setProperty("Name", profile.getName()); //$NON-NLS-1$
     return props;
   }

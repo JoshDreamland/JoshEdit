@@ -18,10 +18,12 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Set;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 import java.util.regex.Matcher;
@@ -99,13 +101,18 @@ public class HighlightPreferences extends JTabbedPane {
       languagePicker.setEditable(false);
       add(buildBoxPanel());
 
+      Set<String> correctOrder = new LinkedHashSet<>();
       for (ColorProfile profile : lang.defaultProfiles()) {
         languagePicker.addItem(new ProfileItem(profile, null));
+        for (String n : profile.keySet()) {
+          correctOrder.add(n);
+        }
       }
       try {
         for (String scheme : prefs.childrenNames()) {
           Preferences schemeNode = prefs.node(scheme);
-          ColorProfile prof = propertiesToColorProfile(prefsReadProperties(schemeNode));
+          ColorProfile prof =
+              propertiesToColorProfile(prefsReadProperties(schemeNode), correctOrder);
           languagePicker.addItem(new ProfileItem(prof, schemeNode));
         }
       } catch (BackingStoreException e) {
@@ -457,25 +464,42 @@ public class HighlightPreferences extends JTabbedPane {
   /**
    * Read a color profile from a properties file.
    *
+   * @param properties
+   *        The filename to write.
+   * @param correctOrder
+   *        A set representing the correct order of the complete set of profile entries, by key.
+   *
    * @throws IOException
    *         If the file cannot be read properly.
    * @throws FileNotFoundException
    *         If the given file doesn't exist.
    */
-  public static ColorProfile readProfile(File properties) throws FileNotFoundException, IOException {
+  public static ColorProfile readProfile(File properties, Set<String> correctOrder)
+      throws FileNotFoundException, IOException {
     Properties props = new Properties();
     try (InputStream is = new FileInputStream(properties)) {
       props.load(is);
     }
-    return propertiesToColorProfile(props);
+    return propertiesToColorProfile(props, correctOrder);
   }
 
-  /** Parse a {@link Properties} object into a {@link ColorProfile}. */
-  public static ColorProfile propertiesToColorProfile(Properties props) {
+  /**
+   * Parse a {@link Properties} object into a {@link ColorProfile}.
+   *
+   * @param props
+   *        The filename to write.
+   * @param correctOrder
+   *        A set representing the correct order of the complete set of profile entries, by key.
+   *
+   * @param correctOrder
+   */
+  public static ColorProfile propertiesToColorProfile(Properties props, Set<String> correctOrder) {
     String blockPrefix = BLOCK_NAMESPACE.toUpperCase();
     String editorPrefix = EDITOR_NAMESPACE.toUpperCase();
     ColorProfile.Builder builder = ColorProfile.newBuilder();
 
+    Map<String, ColorProfileEntry> readEntries =
+        correctOrder != null? new HashMap<String, ColorProfileEntry>() : null;
     for (Entry<Object, Object> entry : props.entrySet()) {
       String key = ((String) entry.getKey()).toUpperCase();
       String value = (String) entry.getValue();
@@ -493,7 +517,25 @@ public class HighlightPreferences extends JTabbedPane {
         continue;
       }
       key = key.substring(BLOCK_NAMESPACE.length());
-      builder.addProfileEntry(key, decode(key, value));
+      if (readEntries != null) {
+        readEntries.put(key, decode(key, value));
+      } else {
+        builder.addProfileEntry(key, decode(key, value));
+      }
+    }
+
+    if (correctOrder != null && readEntries != null) { // No one said warning compiler was perfect
+      for (String key : correctOrder) {
+        if (readEntries.containsKey(key)) {
+          builder.addProfileEntry(key, readEntries.get(key));
+          readEntries.remove(key);
+        } else {
+          builder.add(key, ColorProfile.makeEntry(key, null, 0));
+        }
+      }
+      for (Entry<String, ColorProfileEntry> entry : readEntries.entrySet()) {
+        builder.add(entry.getKey(), entry.getValue());
+      }
     }
 
     return builder.build();

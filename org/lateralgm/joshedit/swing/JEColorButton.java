@@ -3,8 +3,12 @@ package org.lateralgm.joshedit.swing;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.TexturePaint;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +29,16 @@ public class JEColorButton extends JButton {
 
   private Color color = Color.WHITE;
   private String caption;
+
+  private static BufferedImage nullColorPattern = null;
+
+  private static void generateNullColorPattern() {
+    nullColorPattern = new BufferedImage(5, 5, BufferedImage.TYPE_4BYTE_ABGR);
+    Graphics g = nullColorPattern.getGraphics();
+    g.setColor(Color.BLACK);
+    g.drawLine(4, 0, 0, 4);
+    g.dispose();
+  }
 
   /** Default constructor. */
   public JEColorButton() {
@@ -90,8 +104,18 @@ public class JEColorButton extends JButton {
     size.width -= paddingH << 1;
     size.height -= paddingV << 1;
 
-    g.setColor(color);
-    g.fillRect(paddingH, paddingV, size.width, size.height);
+    Rectangle myRect = new Rectangle(paddingH, paddingV, size.width, size.height);
+    if (color != null) {
+      g.setColor(color);
+      g.fillRect(paddingH, paddingV, size.width, size.height);
+    } else {
+      if (nullColorPattern == null) {
+        generateNullColorPattern();
+      }
+      Graphics2D g2 = (Graphics2D) g;
+      g2.setPaint(new TexturePaint(nullColorPattern, new Rectangle(0, 0, 5, 5)));
+      g2.fill(myRect);
+    }
     g.setColor(Color.BLACK);
     g.drawRect(paddingH, paddingV, size.width, size.height);
   }
@@ -148,9 +172,13 @@ public class JEColorButton extends JButton {
   private final class ClickListener implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
-      Color oColor = color;
-      color = JColorChooser.showDialog(JEColorButton.this, caption, color);
-      if (!color.equals(oColor)) {
+      Color nColor = JColorChooser.showDialog(JEColorButton.this, caption, color);
+      if (nColor == null) {
+        return;
+      }
+      if (!nColor.equals(color)) {
+        Color oColor = color;
+        color = nColor;
         fireColorChange(new ColorChangeEvent(oColor, color, JEColorButton.this));
       }
     }

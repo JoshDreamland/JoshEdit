@@ -484,6 +484,49 @@ public class JoshText extends JComponent
   }
 
   // ===============================================================================================
+  // ===== Basic workflow functions ================================================================
+  // ===============================================================================================
+
+  /** Check whether the current selection contains a point in the editor window. */
+  public boolean checkPointInSelection(Point p) {
+    return sel.containsPoint(p);
+  }
+
+  /** Move the caret to a new position, clearing the selection. */
+  public void setCaretPosition(int row, int col) {
+    caret.col = col;
+    caret.row = row;
+    sel.deselect(true);
+    caret.colw = line_wid_at(row, col);
+  }
+
+  /**
+   * Move the caret to a new position from a mouse point, clearing the selection.
+   *
+   * @param p
+   *        The point on the screen, such as a mouse click point.
+   */
+  public void setCaretPositionFromPoint(Point p) {
+    Point rowCol = mouseToPoint(p, true);
+    setCaretPosition(rowCol.y, rowCol.x);
+  }
+
+  /**
+   * Move the caret to a new position from a mouse point, clearing the selection, ignoring line
+   * boundaries and tab regions.
+   *
+   * @param p
+   *        The point on the screen, such as a mouse click point.
+   */
+  public void setAbsoluteCaretPositionFromPoint(Point p) {
+    Point rowCol = mouseToPoint(p, false);
+    sel.col = caret.col = rowCol.x;
+    sel.row = caret.row = rowCol.y;
+    sel.type = ST.RECT;
+    caret.colw = line_wid_at(rowCol.y, rowCol.x);
+  }
+
+  // ===============================================================================================
   // ===== Getting and setting text ================================================================
   // ===============================================================================================
 
@@ -1331,16 +1374,14 @@ public class JoshText extends JComponent
   /**
    * Get the width of a particular line up to a given position.
    *
-   * @param l
+   * @param row
    *        The index of the line in question.
    * @param pos
-   *        The number of characters from the start of the line to
-   *        consider in the width.
-   * @return The width of the specified portion of the line with the given
-   *         index.
+   *        The number of characters from the start of the line to consider in the width.
+   * @return The width of the specified portion of the line with the given index.
    */
-  public int line_wid_at(int l, int pos) {
-    return metrics.stringWidth(code.getsb(l).toString(), pos);
+  public int line_wid_at(int row, int pos) {
+    return metrics.stringWidth(code.getsb(row).toString(), pos);
   }
 
   /**

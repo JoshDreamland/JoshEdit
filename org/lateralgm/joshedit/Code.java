@@ -48,9 +48,9 @@ public class Code extends ArrayList<Line> {
   /**
    * Append a line given by a StringBuilder to the code.
    * The builder is not copied, but added by reference. Do not add the same builder multiple times.
-   *
+   * 
    * @param sb
-   *        The StringBuilder represetning the line to append.
+   *        The StringBuilder representing the line to append.
    * @return True, as specified in Collection.add(E).
    */
   public boolean add(StringBuilder sb) {

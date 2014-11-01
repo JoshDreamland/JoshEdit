@@ -546,6 +546,9 @@ public class JoshText extends JComponent
         code.add(line);
       }
     }
+    if (code.isEmpty()) {
+      code.add("");  //$NON-NLS-1$
+    }
     fireLineChange(0, code.size());
   }
 
@@ -661,7 +664,11 @@ public class JoshText extends JComponent
         }
       } finally {
         br.close();
+        if (code.isEmpty()) {
+          code.add("");  //$NON-NLS-1$
+        }
       }
+
       fireLineChange(0, 0);
       doCodeSize(true);
     } catch (Exception e) {

@@ -744,13 +744,24 @@ public class Selection implements Highlighter {
   }
 
   /**
-   * @param y
+   * Check if this selection contains a mouse point.
+   *
+   * @param p
+   *        The point to test for being inside this selection.
+   */
+  public boolean containsPoint(Point p) {
+    Point colRow = joshText.mouseToPoint(p, type != ST.RECT);
+    return contains(colRow.y, colRow.x);
+  }
+
+  /**
+   * @param rowNum
    *        The row to check for being within the selection.
-   * @param x
+   * @param colNum
    *        The column to check for being within the selection.
    * @return Whether the given column-row point is within the selection.
    */
-  public boolean contains(int y, int x) {
+  public boolean contains(int rowNum, int colNum) {
     if (isEmpty()) {
       return false;
     }
@@ -758,15 +769,16 @@ public class Selection implements Highlighter {
     SortedRegion r = getSortedRegion();
     switch (type) {
       case RECT:
-        return !(y < r.getMinY() || y > r.getMaxY() || x < r.getMinX() || x > r.getMaxX());
+        return !(rowNum < r.getMinY() || rowNum > r.getMaxY() // Simple point-rect check
+            || colNum < r.getMinX() || colNum > r.getMaxX());
       case NORM:
-        if (y < r.getMinY() || y > r.getMaxY()) {
+        if (rowNum < r.getMinY() || rowNum > r.getMaxY()) {
           return false;
         }
-        if (y == r.getMinY() && x < r.getMinX()) {
+        if (rowNum == r.getMinY() && colNum < r.getMinX()) {
           return false;
         }
-        if (y == r.getMaxY() && x > r.getMaxX()) {
+        if (rowNum == r.getMaxY() && colNum > r.getMaxX()) {
           return false;
         }
         return true;

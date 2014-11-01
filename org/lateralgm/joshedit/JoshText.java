@@ -1720,8 +1720,7 @@ public class JoshText extends JComponent
    * @param bound
    *        Whether the coordinate should be trimmed to a valid column.
    * @return A point representing the text coordinate, where Point.x is the
-   *         column,
-   *         and point.y is the row in the code.
+   *         column, and point.y is the row, in the code.
    */
   public Point mouseToPoint(Point m, boolean bound) {
     Point p = m;

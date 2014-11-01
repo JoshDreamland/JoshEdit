@@ -101,6 +101,48 @@ public class Selection implements Highlighter {
   }
 
   /**
+   * Moves the caret to the start of the selection, clearing the selection.
+   * This is invoked e.g. when an arrow key is pressed without Shift held down.
+   *
+   * @param reset
+   *        Whether to also reset the selection type back to Normal.
+   *        This is mostly just a convenience for when we know to switch to Normal.
+   */
+  public void deselectStart(boolean reset) {
+    if (caret.row < row || (caret.row == row && caret.col < col)) {
+      row = caret.row;
+      col = caret.col;
+    } else {
+      caret.row = row;
+      caret.col = col;
+    }
+    if (reset) {
+      changeType(ST.NORM);
+    }
+  }
+
+  /**
+   * Moves the caret to the start of the selection, clearing the selection.
+   * This is invoked e.g. when an arrow key is pressed without Shift held down.
+   *
+   * @param reset
+   *        Whether to also reset the selection type back to Normal.
+   *        This is mostly just a convenience for when we know to switch to Normal.
+   */
+  public void deselectEnd(boolean reset) {
+    if (row < caret.row || (caret.row == row && col < caret.col)) {
+      row = caret.row;
+      col = caret.col;
+    } else {
+      caret.row = row;
+      caret.col = col;
+    }
+    if (reset) {
+      changeType(ST.NORM);
+    }
+  }
+
+  /**
    * Copy the contents of the current selection to the clipboard,
    * if anything is selected. Otherwise, do nothing.
    */
@@ -125,7 +167,7 @@ public class Selection implements Highlighter {
       return Math.abs(caret.row - row) + 1;
     }
     if (str.length() > 0 && str.charAt(str.length() - 1) == 0) {
-      return Math.max(str.split("(\r?\n|\r)", -1).length, 1);
+      return Math.max(str.split("(\r?\n|\r)", -1).length, 1); //$NON-NLS-1$
     }
     return 1;
   }
@@ -167,9 +209,9 @@ public class Selection implements Highlighter {
       insert(ins);
       return caret.row;
     } catch (UnsupportedFlavorException e) {
-      joshText.infoMessages.add("Clipboard contains no text.");
+      joshText.infoMessages.add("Clipboard contains no text."); //$NON-NLS-1$
     } catch (IOException e) {
-      joshText.infoMessages.add("Clipboard I/O error: Maybe it's massive?");
+      joshText.infoMessages.add("Clipboard I/O error: Maybe it's massive?"); //$NON-NLS-1$
     }
     return caret.row;
   }
@@ -199,11 +241,11 @@ public class Selection implements Highlighter {
       insert(str);
       return caret.row;
     } catch (UnsupportedFlavorException e) {
-      joshText.infoMessages.add("Middle click paste: No data.");
-      System.err.println("Middle click paste: No data.");
+      joshText.infoMessages.add("Middle click paste: No data."); //$NON-NLS-1$
+      System.err.println("Middle click paste: No data."); //$NON-NLS-1$
     } catch (IOException e) {
-      joshText.infoMessages.add("Middle click paste: I/O Exception.");
-      System.err.println("Middle click paste: I/O Exception.");
+      joshText.infoMessages.add("Middle click paste: I/O Exception."); //$NON-NLS-1$
+      System.err.println("Middle click paste: I/O Exception."); //$NON-NLS-1$
     }
     caret.positionChanged();
     return caret.row;
@@ -243,7 +285,7 @@ public class Selection implements Highlighter {
       a = fallbackMCClipboard;
     }
     if (a == null) {
-      a = fallbackMCClipboard = new Clipboard("Improvised Middle-Click Clipboard");
+      a = fallbackMCClipboard = new Clipboard("Improvised Middle-Click Clipboard"); //$NON-NLS-1$
     }
     StringSelection stringSelection = new StringSelection(getSelectedTextForCopy());
     a.setContents(stringSelection, joshText);
@@ -253,10 +295,10 @@ public class Selection implements Highlighter {
   public void moveBegin() {
     if (row > caret.row) {
       row = caret.row;
-      col = caret.col;
+      col = type == ST.RECT? Math.min(caret.col, col) : caret.col;
     } else {
       caret.row = row;
-      caret.col = col;
+      caret.col = type == ST.RECT? Math.min(caret.col, col) : col;
     }
     type = ST.NORM;
   }
@@ -265,10 +307,10 @@ public class Selection implements Highlighter {
   public void moveEnd() {
     if (row > caret.row) {
       caret.row = row;
-      caret.col = col;
+      caret.col = type == ST.RECT? Math.max(caret.col, col) : col;
     } else {
       row = caret.row;
-      col = caret.col;
+      col = type == ST.RECT? Math.max(caret.col, col) : caret.col;
     }
     type = ST.NORM;
   }
@@ -335,11 +377,20 @@ public class Selection implements Highlighter {
   }
 
   /**
+   * Test if the selection is completely empty (is just the caret).
+   *
+   * @return Whether the selection is empty.
+   */
+  public boolean isCompletelyEmpty() {
+    return col == caret.col && row == caret.row;
+  }
+
+  /**
    * @return The text in this selection.
    */
   public String getText() {
     if (isEmpty()) {
-      return "";
+      return ""; //$NON-NLS-1$
     }
     if (row == caret.row) {
       return code.getsb(row).substring(Math.min(col, caret.col), Math.max(col, caret.col));
@@ -347,9 +398,9 @@ public class Selection implements Highlighter {
     final int f = Math.min(row, caret.row), l = Math.max(row, caret.row);
     StringBuilder ret = new StringBuilder(code.getsb(f).substring(f == row? col : caret.col));
     for (int y = f + 1; y < l; y++) {
-      ret.append(System.getProperty("line.separator") + code.getsb(y));
+      ret.append(System.getProperty("line.separator") + code.getsb(y)); //$NON-NLS-1$
     }
-    ret.append(System.getProperty("line.separator")
+    ret.append(System.getProperty("line.separator") //$NON-NLS-1$
         + code.getsb(l).substring(0, l == row? col : caret.col));
     return new String(ret);
   }
@@ -436,7 +487,7 @@ public class Selection implements Highlighter {
    *        The text to insert.
    */
   public void insert(String str) {
-    String[] lines = str.split("(\r?\n|\r)", -1);
+    String[] lines = str.split("(\r?\n|\r)", -1); //$NON-NLS-1$
     if (lines.length > 0) {
       switch (type) {
         case NORM:
@@ -480,15 +531,14 @@ public class Selection implements Highlighter {
    * @return The number of lines inserted.
    */
   public int insertRect(String str) {
-    System.out.println("Half-ass Rectpaste");
-    String[] lines = str.split("(\r?\n|\r)", -1);
+    String[] lines = str.split("(\r?\n|\r)", -1); //$NON-NLS-1$
     if (lines.length > 0) {
       switch (type) {
         case NORM:
           deleteSel();
           int dcol = joshText.index_to_column(caret.row, caret.col);
           while (caret.row + lines.length > code.size()) {
-            code.add(new Line(new StringBuilder("")));
+            code.add(new Line(new StringBuilder(""))); //$NON-NLS-1$
           }
           for (int i = 0; i < lines.length; i++) {
             int ipos = joshText.column_to_index_unsafe(caret.row + i, dcol);
@@ -508,7 +558,6 @@ public class Selection implements Highlighter {
             }
             return i;
           }
-          System.out.println("Rectpaste");
           final int maxw = Math.abs(caret.col - col),
           ld = Math.abs(caret.row - row);
           final int sr = Math.min(caret.row, row);
@@ -877,7 +926,7 @@ public class Selection implements Highlighter {
     if (r.getMinY() == maxY) {
       StringBuilder line = joshText.code.getsb(r.getMinY());
       if (r.getMinX() >= line.length()) {
-        return "";
+        return ""; //$NON-NLS-1$
       }
       return line.substring(r.getMinX(), Math.min(r.getMaxX(), line.length()));
     }

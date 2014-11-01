@@ -2150,59 +2150,70 @@ public class JoshText extends JComponent
       case KeyEvent.VK_LEFT:
         int otype = selGetKind(code.getsb(caret.row), caret.col - 1);
         int moved = 0;
-        do {
-          if (caret.col > 0) {
-            --caret.col;
-          } else if (caret.row > 0 && sel.type != ST.RECT) {
-            caret.row--;
-            caret.col = code.getsb(caret.row).length();
+
+        if (!sel.isCompletelyEmpty() && !e.isAltDown() && !e.isShiftDown()) {
+          sel.deselectStart(true);
+        } else {
+          do {
+            if (caret.col > 0) {
+              --caret.col;
+            } else if (caret.row > 0 && sel.type != ST.RECT) {
+              caret.row--;
+              caret.col = code.getsb(caret.row).length();
+            } else {
+              break;
+            }
+            if (moved == 0 && !selOfKind(code.getsb(caret.row), caret.col - 1, otype)) {
+              otype = selGetKind(code.getsb(caret.row), caret.col - 1);
+            }
+            ++moved;
+          } while (e.isControlDown() && selOfKind(code.getsb(caret.row), caret.col - 1, otype));
+          undoCanMerge = false;
+
+          if (e.isAltDown()) {
+            sel.changeType(ST.RECT);
+          } else if (e.isShiftDown()) {
+            sel.changeType(ST.NORM);
           } else {
-            break;
+            sel.deselect(true);
           }
-          if (moved == 0 && !selOfKind(code.getsb(caret.row), caret.col - 1, otype)) {
-            otype = selGetKind(code.getsb(caret.row), caret.col - 1);
-          }
-          ++moved;
-        } while (e.isControlDown() && selOfKind(code.getsb(caret.row), caret.col - 1, otype));
-        undoCanMerge = false;
+        }
 
         caret.colw = line_wid_at(caret.row, caret.col);
-        if (e.isAltDown()) {
-          sel.changeType(ST.RECT);
-        } else if (e.isShiftDown()) {
-          sel.changeType(ST.NORM);
-        } else {
-          sel.deselect(true);
-        }
         doCodeSize(false);
         e.consume();
         break;
       case KeyEvent.VK_RIGHT:
         otype = selGetKind(code.getsb(caret.row), caret.col);
         moved = 0;
-        do {
-          if (sel.type == ST.RECT || caret.col < code.getsb(caret.row).length()) {
-            ++caret.col;
-          } else if (caret.row + 1 < code.size() && sel.type != ST.RECT) {
-            caret.row++;
-            caret.col = 0;
-          } else {
-            break;
-          }
-          if (moved == 0 && !selOfKind(code.getsb(caret.row), caret.col, otype)) {
-            otype = selGetKind(code.getsb(caret.row), caret.col);
-          }
-          ++moved;
-        } while (e.isControlDown() && selOfKind(code.getsb(caret.row), caret.col, otype));
-        undoCanMerge = false;
-        caret.colw = line_wid_at(caret.row, caret.col);
-        if (e.isAltDown()) {
-          sel.changeType(ST.RECT);
-        } else if (e.isShiftDown()) {
-          sel.changeType(ST.NORM);
+        if (!sel.isCompletelyEmpty() && !e.isAltDown() && !e.isShiftDown()) {
+          sel.deselectEnd(true);
         } else {
-          sel.deselect(true);
+        do {
+            if (sel.type == ST.RECT || caret.col < code.getsb(caret.row).length()) {
+              ++caret.col;
+            } else if (caret.row + 1 < code.size() && sel.type != ST.RECT) {
+              caret.row++;
+              caret.col = 0;
+            } else {
+              break;
+            }
+            if (moved == 0 && !selOfKind(code.getsb(caret.row), caret.col, otype)) {
+              otype = selGetKind(code.getsb(caret.row), caret.col);
+            }
+            ++moved;
+          } while (e.isControlDown() && selOfKind(code.getsb(caret.row), caret.col, otype));
+          undoCanMerge = false;
+          if (e.isAltDown()) {
+            sel.changeType(ST.RECT);
+          } else if (e.isShiftDown()) {
+            sel.changeType(ST.NORM);
+          } else {
+            sel.deselect(true);
+          }
         }
+
+        caret.colw = line_wid_at(caret.row, caret.col);
         e.consume();
         break;
       case KeyEvent.VK_UP:

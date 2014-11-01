@@ -74,7 +74,7 @@ public class Runner {
 
   public static void createAndShowGUI() {
     showCodeWindow(true);
-    showBindingsWindow(false);
+    // showBindingsWindow(false);
   }
 
   public static void showCodeWindow(boolean closeExit) {

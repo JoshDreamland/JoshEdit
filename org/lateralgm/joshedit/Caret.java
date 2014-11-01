@@ -13,6 +13,7 @@ import java.awt.Color;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -47,7 +48,7 @@ public class Caret implements ActionListener {
   /** The JoshText that contains us. */
   private JoshText joshText;
   /** List of caret listeners to notify on position update. */
-  private ArrayList<CaretListener> caretListeners = new ArrayList<CaretListener>();
+  private final ArrayList<CaretListener> caretListeners = new ArrayList<CaretListener>();
 
   /**
    * @param jt
@@ -78,7 +79,7 @@ public class Caret implements ActionListener {
    * @return The default blink/flash rate.
    */
   public static int getDefaultBlinkRate() {
-    Object oblink = UIManager.get("TextArea.caretBlinkRate", null);
+    Object oblink = UIManager.get("TextArea.caretBlinkRate", null); //$NON-NLS-1$
     int blink = 500;
     if (oblink != null && oblink instanceof Number) {
       blink = ((Number) oblink).intValue();
@@ -114,18 +115,15 @@ public class Caret implements ActionListener {
     repaint();
   }
 
+  private Selection lastSelection;
+
   /** Repaint the caret. */
   protected final synchronized void repaint() {
     if (painter != null) {
-      FontMetrics fm = painter.getFontMetrics(painter.getFont());
-      Insets i = painter.getInsets();
-      int gw = fm.getMaxAdvance() / 2, gh = fm.getHeight();
-      if (joshText.sel.type == ST.RECT) {
-        painter.repaint(1 + i.left + col * gw, i.top + row * gh, gw + 1, gh);
-      } else {
-        painter.repaint(1 + i.left + joshText.line_wid_at(row, col), i.top + row * gh,
-            insert? gw + 1 : 1, gh);
-      }
+      ST type = lastSelection == null? ST.NORM : lastSelection.type;
+      int row = lastSelection == null? this.row : lastSelection.row;
+      Rectangle rect = computeCaretRect(row, type);
+      painter.repaint(rect.x, rect.y, rect.width, rect.height);
     }
   }
 
@@ -138,20 +136,31 @@ public class Caret implements ActionListener {
   public void paint(Graphics g, Selection sel) {
     // Draw caret
     if (visible) {
-      FontMetrics fm = painter.getFontMetrics(painter.getFont());
-      Insets i = painter.getInsets();
-      int gw = fm.getMaxAdvance() / 2, gh = fm.getHeight();
-
       g.setXORMode(Color.WHITE);
-      if (sel.type == ST.RECT) {
-        g.fillRect(1 + i.left + col * gw, i.top + Math.min(row, sel.row) * gh, insert? 1 : gw + 1,
-            (Math.abs(row - sel.row) + 1) * gh);
-      } else {
-        g.fillRect(1 + i.left + joshText.line_wid_at(row, col), i.top + row * gh, insert? 1
-            : gw + 1, gh);
-      }
+      Rectangle rect = computeCaretRect(sel.row, sel.type);
+      g.fillRect(rect.x, rect.y, rect.width, rect.height);
       g.setPaintMode();
     }
+  }
+
+  private Rectangle computeCaretRect(int selRow, ST selType) {
+    Rectangle rect;
+    FontMetrics fm = painter.getFontMetrics(painter.getFont());
+    Insets i = painter.getInsets();
+    int gw = fm.getMaxAdvance(), gh = fm.getHeight();
+    if (selType == ST.RECT) {
+      rect = new Rectangle(1 + i.left + col * gw, // Position of the selection
+          i.top + Math.min(row, selRow) * gh, // Top of the selection
+          insert? 1 : gw, // Width of the glyph in overwrite mode, 1 in insert mode
+          (Math.abs(row - selRow) + 1) * gh); // Height of selection
+    } else {
+      int off = insert? 1 : 0;
+      rect = new Rectangle(off + i.left + joshText.line_wid_at(row, col), // Position of glyph, plus offset
+          i.top + row * gh, // Top of the glyph
+          insert? 1 : gw, // Width of the glyph in overwrite mode, 1 in insert mode
+          gh); // Height of the glyph
+    }
+    return rect;
   }
 
   /**

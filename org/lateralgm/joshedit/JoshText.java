@@ -210,7 +210,7 @@ public class JoshText extends JComponent
 
     @Override
     public String getLoadFilename() {
-      if (fileChooser.showSaveDialog(JoshText.this) != JFileChooser.APPROVE_OPTION) {
+      if (fileChooser.showOpenDialog(JoshText.this) != JFileChooser.APPROVE_OPTION) {
         return null;
       }
       return fileChooser.getSelectedFile().getPath();
@@ -218,7 +218,7 @@ public class JoshText extends JComponent
 
     @Override
     public String getSaveFilename() {
-      if (fileChooser.showOpenDialog(JoshText.this) != JFileChooser.APPROVE_OPTION) {
+      if (fileChooser.showSaveDialog(JoshText.this) != JFileChooser.APPROVE_OPTION) {
         return null;
       }
       return fileChooser.getSelectedFile().getPath();

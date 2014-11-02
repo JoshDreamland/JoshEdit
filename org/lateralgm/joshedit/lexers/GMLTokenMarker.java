@@ -33,9 +33,12 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.lateralgm.joshedit.ColorProfile;
+import org.lateralgm.joshedit.DefaultKeywords;
 import org.lateralgm.joshedit.DefaultKeywords.Constant;
 import org.lateralgm.joshedit.DefaultKeywords.Construct;
 import org.lateralgm.joshedit.DefaultKeywords.Function;
+import org.lateralgm.joshedit.DefaultKeywords.HasKeywords;
+import org.lateralgm.joshedit.DefaultKeywords.Keyword;
 import org.lateralgm.joshedit.DefaultKeywords.Operator;
 import org.lateralgm.joshedit.DefaultKeywords.Variable;
 import org.lateralgm.joshedit.DefaultTokenMarker;
@@ -44,7 +47,7 @@ import org.lateralgm.joshedit.LineNumberPanel;
 /**
  * Sample GML token marker class based on the default token marker.
  */
-public class GMLTokenMarker extends DefaultTokenMarker {
+public class GMLTokenMarker extends DefaultTokenMarker implements HasKeywords {
 
   private static class GMLDescription implements LanguageDescription {
     @Override
@@ -215,5 +218,13 @@ public class GMLTokenMarker extends DefaultTokenMarker {
 
     otherTokens.add(new SimpleToken(S_NUMERIC_LITERAL, "[0-9]+", profile)); //$NON-NLS-1$
     otherTokens.add(new SimpleToken(S_HEX_LITERAL, "\\$[0-9A-Fa-f]+", profile)); //$NON-NLS-1$
+  }
+
+  private static final DefaultKeywords.Keyword[][] GML_KEYWORDS = { GMLKeywords.CONSTRUCTS,
+      GMLKeywords.FUNCTIONS, GMLKeywords.VARIABLES, GMLKeywords.OPERATORS, GMLKeywords.CONSTANTS };
+
+  @Override
+  public Keyword[][] getKeywords() {
+    return GML_KEYWORDS;
   }
 }

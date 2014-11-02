@@ -511,6 +511,16 @@ public class JoshText extends JComponent
     setCaretPosition(rowCol.y, rowCol.x);
   }
 
+  /** Move the parent viewport so that it contains the cursor, using default settings. */
+  public void showCaret() {
+    doShowCaret();
+  }
+
+  /** Move the parent viewport so that it displays the cursor front and center. */
+  public void centerCaret() {
+    doShowCaret(-1, -1, 0, 0);
+  }
+
   /**
    * Move the caret to a new position from a mouse point, clearing the selection, ignoring line
    * boundaries and tab regions.
@@ -1221,13 +1231,8 @@ public class JoshText extends JComponent
    */
   void fitToCode() {
     int insetY = lineLeading;
-    int w = (maxRowSize + 1) * monoAdvance + getInsets().left + 1; // extra
-    // char
-    // +
-    // pixel
-    // for
-    // overwrite
-    // caret
+    int w = (maxRowSize + 1) * monoAdvance + getInsets().left + 1; // extra char + pixel for
+                                                                   // overwrite caret
     int h = code.size() * lineHeight + insetY;
     setMinimumSize(new Dimension(w, h));
     setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
@@ -1253,33 +1258,60 @@ public class JoshText extends JComponent
     }
   }
 
-  /** Adjust the view such that it contains the caret. */
   private void doShowCaret() {
+    // TODO(JoshDreamland): Extract these as settings.
+    doShowCaret(0, 0, 0, 5);
+  }
+
+  /**
+   * Adjust the view such that it contains the caret.
+   *
+   * @param hPad
+   *        The horizontal padding to place around the caret.
+   * @param vPad
+   *        The vertical padding to keep around the caret.
+   * @param rowSkip
+   *        The number of extra rows to advance at a time.
+   * @param colSkip
+   *        The number of extra columns to advance at a time.
+   */
+  private void doShowCaret(int hPad, int vPad, int rowSkip, int colSkip) {
     if (!(getParent() instanceof JViewport)) {
       return;
     }
 
-    JViewport p = ((JViewport) getParent());
-    Rectangle vr = p.getViewRect();
+    JViewport viewport = ((JViewport) getParent());
+    Rectangle viewRect = viewport.getViewRect();
 
-    Rectangle cr =
+    int maxVPad = (viewport.getHeight() - lineHeight * (rowSkip + 1)) / 2 - 5;
+    if (vPad > maxVPad || vPad < 0) {
+      vPad = maxVPad;
+    }
+    int maxHPad = (viewport.getWidth() - monoAdvance * (colSkip + 1)) / 2 - 5;
+    if (hPad > maxHPad || hPad < 0) {
+      hPad = maxHPad;
+    }
+
+    Rectangle caretRect =
         new Rectangle(caret.col * monoAdvance, caret.row * lineHeight, monoAdvance, lineHeight);
-    Point rp = new Point(vr.x, vr.y);
+    Point topLeft = new Point(viewRect.x, viewRect.y);
 
-    if (cr.y + cr.height > vr.y + vr.height) {
-      rp.y = cr.y + cr.height - vr.height;
-    } else if (cr.y < vr.y) {
-      rp.y = Math.max(0, cr.y);
+    if (caretRect.y + caretRect.height + vPad > viewRect.y + viewRect.height) {
+      topLeft.y = caretRect.y + caretRect.height + vPad + rowSkip * lineHeight - viewRect.height;
+      topLeft.y = Math.min(getHeight() - viewport.getHeight(), topLeft.y);
+    } else if (caretRect.y - vPad < viewRect.y) {
+      topLeft.y = Math.max(0, caretRect.y - vPad - rowSkip * lineHeight);
     }
 
-    if (cr.x + cr.width > vr.x + vr.width) {
-      rp.x = cr.x + cr.width - vr.width + 5 * monoAdvance;
-    } else if (cr.x < vr.x) {
-      rp.x = Math.max(0, cr.x - 5 * monoAdvance);
+    if (caretRect.x + caretRect.width + hPad > viewRect.x + viewRect.width) {
+      topLeft.x = caretRect.x + caretRect.width + hPad - viewRect.width + colSkip * monoAdvance;
+      topLeft.x = Math.min(getWidth() - viewport.getWidth(), topLeft.x);
+    } else if (caretRect.x - hPad < viewRect.x) {
+      topLeft.x = Math.max(0, caretRect.x - hPad - colSkip * monoAdvance);
     }
 
-    if (rp.x != vr.x || rp.y != vr.y) {
-      p.setViewPosition(rp);
+    if (topLeft.x != viewRect.x || topLeft.y != viewRect.y) {
+      viewport.setViewPosition(topLeft);
     }
   }
 

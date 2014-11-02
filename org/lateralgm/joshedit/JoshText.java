@@ -37,6 +37,11 @@ import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.geom.Rectangle2D;
+import java.awt.print.PageFormat;
+import java.awt.print.Printable;
+import java.awt.print.PrinterException;
+import java.awt.print.PrinterJob;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
@@ -53,6 +58,10 @@ import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.print.PrintService;
+import javax.print.attribute.Attribute;
+import javax.print.attribute.HashPrintRequestAttributeSet;
+import javax.print.attribute.PrintRequestAttributeSet;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
@@ -77,7 +86,7 @@ import org.lateralgm.joshedit.preferences.KeybindingsPanel;
  * The main component class; instantiate this, and you're good to go.
  */
 public class JoshText extends JComponent
-    implements Scrollable, ComponentListener, ClipboardOwner, FocusListener {
+    implements Scrollable, ComponentListener, ClipboardOwner, FocusListener, Printable {
   /** Make the compiler shut up. */
   private static final long serialVersionUID = 1L;
 
@@ -889,6 +898,15 @@ public class JoshText extends JComponent
 
   /** Redo the most recently undone action. */
   public void Redo() {
+  	try
+			{
+			this.Print();
+			}
+		catch (PrinterException e)
+			{
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			}
     // Redo, but then go ahead and repaint
     redo();
     doCodeSize(true);
@@ -905,6 +923,71 @@ public class JoshText extends JComponent
   public void ShowQuickFind() {
     finder.present();
   }
+  
+  /** Convenience method for displaying a print dialog returns true if successful 
+   * or false if the user cancels or an exception otherwise occurs */
+  public boolean Print() throws PrinterException {
+		//Step 1: Set up initial print settings.
+		PrintRequestAttributeSet aset = new HashPrintRequestAttributeSet();
+		//Step 2: Obtain a print job.
+		PrinterJob pj = PrinterJob.getPrinterJob();
+		//Step 3: Find print services.
+		PrintService[] services = PrinterJob.lookupPrintServices();
+		if (services.length > 0) {
+			System.out.println("selected printer: " + services[0]);
+			pj.setPrintService(services[0]);
+			// Step 4: Update the settings made by the user in the dialogs.
+			if (pj.printDialog(aset)) {
+				// Step 5: Pass the final settings into the print request.
+				pj.print(aset);
+				return true;
+			}
+		} 
+		return false;
+  }
+  
+	@Override
+	public int print(Graphics g, PageFormat pf, int pageIndex) throws PrinterException
+		{
+			//int pageCount = (getLineCount() * lineHeight) / pf.getImageableHeight();
+			int pageLines = 0;
+	    if (pageIndex == 0) {
+					Graphics2D graphics2D = (Graphics2D) g;
+					graphics2D.translate (pf.getImageableX (), pf.getImageableY ()); 
+					Rectangle2D.Double rectangle = new Rectangle2D.Double ();
+					rectangle.setRect (72, 72, 72, 72);
+					graphics2D.draw (rectangle);
+					
+			    Object map = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
+			    if (map != null) {
+			      ((Graphics2D) g).addRenderingHints((Map<?, ?>) map);
+			    }
+
+			    Rectangle clip = g.getClipBounds();
+
+			    // For now we won't do this shit to avoid wasting the users ink.
+			    // Fill background
+			    //g.setColor(getBackground());
+			    //g.fillRect(clip.x, clip.y, clip.width, clip.height);
+
+			    //for (Highlighter a : highlighters) {
+			     // a.paint(g, getInsets(), metrics, 0, code.size());
+			    //}
+
+			    // Draw each line
+			    final int insetY = lineLeading + lineAscent;
+			    int lineNum = pageIndex * pageLines;
+
+			    for (int ty = lineNum * lineHeight + insetY; ty < lineNum * lineHeight + pageLines * lineHeight + lineHeight
+			        && lineNum < code.size(); ty += lineHeight) {
+			      drawLine(g, lineNum++, ty);
+			    }
+					
+		    	return Printable.PAGE_EXISTS;                                   
+			} else {
+			    return Printable.NO_SUCH_PAGE;
+			}
+		}
 
   /** Decrease the indent for all selected lines. */
   /*
@@ -3477,4 +3560,5 @@ public class JoshText extends JComponent
   public boolean isChanged() {
     return !undoPatches.isEmpty();
   }
+  
 }

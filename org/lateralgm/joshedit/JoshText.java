@@ -898,15 +898,6 @@ public class JoshText extends JComponent
 
   /** Redo the most recently undone action. */
   public void Redo() {
-  	try
-			{
-			this.Print();
-			}
-		catch (PrinterException e)
-			{
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			}
     // Redo, but then go ahead and repaint
     redo();
     doCodeSize(true);
@@ -1009,6 +1000,21 @@ public class JoshText extends JComponent
   // == Wrap above methods as actions ==============================================================
   // ===============================================================================================
 
+  /** Print action. */
+  public AbstractAction actPrint = new AbstractAction("PRINT") { //$NON-NLS-1$
+        private static final long serialVersionUID = 1L;
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+	      	try {
+    				Print();
+    			} catch (PrinterException pe) {
+	    			// TODO Auto-generated catch block
+	    			pe.printStackTrace();
+    			}
+        }
+      };
+	
   /** Cut action. */
   public AbstractAction actCut = new AbstractAction("CUT") { //$NON-NLS-1$
         private static final long serialVersionUID = 1L;
@@ -1133,7 +1139,7 @@ public class JoshText extends JComponent
   private void mapActions() {
     ActionMap am = getActionMap();
     Action acts[] =
-        { actLineDel, actLineDup, actLineSwap, actLineUnSwap, actSelAll, actCopy, actCut, actPaste,
+        { actLineDel, actLineDup, actLineSwap, actLineUnSwap, actSelAll, actPrint, actCopy, actCut, actPaste,
             actUndo, actRedo, actFind, actQuickFind };
     InputMap map = getInputMap();
     KeyStroke[] keys = map.allKeys();

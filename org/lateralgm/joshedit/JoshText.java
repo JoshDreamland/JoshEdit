@@ -37,7 +37,6 @@ import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.awt.geom.Rectangle2D;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
@@ -59,7 +58,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.print.PrintService;
-import javax.print.attribute.Attribute;
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
 import javax.swing.AbstractAction;
@@ -915,6 +913,10 @@ public class JoshText extends JComponent
     finder.present();
   }
   
+  private int pageLines = 0;
+  private int pageCount = 0;
+  
+  
   /** Convenience method for displaying a print dialog returns true if successful 
    * or false if the user cancels or an exception otherwise occurs */
   public boolean Print() throws PrinterException {
@@ -922,6 +924,7 @@ public class JoshText extends JComponent
 		PrintRequestAttributeSet aset = new HashPrintRequestAttributeSet();
 		//Step 2: Obtain a print job.
 		PrinterJob pj = PrinterJob.getPrinterJob();
+		pj.setPrintable(this);
 		//Step 3: Find print services.
 		PrintService[] services = PrinterJob.lookupPrintServices();
 		if (services.length > 0) {
@@ -929,6 +932,9 @@ public class JoshText extends JComponent
 			pj.setPrintService(services[0]);
 			// Step 4: Update the settings made by the user in the dialogs.
 			if (pj.printDialog(aset)) {
+				PageFormat pf = pj.getPageFormat(aset);
+				pageLines = (int) Math.floor(pf.getImageableHeight() / lineHeight);
+				pageCount = (int) Math.ceil((float)getLineCount() / (float)pageLines);
 				// Step 5: Pass the final settings into the print request.
 				pj.print(aset);
 				return true;
@@ -940,21 +946,15 @@ public class JoshText extends JComponent
 	@Override
 	public int print(Graphics g, PageFormat pf, int pageIndex) throws PrinterException
 		{
-			//int pageCount = (getLineCount() * lineHeight) / pf.getImageableHeight();
-			int pageLines = 0;
-	    if (pageIndex == 0) {
+			//JOptionPane.showMessageDialog(null,pageIndex + " : " + pageLines + " : " + pageCount);
+	    if (pageIndex < pageCount) {
 					Graphics2D graphics2D = (Graphics2D) g;
-					graphics2D.translate (pf.getImageableX (), pf.getImageableY ()); 
-					Rectangle2D.Double rectangle = new Rectangle2D.Double ();
-					rectangle.setRect (72, 72, 72, 72);
-					graphics2D.draw (rectangle);
+					graphics2D.translate (pf.getImageableX(), pf.getImageableY()); 
 					
 			    Object map = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
 			    if (map != null) {
 			      ((Graphics2D) g).addRenderingHints((Map<?, ?>) map);
 			    }
-
-			    Rectangle clip = g.getClipBounds();
 
 			    // For now we won't do this shit to avoid wasting the users ink.
 			    // Fill background
@@ -966,12 +966,13 @@ public class JoshText extends JComponent
 			    //}
 
 			    // Draw each line
-			    final int insetY = lineLeading + lineAscent;
-			    int lineNum = pageIndex * pageLines;
+			    int insetY = lineLeading + lineAscent;
+			    int lastLines = pageIndex * pageLines;
+			    int lineCount = getLineCount();
 
-			    for (int ty = lineNum * lineHeight + insetY; ty < lineNum * lineHeight + pageLines * lineHeight + lineHeight
-			        && lineNum < code.size(); ty += lineHeight) {
-			      drawLine(g, lineNum++, ty);
+			    for (int lineNum = 0; lineNum < pageLines && lineNum + lastLines < lineCount; lineNum++) {
+			    	//JOptionPane.showMessageDialog(null,lineNum + " : " + lineCount);
+			      drawLine(g, lineNum + lastLines, insetY + lineNum * lineHeight);
 			    }
 					
 		    	return Printable.PAGE_EXISTS;                                   

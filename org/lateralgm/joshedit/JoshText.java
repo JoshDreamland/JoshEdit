@@ -913,9 +913,6 @@ public class JoshText extends JComponent
     finder.present();
   }
   
-  private int pageLines = 0;
-  private int pageCount = 0;
-  
   
   /** Convenience method for displaying a print dialog returns true if successful 
    * or false if the user cancels or an exception otherwise occurs */
@@ -932,9 +929,6 @@ public class JoshText extends JComponent
 			pj.setPrintService(services[0]);
 			// Step 4: Update the settings made by the user in the dialogs.
 			if (pj.printDialog(aset)) {
-				PageFormat pf = pj.getPageFormat(aset);
-				pageLines = (int) Math.floor(pf.getImageableHeight() / lineHeight);
-				pageCount = (int) Math.ceil((float)getLineCount() / (float)pageLines);
 				// Step 5: Pass the final settings into the print request.
 				pj.print(aset);
 				return true;
@@ -945,40 +939,40 @@ public class JoshText extends JComponent
   
 	@Override
 	public int print(Graphics g, PageFormat pf, int pageIndex) throws PrinterException
-		{
+		{	
+			int pageLines = (int) Math.floor(pf.getImageableHeight() / lineHeight);
+			int pageCount = (int) Math.ceil((float)getLineCount() / (float)pageLines);
 			//JOptionPane.showMessageDialog(null,pageIndex + " : " + pageLines + " : " + pageCount);
-	    if (pageIndex < pageCount) {
-					Graphics2D graphics2D = (Graphics2D) g;
-					graphics2D.translate (pf.getImageableX(), pf.getImageableY()); 
-					
-			    Object map = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
-			    if (map != null) {
-			      ((Graphics2D) g).addRenderingHints((Map<?, ?>) map);
-			    }
+			if (pageIndex >= pageCount) return Printable.NO_SUCH_PAGE;
+			
+			Graphics2D graphics2D = (Graphics2D) g;
+			graphics2D.translate (pf.getImageableX(), pf.getImageableY()); 
+			
+	    Object map = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
+	    if (map != null) {
+	      ((Graphics2D) g).addRenderingHints((Map<?, ?>) map);
+	    }
 
-			    // For now we won't do this shit to avoid wasting the users ink.
-			    // Fill background
-			    //g.setColor(getBackground());
-			    //g.fillRect(clip.x, clip.y, clip.width, clip.height);
+	    // For now we won't do this shit to avoid wasting the users ink.
+	    // Fill background
+	    //g.setColor(getBackground());
+	    //g.fillRect(clip.x, clip.y, clip.width, clip.height);
 
-			    //for (Highlighter a : highlighters) {
-			     // a.paint(g, getInsets(), metrics, 0, code.size());
-			    //}
+	    //for (Highlighter a : highlighters) {
+	     // a.paint(g, getInsets(), metrics, 0, code.size());
+	    //}
 
-			    // Draw each line
-			    int insetY = lineLeading + lineAscent;
-			    int lastLines = pageIndex * pageLines;
-			    int lineCount = getLineCount();
+	    // Draw each line
+	    int insetY = lineLeading + lineAscent;
+	    int lastLines = pageIndex * pageLines;
+	    int lineCount = getLineCount();
 
-			    for (int lineNum = 0; lineNum < pageLines && lineNum + lastLines < lineCount; lineNum++) {
-			    	//JOptionPane.showMessageDialog(null,lineNum + " : " + lineCount);
-			      drawLine(g, lineNum + lastLines, insetY + lineNum * lineHeight);
-			    }
-					
-		    	return Printable.PAGE_EXISTS;                                   
-			} else {
-			    return Printable.NO_SUCH_PAGE;
-			}
+	    for (int lineNum = 0; lineNum < pageLines && lineNum + lastLines < lineCount; lineNum++) {
+	    	//JOptionPane.showMessageDialog(null,lineNum + " : " + lineCount);
+	      drawLine(g, lineNum + lastLines, insetY + lineNum * lineHeight);
+	    }
+			
+    	return Printable.PAGE_EXISTS;                                   
 		}
 
   /** Decrease the indent for all selected lines. */

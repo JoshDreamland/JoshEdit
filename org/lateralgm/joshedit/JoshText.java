@@ -938,49 +938,49 @@ public class JoshText extends JComponent
   }
   
   /** Print the given page of code based on how many lines of code will fit in the printable area */
-	@Override
-	public int print(Graphics g, PageFormat pf, int pageIndex) throws PrinterException
-	{	
-		//TODO: Because of banded printing the OS and printer driver may actually call this method
-		//two or more times for the same page, the first time is to help the printer determine extents.
-		//http://stackoverflow.com/questions/1943556/why-does-the-java-printables-print-method-get-called-multiple-times-with-the-sa
-		//It may be possible to get away with generating an array of BufferedImage for each page
-		//when pg.print(); is fired and just have this function look up the already rastered pages.
-		// - Robert B. Colton
-		int pageLines = (int) Math.floor(pf.getImageableHeight() / lineHeight);
-		int pageCount = (int) Math.ceil((float)getLineCount() / (float)pageLines);
-		//JOptionPane.showMessageDialog(null,pageIndex + " : " + pageLines + " : " + pageCount);
-		if (pageIndex >= pageCount) return Printable.NO_SUCH_PAGE;
-		
-		Graphics2D graphics2D = (Graphics2D) g;
-		graphics2D.translate (pf.getImageableX(), pf.getImageableY()); 
-		
-		Object map = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
-		if (map != null) {
-		  ((Graphics2D) g).addRenderingHints((Map<?, ?>) map);
-		}
-		
-		// For now we won't do this shit to avoid wasting the users ink.
-		// Fill background
-		//g.setColor(getBackground());
-		//g.fillRect(clip.x, clip.y, clip.width, clip.height);
-		
-		//for (Highlighter a : highlighters) {
-		 // a.paint(g, getInsets(), metrics, 0, code.size());
-		//}
-		
-		// Draw each line
-		int insetY = lineLeading + lineAscent;
-		int lastLines = pageIndex * pageLines;
-		int lineCount = getLineCount();
-		
-		for (int lineNum = 0; lineNum < pageLines && lineNum + lastLines < lineCount; lineNum++) {
-			//JOptionPane.showMessageDialog(null,lineNum + " : " + lineCount);
-		  drawLine(g, lineNum + lastLines, insetY + lineNum * lineHeight);
-		}
-		
-		return Printable.PAGE_EXISTS;                                   
+  @Override
+  public int print(Graphics g, PageFormat pf, int pageIndex) throws PrinterException
+  {	
+	//TODO: Because of banded printing the OS and printer driver may actually call this method
+	//two or more times for the same page, the first time is to help the printer determine extents.
+	//http://stackoverflow.com/questions/1943556/why-does-the-java-printables-print-method-get-called-multiple-times-with-the-sa
+	//It may be possible to get away with generating an array of BufferedImage for each page
+	//when pg.print(); is fired and just have this function look up the already rastered pages.
+	// - Robert B. Colton
+	int pageLines = (int) Math.floor(pf.getImageableHeight() / lineHeight);
+	int pageCount = (int) Math.ceil((float)getLineCount() / (float)pageLines);
+	//JOptionPane.showMessageDialog(null,pageIndex + " : " + pageLines + " : " + pageCount);
+	if (pageIndex >= pageCount) return Printable.NO_SUCH_PAGE;
+	
+	Graphics2D graphics2D = (Graphics2D) g;
+	graphics2D.translate (pf.getImageableX(), pf.getImageableY()); 
+	
+	Object map = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
+	if (map != null) {
+	  ((Graphics2D) g).addRenderingHints((Map<?, ?>) map);
 	}
+	
+	// For now we won't do this shit to avoid wasting the users ink.
+	// Fill background
+	//g.setColor(getBackground());
+	//g.fillRect(clip.x, clip.y, clip.width, clip.height);
+	
+	//for (Highlighter a : highlighters) {
+	 // a.paint(g, getInsets(), metrics, 0, code.size());
+	//}
+	
+	// Draw each line
+	int insetY = lineLeading + lineAscent;
+	int lastLines = pageIndex * pageLines;
+	int lineCount = getLineCount();
+	
+	for (int lineNum = 0; lineNum < pageLines && lineNum + lastLines < lineCount; lineNum++) {
+	  //JOptionPane.showMessageDialog(null,lineNum + " : " + lineCount);
+  	  drawLine(g, lineNum + lastLines, insetY + lineNum * lineHeight);
+	}
+	
+	return Printable.PAGE_EXISTS;                                   
+  }
 
   /** Decrease the indent for all selected lines. */
   /*
@@ -1008,12 +1008,12 @@ public class JoshText extends JComponent
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		try {
-			Print();
-		} catch (PrinterException pe) {
-			// TODO Auto-generated catch block
-			pe.printStackTrace();
-		}
+	  try {
+	    Print();
+	  } catch (PrinterException pe) {
+	    // TODO Auto-generated catch block
+	    pe.printStackTrace();
+	  }
 	}
       };
 	

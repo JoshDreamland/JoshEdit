@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2011 Josh Ventura <JoshV10@gmail.com>
  * Copyright (C) 2011, 2012 IsmAvatar <IsmAvatar@gmail.com>
- * Copyright (C) 2013, Robert B. Colton
+ * Copyright (C) 2013, 2014 Robert B. Colton
  *
  * This file is part of JoshEdit. JoshEdit is free software.
  * You can use, modify, and distribute it under the terms of
@@ -37,6 +37,10 @@ import java.awt.event.FocusListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.print.PageFormat;
+import java.awt.print.Printable;
+import java.awt.print.PrinterException;
+import java.awt.print.PrinterJob;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
@@ -53,6 +57,9 @@ import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.print.PrintService;
+import javax.print.attribute.HashPrintRequestAttributeSet;
+import javax.print.attribute.PrintRequestAttributeSet;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
@@ -77,7 +84,7 @@ import org.lateralgm.joshedit.preferences.KeybindingsPanel;
  * The main component class; instantiate this, and you're good to go.
  */
 public class JoshText extends JComponent
-    implements Scrollable, ComponentListener, ClipboardOwner, FocusListener {
+    implements Scrollable, ComponentListener, ClipboardOwner, FocusListener, Printable {
   /** Make the compiler shut up. */
   private static final long serialVersionUID = 1L;
 
@@ -905,6 +912,76 @@ public class JoshText extends JComponent
   public void ShowQuickFind() {
     finder.present();
   }
+  
+  
+  /** Convenience method for displaying a print dialog returns true if successful 
+   * or false if the user cancels or an exception otherwise occurs */
+  public boolean Print() throws PrinterException {
+		//Step 1: Set up initial print settings.
+		PrintRequestAttributeSet aset = new HashPrintRequestAttributeSet();
+		//Step 2: Obtain a print job.
+		PrinterJob pj = PrinterJob.getPrinterJob();
+		pj.setPrintable(this);
+		//Step 3: Find print services.
+		PrintService[] services = PrinterJob.lookupPrintServices();
+		if (services.length > 0) {
+			System.out.println("selected printer: " + services[0]);
+			pj.setPrintService(services[0]);
+			// Step 4: Update the settings made by the user in the dialogs.
+			if (pj.printDialog(aset)) {
+				// Step 5: Pass the final settings into the print request.
+				pj.print(aset);
+				return true;
+			}
+		} 
+		return false;
+  }
+  
+  /** Print the given page of code based on how many lines of code will fit in the printable area */
+	@Override
+	public int print(Graphics g, PageFormat pf, int pageIndex) throws PrinterException
+		{	
+			//TODO: Because of banded printing the OS and printer driver may actually call this method
+			//two or more times for the same page, the first time is to help the printer determine extents.
+			//http://stackoverflow.com/questions/1943556/why-does-the-java-printables-print-method-get-called-multiple-times-with-the-sa
+			//It may be possible to get away with generating an array of BufferedImage for each page
+			//when pg.print(); is fired and just have this function look up the already rastered pages.
+			// - Robert B. Colton
+			int pageLines = (int) Math.floor(pf.getImageableHeight() / lineHeight);
+			int pageCount = (int) Math.ceil((float)getLineCount() / (float)pageLines);
+			//JOptionPane.showMessageDialog(null,pageIndex + " : " + pageLines + " : " + pageCount);
+			if (pageIndex >= pageCount) return Printable.NO_SUCH_PAGE;
+			
+			Graphics2D graphics2D = (Graphics2D) g;
+			graphics2D.translate (pf.getImageableX(), pf.getImageableY()); 
+
+			Object map = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
+			if (map != null) {
+			  graphics2D.addRenderingHints((Map<?, ?>) map);
+			}
+			
+			// Editors like Studio and Eclipse usually do not paint background colors to avoid wasting the users ink.
+			// Fill background
+			//g.setColor(getBackground());
+			//g.fillRect(0, 0, pf.getImageableWidth(), pf.getImageableHeight());
+			
+			// We don't need to paint highlighters such as the currently selected line.
+			//for (Highlighter a : highlighters) {
+			 // a.paint(g, getInsets(), metrics, 0, code.size());
+			//}
+			
+			// Draw each line
+			int insetY = lineLeading + lineAscent;
+			int lastLines = pageIndex * pageLines;
+			int lineCount = getLineCount();
+			
+			for (int lineNum = 0; lineNum < pageLines && lineNum + lastLines < lineCount; lineNum++) {
+				//JOptionPane.showMessageDialog(null,lineNum + " : " + lineCount);
+			  drawLine(g, lineNum + lastLines, insetY + lineNum * lineHeight);
+			}
+			
+			return Printable.PAGE_EXISTS;        
+		}
 
   /** Decrease the indent for all selected lines. */
   /*
@@ -926,6 +1003,21 @@ public class JoshText extends JComponent
   // == Wrap above methods as actions ==============================================================
   // ===============================================================================================
 
+  /** Print action. */
+  public AbstractAction actPrint = new AbstractAction("PRINT") { //$NON-NLS-1$
+				private static final long serialVersionUID = 1L;
+				
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					try {
+						Print();
+					} catch (PrinterException pe) {
+						// TODO Auto-generated catch block
+						pe.printStackTrace();
+					}
+				}
+      };
+	
   /** Cut action. */
   public AbstractAction actCut = new AbstractAction("CUT") { //$NON-NLS-1$
         private static final long serialVersionUID = 1L;
@@ -1050,7 +1142,7 @@ public class JoshText extends JComponent
   private void mapActions() {
     ActionMap am = getActionMap();
     Action acts[] =
-        { actLineDel, actLineDup, actLineSwap, actLineUnSwap, actSelAll, actCopy, actCut, actPaste,
+        { actLineDel, actLineDup, actLineSwap, actLineUnSwap, actSelAll, actPrint, actCopy, actCut, actPaste,
             actUndo, actRedo, actFind, actQuickFind };
     InputMap map = getInputMap();
     KeyStroke[] keys = map.allKeys();
@@ -1235,6 +1327,7 @@ public class JoshText extends JComponent
                                                                    // overwrite caret
     int h = code.size() * lineHeight + insetY;
     setMinimumSize(new Dimension(w, h));
+    setPreferredSize(new Dimension(w, h));
     setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     fireResize();
     repaint();
@@ -1400,7 +1493,15 @@ public class JoshText extends JComponent
           return;
         }
         Point po = p.getViewPosition();
-        p.setViewPosition(new Point(po.x + rp.x * monoAdvance, po.y + rp.y * lineHeight));
+        
+        int x = po.x + rp.x * monoAdvance;
+        int y = po.y + rp.y * lineHeight;
+        Dimension viewSize = p.getViewSize();
+        int maxx =  viewSize.width - p.getWidth();
+        int maxy =  viewSize.height - p.getHeight();
+				x = x > maxx ? maxx : x;
+				y = y > maxy ? maxy : y;
+				p.setViewPosition(new Point(x < 0 ? 0 : x, y < 0 ? 0 : y));
         // doShowCaret();
         updateUI();
       }
@@ -1881,7 +1982,9 @@ public class JoshText extends JComponent
         sel.special.valid = false;
       }
 
-      updateMouseAutoScroll(e.getPoint());
+      if (e.getID() != MouseEvent.MOUSE_RELEASED) {
+      	updateMouseAutoScroll(e.getPoint());
+      }
 
       if (sel.special.valid) {
         sel.special.adjust();
@@ -2739,11 +2842,10 @@ public class JoshText extends JComponent
   /** Handle a resize. */
   void fireResize() {
     Container a = getParent();
-    int w = 0, h = 0;
-    if (a != null) {
-    	w = a.getWidth();
-    	h = a.getHeight();
+    if (a == null) {
+    	return;
     }
+    int w = a.getWidth(), h = a.getHeight();
     Dimension ps = getMinimumSize();
     ps.width = Math.max(ps.width, w);
     ps.height = Math.max(ps.height, h);
@@ -3478,4 +3580,5 @@ public class JoshText extends JComponent
   public boolean isChanged() {
     return !undoPatches.isEmpty();
   }
+  
 }

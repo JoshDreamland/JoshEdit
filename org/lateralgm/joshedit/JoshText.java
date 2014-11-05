@@ -1235,7 +1235,6 @@ public class JoshText extends JComponent
                                                                    // overwrite caret
     int h = code.size() * lineHeight + insetY;
     setMinimumSize(new Dimension(w, h));
-    setPreferredSize(new Dimension(w, h));
     setMaximumSize(new Dimension(Integer.MAX_VALUE, Integer.MAX_VALUE));
     fireResize();
     repaint();

@@ -84,6 +84,7 @@ public class Runner {
     f.setContentPane(p);
     f.pack();
     f.setLocationRelativeTo(null);
+    FindDialog.getInstance().setLocationRelativeTo(f);
     if (closeExit) {
       f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }

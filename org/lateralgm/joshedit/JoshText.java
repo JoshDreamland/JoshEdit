@@ -1395,7 +1395,7 @@ public class JoshText extends JComponent
           return;
         }
         Point po = p.getViewPosition();
-        
+
         int x = po.x + rp.x * monoAdvance;
         int y = po.y + rp.y * lineHeight;
         Dimension viewSize = p.getViewSize();
@@ -2155,10 +2155,11 @@ public class JoshText extends JComponent
               IndentInfo chInd = unindent(y);
               if (sel.type != ST.RECT) {
                 if (sel.row == y) {
-                  sel.col -= chInd.removed.length() - chInd.inserted.length();
+                  sel.col = Math.max(0, sel.col - chInd.removed.length() - chInd.inserted.length());
                 }
                 if (caret.row == y) {
-                  caret.col -= chInd.removed.length() - chInd.inserted.length();
+                  caret.col =
+                      Math.max(0, caret.col - chInd.removed.length() - chInd.inserted.length());
                 }
               }
             }

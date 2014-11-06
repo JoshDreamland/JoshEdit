@@ -897,8 +897,7 @@ public class JoshText extends JComponent
 
   /** Display the find dialog. */
   public void ShowFind() {
-    FindDialog.getInstance().selectedJoshText = this;
-    findDialog.setVisible(true);
+    findDialog.present(this);
   }
 
   /** Display the quick find dialog. */
@@ -1400,16 +1399,7 @@ public class JoshText extends JComponent
           return;
         }
         Point po = p.getViewPosition();
-        
-        int x = po.x + rp.x * monoAdvance;
-        int y = po.y + rp.y * lineHeight;
-        Dimension viewSize = p.getViewSize();
-        int maxx =  viewSize.width - p.getWidth();
-        int maxy =  viewSize.height - p.getHeight();
-
-        x = x > maxx ? maxx : x;
-        y = y > maxy ? maxy : y;
-        p.setViewPosition(new Point(x < 0 ? 0 : x, y < 0 ? 0 : y));
+        p.setViewPosition(new Point(po.x + rp.x * monoAdvance, po.y + rp.y * lineHeight));
         // doShowCaret();
         updateUI();
       }
@@ -1890,10 +1880,7 @@ public class JoshText extends JComponent
         sel.special.valid = false;
       }
 
-      // if this was a mouse release then the autoscroller was stopped, so we don't want to reactivate it
-      if (e.getID() != MouseEvent.MOUSE_RELEASED) {
-      	updateMouseAutoScroll(e.getPoint());
-      }
+      updateMouseAutoScroll(e.getPoint());
 
       if (sel.special.valid) {
         sel.special.adjust();
@@ -2751,13 +2738,12 @@ public class JoshText extends JComponent
   /** Handle a resize. */
   void fireResize() {
     Container a = getParent();
-    if (a == null) {
-      return;
-    }
-    int w = a.getWidth(), h = a.getHeight();
     Dimension ps = getMinimumSize();
-    ps.width = Math.max(ps.width, w);
-    ps.height = Math.max(ps.height, h);
+    if (a != null) {
+      int w = a.getWidth(), h = a.getHeight();
+      ps.width = Math.max(ps.width, w);
+      ps.height = Math.max(ps.height, h);
+    }
     setPreferredSize(ps);
     setSize(ps);
   }

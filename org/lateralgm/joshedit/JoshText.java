@@ -947,7 +947,7 @@ public class JoshText extends JComponent
 			int lineCount = getLineCount();
 			
 			if (lineNumPanel != null) {
-				lineNumPanel.printLineNumbers(g,lastLines,Math.min(pageLines,lineCount - lastLines));
+				lineNumPanel.printLineNumbers(g,lastLines,Math.min(pageLines,lineCount - lastLines),lineNumPanel.getLineNumberWidth(lineCount));
 				graphics2D.translate(lineNumPanel.getLineNumberWidth(lastLines + lineCount),0);
 			}
 			

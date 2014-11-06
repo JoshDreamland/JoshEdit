@@ -1077,75 +1077,71 @@ public class JoshText extends JComponent
     code.getsb(row).insert(0, Settings.indentRepString);
   }
 
+  static class IndentInfo {
+    public int cellWidth;
+    public String inserted;
+    public String removed;
+
+    public IndentInfo(int cellWidth, String inserted, String removed) {
+      this.cellWidth = cellWidth;
+      this.inserted = inserted;
+      this.removed = removed;
+    }
+  }
+
   /**
    * Removes a unit of indentation from the beginning of a given row.
    *
    * @param row
    *        The index of the row to unindent.
    */
-  void unindent(int row) {
+  IndentInfo unindent(int row) {
     StringBuilder sb = code.get(row).sbuild;
-    int wc = 0, cc = 0;
+    int cellCount = 0, charCount = 0;
     // Calculate the number of cells by which this line appears to be indented
-    while (cc < sb.length() && Character.isWhitespace(sb.charAt(cc))) {
-      if (sb.charAt(cc++) == '\t') {
-        wc =
-            ((wc + Settings.indentSizeInSpaces) / Settings.indentSizeInSpaces)
-                * Settings.indentSizeInSpaces;
+    while (charCount < sb.length() && Character.isWhitespace(sb.charAt(charCount))) {
+      if (sb.charAt(charCount++) == '\t') {
+        cellCount = nextTabCharCount(cellCount);
       } else {
-        wc++;
+        cellCount++;
       }
     }
-    if (wc > 0) {
-      int kspaces = ((wc - 1) / Settings.indentSizeInSpaces) * Settings.indentSizeInSpaces;
-      for (int atspaces = 0, lastspaces, i = 0; i < cc; i++) {
-        lastspaces = atspaces;
+    if (cellCount > 0) {
+      int desiredCells = prevTabCharCount(cellCount - 1);
+      for (int cellAt = 0, i = 0; i < charCount; i++) {
+        if (cellAt == desiredCells) {
+          String removed = sb.substring(i, charCount);
+          sb.delete(i, charCount);
+          return new IndentInfo(cellCount - desiredCells, "", removed); //$NON-NLS-1$
+        }
+        // Theoretically, this occurs when you backspace a tab of size 4, but your indent is size 2
+        if (cellAt > desiredCells) {
+          String removed = sb.substring(i, charCount);
+          sb.delete(i, charCount);
+          StringBuilder inserted = new StringBuilder(desiredCells - cellAt);
+          for (i = cellAt; i < desiredCells; i++) {
+            inserted.append(" "); //$NON-NLS-1$
+          }
+          sb.insert(i, inserted);
+          return new IndentInfo(cellCount - desiredCells, inserted.toString(), removed);
+        }
         if (sb.charAt(i) == '\t') {
-          atspaces =
-              ((atspaces + Settings.indentSizeInSpaces) / Settings.indentSizeInSpaces)
-                  * Settings.indentSizeInSpaces;
+          cellAt = nextTabCharCount(cellAt);
         } else {
-          atspaces++;
-        }
-        if (atspaces == kspaces) {
-          if (sel.type != ST.RECT) {
-            if (sel.row == row) {
-              sel.col -= cc - i - 1;
-            }
-            if (caret.row == row) {
-              caret.col -= cc - i - 1;
-            }
-          }
-          for (i++; i < cc; cc--) {
-            sb.delete(i, i + 1);
-          }
-          break;
-        }
-        if (atspaces > kspaces) {
-          if (sel.type != ST.RECT) {
-            if (sel.row == row) {
-              sel.col -= cc - i;
-            }
-            if (caret.row == row) {
-              caret.col -= cc - i;
-            }
-          }
-          for (; i < cc; cc--) {
-            sb.delete(i, i + 1);
-          }
-          for (i = lastspaces; i < kspaces; i++) {
-            if (sel.row == row) {
-              sel.col++;
-            }
-            if (caret.row == row) {
-              caret.col++;
-            }
-            sb.insert(i, " "); //$NON-NLS-1$
-          }
-          break;
+          cellAt++;
         }
       }
     }
+    return new IndentInfo(0, "", ""); //$NON-NLS-1$ //$NON-NLS-2$
+  }
+
+  private static int prevTabCharCount(int charCount) {
+    return (charCount / Settings.indentSizeInSpaces) * Settings.indentSizeInSpaces;
+  }
+
+  private static int nextTabCharCount(int charCount) {
+    return ((charCount + Settings.indentSizeInSpaces) / Settings.indentSizeInSpaces)
+        * Settings.indentSizeInSpaces;
   }
 
   /** @see javax.swing.JComponent#addNotify() */
@@ -1991,8 +1987,10 @@ public class JoshText extends JComponent
             if (!sel.deleteSel()) {
               if (Settings.smartBackspace && otype == ChType.WHITE && caret.col > 0
                   && all_white(code.getsb(caret.row).substring(0, caret.col))) {
-                unindent(caret.row);
-                caret.col = sel.col;
+                final IndentInfo chInd = unindent(caret.row);
+                final int delta = chInd.removed.length() - chInd.inserted.length();
+                caret.col -= delta;
+                sel.col -= delta;
                 up.realize(caret.row);
                 storeUndo(up, OPT.BACKSPACE);
                 break;
@@ -2128,7 +2126,7 @@ public class JoshText extends JComponent
         break;
       case KeyEvent.VK_TAB:
         System.out.println("Tab"); //$NON-NLS-1$
-        if (!sel.isEmpty()) {
+        if (!sel.isCompletelyEmpty()) {
           UndoPatch up = new UndoPatch();
           String tab = Settings.indentRepString;
           int yx = Math.max(sel.row, caret.row);
@@ -2136,13 +2134,26 @@ public class JoshText extends JComponent
             for (int y = Math.min(sel.row, caret.row); y <= yx; y++) {
               indent(y);
             }
+            if (sel.type != ST.RECT) {
+              sel.col += tab.length();
+              caret.col += tab.length();
+            }
           } else {
             for (int y = Math.min(sel.row, caret.row); y <= yx; y++) {
-              unindent(y);
+              IndentInfo chInd = unindent(y);
+              if (sel.type != ST.RECT) {
+                if (sel.row == y) {
+                  sel.col -= chInd.removed.length() - chInd.inserted.length();
+                }
+                if (caret.row == y) {
+                  caret.col -= chInd.removed.length() - chInd.inserted.length();
+                }
+              }
             }
           }
-          sel.col += tab.length();
-          caret.col += tab.length();
+          if (sel.type != ST.RECT) {
+            caret.colw = line_wid_at(caret.row, caret.col);
+          }
           up.realize(Math.max(sel.row, caret.row));
           storeUndo(up, OPT.INDENT);
           break;
@@ -2157,7 +2168,8 @@ public class JoshText extends JComponent
               && Character.isWhitespace(code.getsb(caret.row).charAt(P))) {
             P++;
           }
-          caret.colw = caret.col = sel.col = P;
+          caret.col = sel.col = P;
+          caret.colw = line_wid_at(caret.row, caret.col);
         }
         up.realize(caret.row);
         storeUndo(up, OPT.TYPED);
@@ -2364,8 +2376,8 @@ public class JoshText extends JComponent
         if (caret.col == P) {
           P = 0;
         }
-        caret.colw = P;
         caret.col = P;
+        caret.colw = line_wid_at(caret.row, caret.col);
         if (e.isAltDown()) {
           sel.changeType(ST.RECT);
         } else if (e.isShiftDown()) {

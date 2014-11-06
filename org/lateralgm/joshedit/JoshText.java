@@ -40,7 +40,6 @@ import java.awt.event.MouseEvent;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
-import java.awt.print.PrinterJob;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
@@ -57,9 +56,6 @@ import java.util.Queue;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.print.PrintService;
-import javax.print.attribute.HashPrintRequestAttributeSet;
-import javax.print.attribute.PrintRequestAttributeSet;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
@@ -904,8 +900,13 @@ public class JoshText extends JComponent
 
   /** Display the find dialog. */
   public void ShowFind() {
-    FindDialog.getInstance().selectedJoshText = this;
-    findDialog.setVisible(true);
+  	findDialog.selectedJoshText = this;
+	  if (!findDialog.isVisible()) {
+		  findDialog.setLocationRelativeTo(SwingUtilities.getWindowAncestor(this));
+		  findDialog.setVisible(true);
+	  } else {
+	  	findDialog.requestFocus();
+	  }
   }
 
   /** Display the quick find dialog. */
@@ -913,33 +914,8 @@ public class JoshText extends JComponent
     finder.present();
   }
   
-  
-  /** Convenience method for displaying a print dialog returns true if successful 
-   * or false if the user cancels or an exception otherwise occurs */
-  public boolean Print() throws PrinterException {
-		//Step 1: Set up initial print settings.
-		PrintRequestAttributeSet aset = new HashPrintRequestAttributeSet();
-		//Step 2: Obtain a print job.
-		PrinterJob pj = PrinterJob.getPrinterJob();
-		pj.setPrintable(this);
-		//Step 3: Find print services.
-		PrintService[] services = PrinterJob.lookupPrintServices();
-		if (services.length > 0) {
-			System.out.println("selected printer: " + services[0]);
-			pj.setPrintService(services[0]);
-			// Step 4: Update the settings made by the user in the dialogs.
-			if (pj.printDialog(aset)) {
-				// Step 5: Pass the final settings into the print request.
-				pj.print(aset);
-				return true;
-			}
-		} 
-		return false;
-  }
-  
-  /** Print the given page of code based on how many lines of code will fit in the printable area */
-	@Override
-	public int print(Graphics g, PageFormat pf, int pageIndex) throws PrinterException
+  /** Print the given page of code with line numbers based on how many lines of code will fit in the printable area */
+	public int print(LineNumberPanel lineNumPanel, Graphics g, PageFormat pf, int pageIndex) throws PrinterException
 		{	
 			//TODO: Because of banded printing the OS and printer driver may actually call this method
 			//two or more times for the same page, the first time is to help the printer determine extents.
@@ -975,6 +951,11 @@ public class JoshText extends JComponent
 			int lastLines = pageIndex * pageLines;
 			int lineCount = getLineCount();
 			
+			if (lineNumPanel != null) {
+				lineNumPanel.printLineNumbers(g,lastLines,Math.min(pageLines,lineCount - lastLines));
+				graphics2D.translate(lineNumPanel.getLineNumberWidth(lastLines + lineCount),0);
+			}
+			
 			for (int lineNum = 0; lineNum < pageLines && lineNum + lastLines < lineCount; lineNum++) {
 				//JOptionPane.showMessageDialog(null,lineNum + " : " + lineCount);
 			  drawLine(g, lineNum + lastLines, insetY + lineNum * lineHeight);
@@ -983,6 +964,12 @@ public class JoshText extends JComponent
 			return Printable.PAGE_EXISTS;        
 		}
 
+  /** Print the given page of code based on how many lines of code will fit in the printable area */
+	@Override
+	public int print(Graphics g, PageFormat pf, int pageIndex) throws PrinterException {
+		return print(null, g, pf, pageIndex);
+	}
+	
   /** Decrease the indent for all selected lines. */
   /*
    * public void aUnindent(ActionEvent e)
@@ -1002,21 +989,6 @@ public class JoshText extends JComponent
   // ===============================================================================================
   // == Wrap above methods as actions ==============================================================
   // ===============================================================================================
-
-  /** Print action. */
-  public AbstractAction actPrint = new AbstractAction("PRINT") { //$NON-NLS-1$
-				private static final long serialVersionUID = 1L;
-				
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					try {
-						Print();
-					} catch (PrinterException pe) {
-						// TODO Auto-generated catch block
-						pe.printStackTrace();
-					}
-				}
-      };
 	
   /** Cut action. */
   public AbstractAction actCut = new AbstractAction("CUT") { //$NON-NLS-1$
@@ -1142,7 +1114,7 @@ public class JoshText extends JComponent
   private void mapActions() {
     ActionMap am = getActionMap();
     Action acts[] =
-        { actLineDel, actLineDup, actLineSwap, actLineUnSwap, actSelAll, actPrint, actCopy, actCut, actPaste,
+        { actLineDel, actLineDup, actLineSwap, actLineUnSwap, actSelAll, actCopy, actCut, actPaste,
             actUndo, actRedo, actFind, actQuickFind };
     InputMap map = getInputMap();
     KeyStroke[] keys = map.allKeys();
@@ -1156,6 +1128,21 @@ public class JoshText extends JComponent
       am.put(a.getValue(Action.NAME), a);
     }
   }
+  
+  /** Map the AbstractActions provided to keyboard hotkeys. */
+  public void mapAction(Action act) {
+	  ActionMap am = getActionMap();
+	  InputMap map = getInputMap();
+	  KeyStroke[] keys = map.allKeys();
+    // Display accelerator shortcuts
+    for (KeyStroke key : keys) {
+      if (map.get(key).equals(act.getValue(Action.NAME))) {
+        act.putValue(Action.ACCELERATOR_KEY, key);
+      }
+    }
+    am.put(act.getValue(Action.NAME), act);
+	}
+  
 
   /** The global find dialog. */
   FindDialog findDialog = FindDialog.getInstance();
@@ -1492,7 +1479,15 @@ public class JoshText extends JComponent
           return;
         }
         Point po = p.getViewPosition();
-        p.setViewPosition(new Point(po.x + rp.x * monoAdvance, po.y + rp.y * lineHeight));
+        
+        int x = po.x + rp.x * monoAdvance;
+        int y = po.y + rp.y * lineHeight;
+        Dimension viewSize = p.getViewSize();
+        int maxx =  viewSize.width - p.getWidth();
+        int maxy =  viewSize.height - p.getHeight();
+				x = x > maxx ? maxx : x;
+				y = y > maxy ? maxy : y;
+				p.setViewPosition(new Point(x < 0 ? 0 : x, y < 0 ? 0 : y));
         // doShowCaret();
         updateUI();
       }
@@ -1973,7 +1968,9 @@ public class JoshText extends JComponent
         sel.special.valid = false;
       }
 
-      updateMouseAutoScroll(e.getPoint());
+      if (e.getID() != MouseEvent.MOUSE_RELEASED) {
+      	updateMouseAutoScroll(e.getPoint());
+      }
 
       if (sel.special.valid) {
         sel.special.adjust();
@@ -2234,8 +2231,10 @@ public class JoshText extends JComponent
               unindent(y);
             }
           }
-          sel.col += tab.length();
-          caret.col += tab.length();
+          if (!e.isShiftDown()) {
+          	sel.col += tab.length();
+          	caret.col += tab.length();
+          }
           up.realize(Math.max(sel.row, caret.row));
           storeUndo(up, OPT.INDENT);
           break;
@@ -2279,10 +2278,10 @@ public class JoshText extends JComponent
         }
         break;
     }
+    doCodeSize(true);
     if (sc.x != caret.col || sc.y != caret.row) {
       caret.positionChanged();
     }
-    doCodeSize(true);
     // doShowCursor();
   }
 
@@ -2831,13 +2830,12 @@ public class JoshText extends JComponent
   /** Handle a resize. */
   void fireResize() {
     Container a = getParent();
-    if (a == null) {
-      return;
-    }
-    int w = a.getWidth(), h = a.getHeight();
     Dimension ps = getMinimumSize();
-    ps.width = Math.max(ps.width, w);
-    ps.height = Math.max(ps.height, h);
+    if (a != null) {
+    int w = a.getWidth(), h = a.getHeight();
+    	ps.width = Math.max(ps.width, w);
+    	ps.height = Math.max(ps.height, h);
+    }
     setPreferredSize(ps);
     setSize(ps);
   }

@@ -1955,9 +1955,7 @@ public class JoshText extends JComponent
         sel.special.valid = false;
       }
 
-      if (e.getID() != MouseEvent.MOUSE_RELEASED) {
-      	updateMouseAutoScroll(e.getPoint());
-      }
+      updateMouseAutoScroll(e.getPoint());
 
       if (sel.special.valid) {
         sel.special.adjust();

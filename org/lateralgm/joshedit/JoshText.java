@@ -1474,15 +1474,7 @@ public class JoshText extends JComponent
           return;
         }
         Point po = p.getViewPosition();
-        
-        int x = po.x + rp.x * monoAdvance;
-        int y = po.y + rp.y * lineHeight;
-        Dimension viewSize = p.getViewSize();
-        int maxx =  viewSize.width - p.getWidth();
-        int maxy =  viewSize.height - p.getHeight();
-				x = x > maxx ? maxx : x;
-				y = y > maxy ? maxy : y;
-				p.setViewPosition(new Point(x < 0 ? 0 : x, y < 0 ? 0 : y));
+	p.setViewPosition(new Point(po.x + rp.x * monoAdvance, po.y + rp.y * lineHeight));
         // doShowCaret();
         updateUI();
       }

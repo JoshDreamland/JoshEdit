@@ -2740,7 +2740,7 @@ public class JoshText extends JComponent
   void fireResize() {
     Container a = getParent();
     if (a == null) {
-        return;
+      return;
     }
     int w = a.getWidth(), h = a.getHeight();
     Dimension ps = getMinimumSize();

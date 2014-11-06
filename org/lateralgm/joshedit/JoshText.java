@@ -2813,12 +2813,13 @@ public class JoshText extends JComponent
   /** Handle a resize. */
   void fireResize() {
     Container a = getParent();
-    Dimension ps = getMinimumSize();
-    if (a != null) {
-    int w = a.getWidth(), h = a.getHeight();
-    	ps.width = Math.max(ps.width, w);
-    	ps.height = Math.max(ps.height, h);
+    if (a == null) {
+    	return;
     }
+    int w = a.getWidth(), h = a.getHeight();
+    Dimension ps = getMinimumSize();
+    ps.width = Math.max(ps.width, w);
+    ps.height = Math.max(ps.height, h);
     setPreferredSize(ps);
     setSize(ps);
   }

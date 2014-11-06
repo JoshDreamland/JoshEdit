@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2011 IsmAvatar <IsmAvatar@gmail.com>
  * Copyright (C) 2011 Josh Ventura <JoshV10@gmail.com>
+ * Copyright (C) 2014 Robert B. Colton
  *
  * This file is part of JoshEdit. JoshEdit is free software.
  * You can use, modify, and distribute it under the terms of
@@ -11,14 +12,11 @@ package org.lateralgm.joshedit;
 
 import java.awt.BorderLayout;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
-import java.util.Map;
 
 import javax.print.PrintService;
 import javax.print.attribute.HashPrintRequestAttributeSet;
@@ -134,7 +132,7 @@ public class JoshTextPanel extends JPanel implements Printable {
     return text.code.size();
   }
 
-  // TODO: Does not appear to actually be any warning hear to suppress.
+  // TODO: Does not appear to actually be any warning here to suppress.
   @SuppressWarnings("static-method")
   public void setTabSize(int spaces) {
     JoshText.Settings.indentSizeInSpaces = spaces;

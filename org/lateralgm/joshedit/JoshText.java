@@ -2141,8 +2141,10 @@ public class JoshText extends JComponent
               unindent(y);
             }
           }
-          sel.col += tab.length();
-          caret.col += tab.length();
+          if (!e.isShiftDown()) {
+            sel.col += tab.length();
+            caret.col += tab.length();
+          }
           up.realize(Math.max(sel.row, caret.row));
           storeUndo(up, OPT.INDENT);
           break;

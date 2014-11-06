@@ -139,8 +139,9 @@ public class LineNumberPanel extends JPanel {
    * @param g graphics object to use for painting
    * @param start the first line to start on
    * @param count the number of lines to paint from the start
+   * @param width the width of the line number area, used to ensure all pages have the same line number width
    */
-  public void printLineNumbers(Graphics g, int start, int count) {
+  public void printLineNumbers(Graphics g, int start, int count, int width) {
 	  Object map = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
 	  if (map != null) {
 	    ((Graphics2D) g).addRenderingHints((Map<?, ?>) map);
@@ -148,7 +149,7 @@ public class LineNumberPanel extends JPanel {
 	
 	  final int insetY = metrics.getLeading() + metrics.getAscent();
 	  final int gh = metrics.getHeight();
-	  Dimension size = new Dimension(this.getLineNumberWidth(start + count), count * gh);
+	  Dimension size = new Dimension(width, count * gh);
 	  int lineNum = start;
 	  final int end = size.height;
 	  

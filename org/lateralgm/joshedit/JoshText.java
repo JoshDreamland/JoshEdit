@@ -897,7 +897,8 @@ public class JoshText extends JComponent
 
   /** Display the find dialog. */
   public void ShowFind() {
-    findDialog.present(this);
+    FindDialog.getInstance().selectedJoshText = this;
+    findDialog.setVisible(true);
   }
 
   /** Display the quick find dialog. */

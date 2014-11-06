@@ -10,9 +10,13 @@
 
 package org.lateralgm.joshedit;
 
+import java.awt.Component;
 import java.awt.Frame;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.WindowEvent;
@@ -34,12 +38,14 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.SwingUtilities;
 
 /**
  * @author Josh Ventura
  *         Class to display a full set of find and replace options.
  */
-public class FindDialog extends JDialog implements WindowListener, ActionListener {
+public class FindDialog extends JDialog
+    implements WindowListener, ActionListener, ComponentListener {
   /** Cram it, ECJ. */
   private static final long serialVersionUID = 1L;
 
@@ -90,6 +96,10 @@ public class FindDialog extends JDialog implements WindowListener, ActionListene
 
   /** The currently active JoshText. */
   public JoshText selectedJoshText = null;
+  /** Whether we've ever been repositioned by the user. */
+  private boolean userPositioned = false;
+  /** The last assigned position of this widget. */
+  private Point previousLocation;
 
   /** Listener to be informed when the find dialog is created. */
   public interface FindDialogCreationListener {
@@ -109,6 +119,7 @@ public class FindDialog extends JDialog implements WindowListener, ActionListene
     super((Frame) null, Runner.editorInterface.getString("FindDialog.TITLE")); //$NON-NLS-1$
     applyLayout();
     addWindowListener(this);
+    addComponentListener(this);
     pack();
     setMinimumSize(getSize());
     setIconImage(Runner.editorInterface.getIconForKey("JoshText.FIND").getImage()); //$NON-NLS-1$
@@ -127,6 +138,27 @@ public class FindDialog extends JDialog implements WindowListener, ActionListene
       listener.dialogCreated(findDialog);
     }
   }
+
+  /**
+   * Present this component, centering it if it's off in space.
+   *
+   * @param selectedEditor
+   *        The JoshText which will be searched.
+   */
+  public void present(JoshText selectedEditor) {
+    this.selectedJoshText = selectedEditor;
+    if (!isVisible()) {
+      if (!userPositioned) {
+        Component centeringComponent =
+            selectedJoshText == null? null : SwingUtilities.getWindowAncestor(selectedJoshText);
+        setLocationRelativeTo(centeringComponent);
+        getLocation(previousLocation);
+      }
+      setVisible(true);
+    } else {
+      requestFocus();
+    }
+  };
 
   /**
    * @author Josh Ventura
@@ -420,5 +452,35 @@ public class FindDialog extends JDialog implements WindowListener, ActionListene
   /** Unused. */
   @Override
   public void windowOpened(WindowEvent e) { // unused
+  }
+
+  @Override
+  public void componentMoved(ComponentEvent e) {
+    if (userPositioned) {
+      return;
+    }
+    if (previousLocation == null) {
+      previousLocation = getLocation();
+      return;
+    }
+    if (!getLocation().equals(previousLocation)) {
+      userPositioned = true;
+    }
+  }
+
+  /** Unused. */
+  @Override
+  public void componentHidden(ComponentEvent e) { // unused
+  }
+
+  /** Unused. */
+  @Override
+  public void componentResized(ComponentEvent e) { // unused
+  }
+
+  /** Unused. */
+  @Override
+  public void componentShown(ComponentEvent e) { // unused
+
   }
 }

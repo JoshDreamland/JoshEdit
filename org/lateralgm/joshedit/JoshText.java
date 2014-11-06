@@ -2271,10 +2271,10 @@ public class JoshText extends JComponent
         }
         break;
     }
-    doCodeSize(true);
     if (sc.x != caret.col || sc.y != caret.row) {
       caret.positionChanged();
     }
+    doCodeSize(true);
     // doShowCursor();
   }
 

@@ -30,7 +30,6 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 
-import org.lateralgm.joshedit.TokenMarker.LanguageDescription;
 import org.lateralgm.joshedit.lexers.CPPTokenMarker;
 import org.lateralgm.joshedit.lexers.GLESTokenMarker;
 import org.lateralgm.joshedit.lexers.GLSLTokenMarker;
@@ -138,7 +137,7 @@ public class Runner {
     tabs.addTab("Bindings", new KeybindingsPanel());
     tabs.addTab(
         "Colors",
-        new HighlightPreferences(new LanguageDescription[][] {
+        new HighlightPreferences(new TokenMarker.LanguageDescription[][] {
             CPPTokenMarker.getLanguageDescriptions(), GMLTokenMarker.getLanguageDescriptions(),
             GLSLTokenMarker.getLanguageDescriptions(), GLESTokenMarker.getLanguageDescriptions(),
             HLSLTokenMarker.getLanguageDescriptions() },

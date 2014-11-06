@@ -1126,17 +1126,17 @@ public class JoshText extends JComponent
   
   /** Map the AbstractActions provided to keyboard hotkeys. */
   public void mapAction(Action act) {
-	  ActionMap am = getActionMap();
-	  InputMap map = getInputMap();
-	  KeyStroke[] keys = map.allKeys();
-    // Display accelerator shortcuts
-    for (KeyStroke key : keys) {
-      if (map.get(key).equals(act.getValue(Action.NAME))) {
-        act.putValue(Action.ACCELERATOR_KEY, key);
-      }
-    }
-    am.put(act.getValue(Action.NAME), act);
+	ActionMap am = getActionMap();
+	InputMap map = getInputMap();
+	KeyStroke[] keys = map.allKeys();
+	// Display accelerator shortcuts
+	for (KeyStroke key : keys) {
+		if (map.get(key).equals(act.getValue(Action.NAME))) {
+			act.putValue(Action.ACCELERATOR_KEY, key);
+		}
 	}
+	am.put(act.getValue(Action.NAME), act);
+  }
   
 
   /** The global find dialog. */

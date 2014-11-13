@@ -3363,6 +3363,20 @@ public class JoshText extends JComponent
   private int patchIndex = 0;
 
   /**
+   * Check whether we can undo.
+   */
+  public boolean canUndo() {
+  	return patchIndex > 0;
+  }
+  
+  /**
+   * Check whether we can redo.
+   */
+  public boolean canRedo() {
+  	return patchIndex < undoPatches.size();
+  }
+
+  /**
    * Undo the most recently stored UndoPatch.
    * The patch itself is not moved; instead, patchIndex is decremented.
    */

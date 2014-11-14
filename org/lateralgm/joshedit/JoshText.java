@@ -682,7 +682,7 @@ public class JoshText extends JComponent
       fireLineChange(0, 0);
       doCodeSize(true);
     } catch (Exception e) {
-      e.printStackTrace();
+      Runner.showDefaultExceptionHandler(e);
     }
   }
 
@@ -714,7 +714,7 @@ public class JoshText extends JComponent
       }
 
     } catch (Exception e) {
-      e.printStackTrace();
+      Runner.showDefaultExceptionHandler(e);
     }
   }
 
@@ -1214,7 +1214,7 @@ public class JoshText extends JComponent
     try {
       ch = KeyEvent.class.getField("VK_".concat(key)).getInt(null); //$NON-NLS-1$
     } catch (Exception e) {
-      throw new IllegalArgumentException("Invalid key stroke: " + s, e); //$NON-NLS-1$
+      Runner.showDefaultExceptionHandler(IllegalArgumentException("Invalid key stroke: " + s, e)); //$NON-NLS-1$
     }
 
     return KeyStroke.getKeyStroke(ch, modifiers);

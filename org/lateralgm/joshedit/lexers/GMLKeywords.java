@@ -44,12 +44,12 @@ public final class GMLKeywords {
     try {
       p.load(is);
     } catch (IOException e) {
-      e.printStackTrace();
+      Runner.showDefaultExceptionHandler(e);
     } finally {
       try {
         is.close();
       } catch (IOException e) {
-        e.printStackTrace();
+        Runner.showDefaultExceptionHandler(e);
       }
     }
     String[] s = p.getProperty("CONSTRUCTS").split("\\s+"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -87,12 +87,12 @@ public final class GMLKeywords {
         funcList.add(new Function(func, args, desc));
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      Runner.showDefaultExceptionHandler(e);
     } finally {
       try {
         br2.close();
       } catch (IOException e) {
-        e.printStackTrace();
+        Runner.showDefaultExceptionHandler(e);
       }
     }
 

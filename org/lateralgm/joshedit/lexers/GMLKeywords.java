@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 import org.lateralgm.joshedit.DefaultKeywords;
+import org.lateralgm.joshedit.Runner;
 import org.lateralgm.joshedit.DefaultKeywords.Constant;
 import org.lateralgm.joshedit.DefaultKeywords.Construct;
 import org.lateralgm.joshedit.DefaultKeywords.Function;

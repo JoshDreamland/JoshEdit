@@ -55,7 +55,7 @@ public final class GLSLKeywords {
     try (InputStream is = GLSLKeywords.class.getResourceAsStream("glslkeywords.properties")) { //$NON-NLS-1$
       p.load(is);
     } catch (IOException e) {
-      e.printStackTrace();
+      Runner.showDefaultExceptionHandler(e);
     }
     String[] s = p.getProperty("CONSTRUCTS").split("\\s+"); //$NON-NLS-1$ //$NON-NLS-2$
     CONSTRUCTS = new Construct[s.length];
@@ -92,7 +92,7 @@ public final class GLSLKeywords {
         }
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      Runner.showDefaultExceptionHandler(e);
     }
 
     FUNCTIONS = funcList.toArray(new Function[0]);

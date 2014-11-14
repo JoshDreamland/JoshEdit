@@ -876,8 +876,10 @@ public class JoshText extends JComponent
   /** Open a dialog to load the contents of the editor from a file. */
   public void Load() {
     String path = fileChooser.getLoadFilename();
-    loadFromFile(path);
-    repaint();
+    if (path != null) {
+    	loadFromFile(path);
+    	repaint();
+    }
   }
 
   /** Copy the contents of the selection to the clipboard. */

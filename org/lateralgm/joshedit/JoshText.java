@@ -205,23 +205,60 @@ public class JoshText extends JComponent
     String getSaveFilename();
   }
 
-  private class DefaultJEFileChooser implements JEFileChooser {
-    JFileChooser fileChooser = new JFileChooser();
+  private class DefaultJEFileChooser extends JFileChooser implements JEFileChooser {
+    /**
+		 * TODO: Change if needed.
+		 */
+		private static final long serialVersionUID = 1L;
+		private boolean fileMustExist = true;
+		
+		public void setFileMustExist(boolean enable) {
+			fileMustExist  = enable;
+		}
+		
+		public boolean getFileMustExist() {
+			return fileMustExist;
+		}
 
-    @Override
+		@Override
+		public void approveSelection()
+			{
+			if (fileMustExist && this.getDialogType() == JFileChooser.OPEN_DIALOG) {
+				boolean fileExists = false;
+				if (this.isMultiSelectionEnabled()) {
+					for (File f : this.getSelectedFiles()) {
+						if (f.exists()) {
+							fileExists = true; break;
+						}
+					}
+				} else {
+					fileExists = this.getSelectedFile().exists();
+				}
+				if (!fileExists) {
+					JOptionPane.showMessageDialog(this,
+							Runner.editorInterface.getString("FileChooser.NOT_FOUND_MESSAGE"),
+							Runner.editorInterface.getString("FileChooser.NOT_FOUND_TITLE"),
+							JOptionPane.WARNING_MESSAGE);
+					return;
+				}
+			}
+			super.approveSelection();
+			}
+		
+		@Override
     public String getLoadFilename() {
-      if (fileChooser.showOpenDialog(JoshText.this) != JFileChooser.APPROVE_OPTION) {
+      if (showOpenDialog(JoshText.this) != JFileChooser.APPROVE_OPTION) {
         return null;
       }
-      return fileChooser.getSelectedFile().getPath();
+      return getSelectedFile().getPath();
     }
 
     @Override
     public String getSaveFilename() {
-      if (fileChooser.showSaveDialog(JoshText.this) != JFileChooser.APPROVE_OPTION) {
+      if (showSaveDialog(JoshText.this) != JFileChooser.APPROVE_OPTION) {
         return null;
       }
-      return fileChooser.getSelectedFile().getPath();
+      return getSelectedFile().getPath();
     }
 
   }

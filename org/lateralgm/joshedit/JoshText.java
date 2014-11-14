@@ -1209,12 +1209,12 @@ public class JoshText extends JComponent
     }
 
     // Otherwise use Reflection to parse the key
-    int ch;
+    int ch = 0;
 
     try {
       ch = KeyEvent.class.getField("VK_".concat(key)).getInt(null); //$NON-NLS-1$
     } catch (Exception e) {
-      Runner.showDefaultExceptionHandler(IllegalArgumentException("Invalid key stroke: " + s, e)); //$NON-NLS-1$
+      throw new IllegalArgumentException("Invalid key stroke: " + s, e); //$NON-NLS-1$
     }
 
     return KeyStroke.getKeyStroke(ch, modifiers);

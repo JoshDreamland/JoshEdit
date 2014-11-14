@@ -211,6 +211,7 @@ public class JoshText extends JComponent
 		 */
 		private static final long serialVersionUID = 1L;
 		private boolean fileMustExist = true;
+		private boolean confirmOverwrite = true;
 		
 		public void setFileMustExist(boolean enable) {
 			fileMustExist  = enable;
@@ -219,27 +220,50 @@ public class JoshText extends JComponent
 		public boolean getFileMustExist() {
 			return fileMustExist;
 		}
+		
+		public void setConfirmOverwrite(boolean enable) {
+			confirmOverwrite = enable;
+		}
+		
+		public boolean getConfirmOverwrite() {
+			return confirmOverwrite;
+		}
 
+		public boolean getFileExists() {
+			boolean fileExists = false;
+			if (this.isMultiSelectionEnabled()) {
+				for (File f : this.getSelectedFiles()) {
+					if (f.exists()) {
+						fileExists = true; break;
+					}
+				}
+			} else {
+				fileExists = this.getSelectedFile().exists();
+			}
+			return fileExists;
+		}
+		
 		@Override
 		public void approveSelection()
 			{
 			if (fileMustExist && this.getDialogType() == JFileChooser.OPEN_DIALOG) {
-				boolean fileExists = false;
-				if (this.isMultiSelectionEnabled()) {
-					for (File f : this.getSelectedFiles()) {
-						if (f.exists()) {
-							fileExists = true; break;
-						}
-					}
-				} else {
-					fileExists = this.getSelectedFile().exists();
-				}
+				boolean fileExists = getFileExists();
 				if (!fileExists) {
 					JOptionPane.showMessageDialog(this,
 							Runner.editorInterface.getString("FileChooser.NOT_FOUND_MESSAGE"),
 							Runner.editorInterface.getString("FileChooser.NOT_FOUND_TITLE"),
 							JOptionPane.WARNING_MESSAGE);
 					return;
+				}
+			} else if (confirmOverwrite && this.getDialogType() == JFileChooser.SAVE_DIALOG) {
+				boolean fileExists = getFileExists();
+				if (fileExists) {
+					if (JOptionPane.showConfirmDialog(this,
+						Runner.editorInterface.getString("FileChooser.CONFIRM_OVERWRITE_MESSAGE"),
+						Runner.editorInterface.getString("FileChooser.CONFIRM_OVERWRITE_TITLE"),
+						JOptionPane.WARNING_MESSAGE) == JOptionPane.CANCEL_OPTION) {
+						return;
+					}
 				}
 			}
 			super.approveSelection();

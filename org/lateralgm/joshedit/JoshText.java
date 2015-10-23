@@ -563,6 +563,7 @@ public class JoshText extends JComponent
       code.add("");  //$NON-NLS-1$
     }
     fireLineChange(0, code.size());
+    doCodeSize(true);
   }
 
   /**
@@ -659,7 +660,7 @@ public class JoshText extends JComponent
   }
 
   /**
-   * Read code fom a given file into this editor.
+   * Read code from a given file into this editor.
    *
    * @param name
    *        The path and filename from which to read code.
@@ -682,7 +683,7 @@ public class JoshText extends JComponent
         }
       }
 
-      fireLineChange(0, 0);
+      fireLineChange(0, code.size());
       doCodeSize(true);
     } catch (Exception e) {
       e.printStackTrace();

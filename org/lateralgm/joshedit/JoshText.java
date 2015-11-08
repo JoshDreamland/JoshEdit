@@ -208,23 +208,84 @@ public class JoshText extends JComponent
     String getSaveFilename();
   }
 
-  private class DefaultJEFileChooser implements JEFileChooser {
-    JFileChooser fileChooser = new JFileChooser();
+  private class DefaultJEFileChooser extends JFileChooser implements JEFileChooser {
+    /**
+		 * TODO: Change if needed.
+		 */
+		private static final long serialVersionUID = 1L;
+		private boolean fileMustExist = true;
+		private boolean confirmOverwrite = true;
+		
+		public void setFileMustExist(boolean enable) {
+			fileMustExist  = enable;
+		}
+		
+		public boolean getFileMustExist() {
+			return fileMustExist;
+		}
+		
+		public void setConfirmOverwrite(boolean enable) {
+			confirmOverwrite = enable;
+		}
+		
+		public boolean getConfirmOverwrite() {
+			return confirmOverwrite;
+		}
 
-    @Override
+		public boolean getFileExists() {
+			boolean fileExists = false;
+			if (this.isMultiSelectionEnabled()) {
+				for (File f : this.getSelectedFiles()) {
+					if (f.exists()) {
+						fileExists = true; break;
+					}
+				}
+			} else {
+				fileExists = this.getSelectedFile().exists();
+			}
+			return fileExists;
+		}
+		
+		@Override
+		public void approveSelection()
+			{
+			if (fileMustExist && this.getDialogType() == JFileChooser.OPEN_DIALOG) {
+				boolean fileExists = getFileExists();
+				if (!fileExists) {
+					JOptionPane.showMessageDialog(this,
+							Runner.editorInterface.getString("FileChooser.NOT_FOUND_MESSAGE"),
+							Runner.editorInterface.getString("FileChooser.NOT_FOUND_TITLE"),
+							JOptionPane.WARNING_MESSAGE);
+					return;
+				}
+			} else if (confirmOverwrite && this.getDialogType() == JFileChooser.SAVE_DIALOG) {
+				boolean fileExists = getFileExists();
+				if (fileExists) {
+					if (JOptionPane.showConfirmDialog(this,
+						Runner.editorInterface.getString("FileChooser.CONFIRM_OVERWRITE_MESSAGE"),
+						Runner.editorInterface.getString("FileChooser.CONFIRM_OVERWRITE_TITLE"),
+						JOptionPane.WARNING_MESSAGE) == JOptionPane.CANCEL_OPTION) {
+						return;
+					}
+				}
+			}
+			super.approveSelection();
+			}
+		
+		@Override
     public String getLoadFilename() {
-      if (fileChooser.showOpenDialog(JoshText.this) != JFileChooser.APPROVE_OPTION) {
+      if (showOpenDialog(JoshText.this) != JFileChooser.APPROVE_OPTION) {
         return null;
       }
-      return fileChooser.getSelectedFile().getPath();
+      return getSelectedFile().getPath();
     }
 
     @Override
     public String getSaveFilename() {
-      if (fileChooser.showSaveDialog(JoshText.this) != JFileChooser.APPROVE_OPTION) {
+      if (showSaveDialog(JoshText.this) != JFileChooser.APPROVE_OPTION) {
         return null;
       }
-      return fileChooser.getSelectedFile().getPath();
+      return getSelectedFile().getPath();
     }
 
   }
@@ -693,7 +754,7 @@ public class JoshText extends JComponent
   private static boolean hasExtension(String pathName) {
     File fn = new File(pathName);
     String name = fn.getName(); // An extension contains no path characters
-    return name.lastIndexOf('.') == -1;
+    return name.lastIndexOf('.') != -1;
   }
 
   /**
@@ -843,8 +904,10 @@ public class JoshText extends JComponent
   /** Open a dialog to load the contents of the editor from a file. */
   public void Load() {
     String path = fileChooser.getLoadFilename();
-    loadFromFile(path);
-    repaint();
+    if (path != null) {
+    	loadFromFile(path);
+    	repaint();
+    }
   }
 
   /** Copy the contents of the selection to the clipboard. */

@@ -30,6 +30,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Properties;
 
+import org.lateralgm.joshedit.Runner;
 import org.lateralgm.joshedit.DefaultKeywords.Constant;
 import org.lateralgm.joshedit.DefaultKeywords.Construct;
 import org.lateralgm.joshedit.DefaultKeywords.Function;
@@ -55,7 +56,7 @@ public final class HLSLKeywords {
     try (InputStream is = HLSLKeywords.class.getResourceAsStream("hlslkeywords.properties")) { //$NON-NLS-1$
       p.load(is);
     } catch (IOException e) {
-      e.printStackTrace();
+      Runner.showDefaultExceptionHandler(e);
     }
     String[] s = p.getProperty("CONSTRUCTS").split("\\s+"); //$NON-NLS-1$ //$NON-NLS-2$
     CONSTRUCTS = new Construct[s.length];
@@ -92,7 +93,7 @@ public final class HLSLKeywords {
         }
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      Runner.showDefaultExceptionHandler(e);
     }
 
     FUNCTIONS = funcList.toArray(new Function[0]);

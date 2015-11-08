@@ -224,4 +224,44 @@ public class Runner {
       }
     });
   }
+  
+  	// Sets the default uncaught exception handler in case any threads forget to add one.
+	public static void setDefaultExceptionHandler()
+		{
+		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler()
+			{
+				public void uncaughtException(Thread t, Throwable e)
+					{
+					Runner.showDefaultExceptionHandler(e);
+					}
+			});
+		}
+
+	// Adds a default uncaught exception handler to the current thread. This allows LGM to catch most exceptions
+	// and properly display a stack trace for the user to file a bug report.
+	public static void addDefaultExceptionHandler()
+		{
+		Thread.currentThread().setUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler()
+			{
+				public void uncaughtException(Thread t, Throwable e)
+					{
+					Runner.showDefaultExceptionHandler(e);
+					}
+			});
+		}
+
+	public interface ExceptionHandler
+	{
+		abstract void showDefaultExceptionHandler(Throwable e);
+	}
+	
+	public static ExceptionHandler exceptionHandler = null;
+	
+	// Show the default uncaught exception handler dialog to the user with a stack trace they can use to submit a bug report.
+	public static void showDefaultExceptionHandler(Throwable e)
+		{
+			if (exceptionHandler != null) {
+				exceptionHandler.showDefaultExceptionHandler(e);
+			}
+		}
 }

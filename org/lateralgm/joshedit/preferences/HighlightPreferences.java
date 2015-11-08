@@ -116,7 +116,7 @@ public class HighlightPreferences extends JTabbedPane {
           languagePicker.addItem(new ProfileItem(prof, schemeNode));
         }
       } catch (BackingStoreException e) {
-        e.printStackTrace();
+        Runner.showDefaultExceptionHandler(e);
       }
 
       languagePicker.addItemListener(this);
@@ -158,7 +158,7 @@ public class HighlightPreferences extends JTabbedPane {
           newNixName += "_"; //$NON-NLS-1$
         }
       } catch (BackingStoreException e) {
-        e.printStackTrace();
+        Runner.showDefaultExceptionHandler(e);
       }
 
       Preferences node = prefs.node(newNixName);
@@ -183,7 +183,7 @@ public class HighlightPreferences extends JTabbedPane {
         try {
           item.prefsEntry.removeNode();
         } catch (BackingStoreException e) {
-          e.printStackTrace();
+          Runner.showDefaultExceptionHandler(e);
         }
       }
     }
@@ -637,7 +637,7 @@ public class HighlightPreferences extends JTabbedPane {
         props.put(key, prefs.get(key, null));
       }
     } catch (BackingStoreException e) {
-      e.printStackTrace();
+      Runner.showDefaultExceptionHandler(e);
     }
     return props;
   }

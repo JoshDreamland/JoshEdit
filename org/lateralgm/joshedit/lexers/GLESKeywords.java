@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 import org.lateralgm.joshedit.DefaultKeywords;
+import org.lateralgm.joshedit.Runner;
 import org.lateralgm.joshedit.DefaultKeywords.Constant;
 import org.lateralgm.joshedit.DefaultKeywords.Construct;
 import org.lateralgm.joshedit.DefaultKeywords.Function;
@@ -57,7 +58,7 @@ public final class GLESKeywords {
     try (InputStream is = GLESKeywords.class.getResourceAsStream("glsleskeywords.properties")) { //$NON-NLS-1$
       p.load(is);
     } catch (IOException e) {
-      e.printStackTrace();
+      Runner.showDefaultExceptionHandler(e);
     }
 
     String[] s = p.getProperty("CONSTRUCTS").split("\\s+"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -95,7 +96,7 @@ public final class GLESKeywords {
         }
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      Runner.showDefaultExceptionHandler(e);
     }
 
     FUNCTIONS = funcList.toArray(new Function[0]);

@@ -686,7 +686,7 @@ public class JoshText extends JComponent
       fireLineChange(0, code.size());
       doCodeSize(true);
     } catch (Exception e) {
-      e.printStackTrace();
+      Runner.showDefaultExceptionHandler(e);
     }
   }
 
@@ -718,7 +718,7 @@ public class JoshText extends JComponent
       }
 
     } catch (Exception e) {
-      e.printStackTrace();
+      Runner.showDefaultExceptionHandler(e);
     }
   }
 
@@ -1284,7 +1284,7 @@ public class JoshText extends JComponent
     }
 
     // Otherwise use Reflection to parse the key
-    int ch;
+    int ch = 0;
 
     try {
       ch = KeyEvent.class.getField("VK_".concat(key)).getInt(null); //$NON-NLS-1$

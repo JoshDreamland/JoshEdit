@@ -908,63 +908,60 @@ public class JoshText extends JComponent
   public void ShowQuickFind() {
     finder.present();
   }
-  
-  /** Print the given page of code with line numbers based on how many lines of code will fit in the printable area */
-	public int print(LineNumberPanel lineNumPanel, Graphics g, PageFormat pf, int pageIndex) throws PrinterException
-		{	
-			//TODO: Because of banded printing the OS and printer driver may actually call this method
-			//two or more times for the same page, the first time is to help the printer determine extents.
-			//http://stackoverflow.com/questions/1943556/why-does-the-java-printables-print-method-get-called-multiple-times-with-the-sa
-			//It may be possible to get away with generating an array of BufferedImage for each page
-			//when pg.print(); is fired and just have this function look up the already rastered pages.
-			// - Robert B. Colton
-			int pageLines = (int) Math.floor(pf.getImageableHeight() / lineHeight);
-			int pageCount = (int) Math.ceil((float)getLineCount() / (float)pageLines);
-			//JOptionPane.showMessageDialog(null,pageIndex + " : " + pageLines + " : " + pageCount);
-			if (pageIndex >= pageCount) return Printable.NO_SUCH_PAGE;
-			
-			Graphics2D graphics2D = (Graphics2D) g;
-			graphics2D.translate (pf.getImageableX(), pf.getImageableY()); 
 
-			Object map = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
-			if (map != null) {
-			  graphics2D.addRenderingHints((Map<?, ?>) map);
-			}
-			
-			// Editors like Studio and Eclipse usually do not paint background colors to avoid wasting the users ink.
-			// Fill background
-			//g.setColor(getBackground());
-			//g.fillRect(0, 0, pf.getImageableWidth(), pf.getImageableHeight());
-			
-			// We don't need to paint highlighters such as the currently selected line.
-			//for (Highlighter a : highlighters) {
-			 // a.paint(g, getInsets(), metrics, 0, code.size());
-			//}
-			
-			// Draw each line
-			int insetY = lineLeading + lineAscent;
-			int lastLines = pageIndex * pageLines;
-			int lineCount = getLineCount();
-			
-			if (lineNumPanel != null) {
-				lineNumPanel.printLineNumbers(g,lastLines,Math.min(pageLines,lineCount - lastLines),lineNumPanel.getLineNumberWidth(lineCount));
-				graphics2D.translate(lineNumPanel.getLineNumberWidth(lastLines + lineCount),0);
-			}
-			
-			for (int lineNum = 0; lineNum < pageLines && lineNum + lastLines < lineCount; lineNum++) {
-				//JOptionPane.showMessageDialog(null,lineNum + " : " + lineCount);
-			  drawLine(g, lineNum + lastLines, insetY + lineNum * lineHeight);
-			}
-			
-			return Printable.PAGE_EXISTS;        
-		}
+  /**
+   * Print the given page of code with line numbers based on how many lines of code will fit in the
+   * printable area.
+   */
+  public int print(LineNumberPanel lineNumPanel, Graphics g, PageFormat pf, int pageIndex)
+    throws PrinterException {
+    // TODO: Because of banded printing the OS and printer driver may actually call this method
+    // two or more times for the same page, the first time is to help the printer determine extents.
+    // http://stackoverflow.com/questions/1943556/why-does-the-java-printables-print-method-get-called-multiple-times-with-the-sa
+    // It may be possible to get away with generating an array of BufferedImage for each page when
+    // pg.print(); is fired and just have this function look up the already rastered pages.
+    // - Robert B. Colton
+    int pageLines = (int) Math.floor(pf.getImageableHeight() / lineHeight);
+    int pageCount = (int) Math.ceil((float)getLineCount() / (float)pageLines);
+    if (pageIndex >= pageCount) return Printable.NO_SUCH_PAGE;
+
+    Graphics2D graphics2D = (Graphics2D) g;
+    graphics2D.translate (pf.getImageableX(), pf.getImageableY());
+
+    Object map = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
+    if (map != null) {
+      graphics2D.addRenderingHints((Map<?, ?>) map);
+    }
+
+    // Editors like Studio and Eclipse usually do not paint background colors to avoid wasting the
+    // users ink.
+    // Fill background
+    //g.setColor(getBackground());
+    //g.fillRect(0, 0, pf.getImageableWidth(), pf.getImageableHeight());
+
+    // Draw each line
+    int insetY = lineLeading + lineAscent;
+    int lastLines = pageIndex * pageLines;
+    int lineCount = getLineCount();
+
+    if (lineNumPanel != null) {
+      lineNumPanel.printLineNumbers(g,lastLines,Math.min(pageLines,lineCount - lastLines),
+        lineNumPanel.getLineNumberWidth(lineCount));
+      graphics2D.translate(lineNumPanel.getLineNumberWidth(lastLines + lineCount),0);
+    }
+
+    for (int lineNum = 0; lineNum < pageLines && lineNum + lastLines < lineCount; lineNum++) {
+        drawLine(g, lineNum + lastLines, insetY + lineNum * lineHeight);
+    }
+    return Printable.PAGE_EXISTS;
+  }
 
   /** Print the given page of code based on how many lines of code will fit in the printable area */
-	@Override
-	public int print(Graphics g, PageFormat pf, int pageIndex) throws PrinterException {
-		return print(null, g, pf, pageIndex);
-	}
-	
+  @Override
+  public int print(Graphics g, PageFormat pf, int pageIndex) throws PrinterException {
+    return print(null, g, pf, pageIndex);
+  }
+
   /** Decrease the indent for all selected lines. */
   /*
    * public void aUnindent(ActionEvent e)
@@ -984,7 +981,7 @@ public class JoshText extends JComponent
   // ===============================================================================================
   // == Wrap above methods as actions ==============================================================
   // ===============================================================================================
-	
+
   /** Cut action. */
   public AbstractAction actCut = new AbstractAction("CUT") { //$NON-NLS-1$
         private static final long serialVersionUID = 1L;
@@ -1123,21 +1120,21 @@ public class JoshText extends JComponent
       am.put(a.getValue(Action.NAME), a);
     }
   }
-  
+
   /** Map the AbstractActions provided to keyboard hotkeys. */
   public void mapAction(Action act) {
-	ActionMap am = getActionMap();
-	InputMap map = getInputMap();
-	KeyStroke[] keys = map.allKeys();
-	// Display accelerator shortcuts
-	for (KeyStroke key : keys) {
-		if (map.get(key).equals(act.getValue(Action.NAME))) {
-			act.putValue(Action.ACCELERATOR_KEY, key);
-		}
-	}
-	am.put(act.getValue(Action.NAME), act);
+    ActionMap am = getActionMap();
+    InputMap map = getInputMap();
+    KeyStroke[] keys = map.allKeys();
+    // Display accelerator shortcuts
+    for (KeyStroke key : keys) {
+      if (map.get(key).equals(act.getValue(Action.NAME))) {
+        act.putValue(Action.ACCELERATOR_KEY, key);
+      }
+    }
+    am.put(act.getValue(Action.NAME), act);
   }
-  
+
 
   /** The global find dialog. */
   FindDialog findDialog = FindDialog.getInstance();
@@ -2110,11 +2107,9 @@ public class JoshText extends JComponent
             int otype = selGetKind(code.getsb(caret.row), caret.col - 1);
             if (!sel.deleteSel()) {
               if (e.isControlDown()) {
-                // Control-Backspace on multiple lines.
-                // We'll handle this by determining the smallest
-                // word/pattern we
-                // can control-backspace over, and running with it on
-                // all lines.
+                // Control-Backspace on multiple lines. We'll handle this by determining the
+                // smallest word/pattern we can control-backspace over, and running with it on all
+                // lines.
 
                 // Nab the smallest distance
                 int mindist = -1;
@@ -2262,19 +2257,15 @@ public class JoshText extends JComponent
         up.realize(caret.row);
         storeUndo(up, OPT.TYPED);
         break;
-      case '\u0018': // cancel (not sure why it's VK_FINAL instead of
-        // VK_CANCEL)
-      case KeyEvent.VK_ESCAPE: // escape (in paramString, this is \u001B,
-        // which is VK_ESCAPE
-      case KeyEvent.CHAR_UNDEFINED:
-        // these cases are taken from KeyEvent.paramString
+      case '\u0018': // cancel (not sure why it's VK_FINAL instead of VK_CANCEL)
+      case KeyEvent.VK_ESCAPE: // escape (in paramString, this is \u001B, which is VK_ESCAPE
+      case KeyEvent.CHAR_UNDEFINED: // these cases are taken from KeyEvent.paramString
         break;
       default:
         if (e.isControlDown() || e.isAltDown()) {
           switch (e.getKeyCode()) {
-          // Handle bindings. Usually this is handled by registering key
-          // bindings,
-          // in which case it is usually consumed before it gets here.
+          // Handle bindings. Usually this is handled by registering key bindings, in which case it
+          // is usually consumed before it gets here.
             default:
               break;
           }
@@ -3443,7 +3434,7 @@ public class JoshText extends JComponent
   public boolean canUndo() {
   	return patchIndex > 0 && undoPatches.size() > 0;
   }
-  
+
   /**
    * Check whether we have available redos.
    */
@@ -3589,5 +3580,5 @@ public class JoshText extends JComponent
   public boolean isChanged() {
     return !undoPatches.isEmpty();
   }
-  
+
 }

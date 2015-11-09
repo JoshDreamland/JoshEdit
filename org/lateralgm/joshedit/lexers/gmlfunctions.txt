@@ -58,7 +58,7 @@ none
 achievement_show_challenge_notifications
 receive,local,remote
 
-achievement_show_leaderboards 
+achievement_show_leaderboards
 none
 
 ads_disable
@@ -100,7 +100,7 @@ x,y,num
 ads_setup
 user_uuid,ad_app_key
 
-ads_set_reward_callback 
+ads_set_reward_callback
 placement
 
 angle_difference
@@ -919,7 +919,7 @@ none
 device_get_tilt_y
 none
 
-device_get_tilt_z 
+device_get_tilt_z
 none
 
 directory_create
@@ -2566,7 +2566,7 @@ enable
 os_get_language
 none
 
-os_get_config 
+os_get_config
 none
 
 os_powersave_enable
@@ -4327,5 +4327,5 @@ fname
 winphone_tile_title
 title
 
-winphone_tile_wide_content 
+winphone_tile_wide_content
 string,index

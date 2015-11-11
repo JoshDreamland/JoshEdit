@@ -914,7 +914,7 @@ public class JoshText extends JComponent
    * printable area.
    */
   public int print(LineNumberPanel lineNumPanel, Graphics g, PageFormat pf, int pageIndex)
-    throws PrinterException {
+      throws PrinterException {
     // TODO: Because of banded printing the OS and printer driver may actually call this method
     // two or more times for the same page, the first time is to help the printer determine extents.
     // http://stackoverflow.com/questions/1943556/why-does-the-java-printables-print-method-get-called-multiple-times-with-the-sa
@@ -946,12 +946,12 @@ public class JoshText extends JComponent
 
     if (lineNumPanel != null) {
       lineNumPanel.printLineNumbers(g,lastLines,Math.min(pageLines,lineCount - lastLines),
-        lineNumPanel.getLineNumberWidth(lineCount));
+          lineNumPanel.getLineNumberWidth(lineCount));
       graphics2D.translate(lineNumPanel.getLineNumberWidth(lastLines + lineCount),0);
     }
 
     for (int lineNum = 0; lineNum < pageLines && lineNum + lastLines < lineCount; lineNum++) {
-        drawLine(g, lineNum + lastLines, insetY + lineNum * lineHeight);
+      drawLine(g, lineNum + lastLines, insetY + lineNum * lineHeight);
     }
     return Printable.PAGE_EXISTS;
   }

@@ -928,7 +928,8 @@ public class JoshText extends JComponent
     Graphics2D graphics2D = (Graphics2D) g;
     graphics2D.translate (pf.getImageableX(), pf.getImageableY());
 
-    Object map = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
+    Object map = Toolkit.getDefaultToolkit().getDesktopProperty(
+        "awt.font.desktophints"); //$NON-NLS-1$
     if (map != null) {
       graphics2D.addRenderingHints((Map<?, ?>) map);
     }
@@ -1811,7 +1812,8 @@ public class JoshText extends JComponent
    */
   @Override
   public void paintComponent(Graphics g) {
-    Object map = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
+    Object map = Toolkit.getDefaultToolkit().getDesktopProperty(
+        "awt.font.desktophints"); //$NON-NLS-1$
     if (map != null) {
       ((Graphics2D) g).addRenderingHints((Map<?, ?>) map);
     }
@@ -1957,7 +1959,8 @@ public class JoshText extends JComponent
         sel.special.valid = false;
       }
 
-      // if this was a mouse release then the autoscroller was stopped, so we don't want to reactivate it
+      // if this was a mouse release then the autoscroller was stopped, so we don't want to
+      // reactivate it
       if (e.getID() != MouseEvent.MOUSE_RELEASED) {
       	updateMouseAutoScroll(e.getPoint());
       }
@@ -1969,7 +1972,8 @@ public class JoshText extends JComponent
       // cleanup (deselect, flash, repaint)
       if (!sel.special.valid
           && (e.getModifiers() & Event.SHIFT_MASK) == 0
-          && (e.getID() == MouseEvent.MOUSE_PRESSED || (e.getID() == MouseEvent.MOUSE_RELEASED && shouldHandleRelease))) {
+          && (e.getID() == MouseEvent.MOUSE_PRESSED
+          || (e.getID() == MouseEvent.MOUSE_RELEASED && shouldHandleRelease))) {
         sel.deselect(false);
       }
       shouldHandleRelease = false;
@@ -2595,7 +2599,8 @@ public class JoshText extends JComponent
      */
     public int getDefaultThreshold() {
       Integer ti =
-          (Integer) Toolkit.getDefaultToolkit().getDesktopProperty("DnD.gestureMotionThreshold"); //$NON-NLS-1$
+          (Integer) Toolkit.getDefaultToolkit().getDesktopProperty(
+              "DnD.gestureMotionThreshold"); //$NON-NLS-1$
       return ti == null? 5 : ti.intValue();
     }
 
@@ -3513,7 +3518,8 @@ public class JoshText extends JComponent
     while (patchIndex < undoPatches.size()) {
       undoPatches.remove(undoPatches.size() - 1);
     }
-    if (!undoCanMerge || patchIndex == 0 || !undoCompatible(undoPatches.get(patchIndex - 1), undo)) {
+    if (!undoCanMerge || patchIndex == 0
+        || !undoCompatible(undoPatches.get(patchIndex - 1), undo)) {
       undoPatches.add(undo);
       undoCanMerge = true;
       patchIndex++;

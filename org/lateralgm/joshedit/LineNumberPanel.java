@@ -98,23 +98,24 @@ public class LineNumberPanel extends JPanel {
     }
   }
 
-  /** 
+  /**
    * Get the width of a line number panel
-   * @param maxline the maximum line number to determine how many characters must be fit
+   * @param maxline
+   *        the maximum line number to determine how many characters must be fit
    * @return appropriate width for the line number component or to print one
    */
   public int getLineNumberWidth(int maxline) {
-	  // find the advance of the widest number
-	  int[] widths = getFontMetrics(getFont()).getWidths();
-	  int maxAdvance = 0;
-	  for (int i = '0'; i <= '9'; i++) {
-	    if (widths[i] > maxAdvance) {
-	      maxAdvance = widths[i];
-	    }
-	  }
-  	return maxAdvance * (int) Math.max(Math.log10(maxline - (startZero? 1 : 0)) + 2, 2);
+    // find the advance of the widest number
+    int[] widths = getFontMetrics(getFont()).getWidths();
+    int maxAdvance = 0;
+    for (int i = '0'; i <= '9'; i++) {
+      if (widths[i] > maxAdvance) {
+        maxAdvance = widths[i];
+      }
+    }
+    return maxAdvance * (int) Math.max(Math.log10(maxline - (startZero? 1 : 0)) + 2, 2);
   }
-  
+
   /**
    * Call upon resize to repaint.
    */
@@ -133,38 +134,42 @@ public class LineNumberPanel extends JPanel {
     // note that we can't swap out with validate() or revalidate() for some reason.
     // getParent().doLayout();
   }
-  
+
   /**
    * Paints the line number panel with special consideration for printing.
-   * @param g graphics object to use for painting
-   * @param start the first line to start on
-   * @param count the number of lines to paint from the start
-   * @param width the width of the line number area, used to ensure all pages have the same line number width
+   * @param g
+   *        graphics object to use for painting
+   * @param start
+   *        the first line to start on
+   * @param count
+   *        the number of lines to paint from the start
+   * @param width
+   *        the width of the line number area, ensures all pages have the same line number width
    */
   public void printLineNumbers(Graphics g, int start, int count, int width) {
-	  Object map = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
-	  if (map != null) {
-	    ((Graphics2D) g).addRenderingHints((Map<?, ?>) map);
-	  }
-	
-	  final int insetY = metrics.getLeading() + metrics.getAscent();
-	  final int gh = metrics.getHeight();
-	  Dimension size = new Dimension(width, count * gh);
-	  int lineNum = start;
-	  final int end = size.height;
-	  
-	  // we don't want to waste the users ink, most IDE's do not print the background
-	  g.setColor(bgColor);
-	  g.fillRect(0, 0, size.width, size.height);
-	  g.setColor(fgColor);
-	
-	  g.setFont(new Font("Monospace", Font.PLAIN, 12)); //$NON-NLS-1$
-	
-	  for (int y = insetY; lineNum < lines && y <= end; lineNum++, y += gh) {
-	    String str = Integer.toString(lineNum);
-	    int strw = (int) g.getFontMetrics().getStringBounds(str, g).getWidth();
-	    g.drawString(str, size.width - strw - 3, y);
-	  }
+    Object map = Toolkit.getDefaultToolkit().getDesktopProperty("awt.font.desktophints"); //$NON-NLS-1$
+    if (map != null) {
+      ((Graphics2D) g).addRenderingHints((Map<?, ?>) map);
+    }
+
+    final int insetY = metrics.getLeading() + metrics.getAscent();
+    final int gh = metrics.getHeight();
+    Dimension size = new Dimension(width, count * gh);
+    int lineNum = start;
+    final int end = size.height;
+
+    // we don't want to waste the users ink, most IDE's do not print the background
+    g.setColor(bgColor);
+    g.fillRect(0, 0, size.width, size.height);
+    g.setColor(fgColor);
+
+    g.setFont(new Font("Monospace", Font.PLAIN, 12)); //$NON-NLS-1$
+
+    for (int y = insetY; lineNum < lines && y <= end; lineNum++, y += gh) {
+      String str = Integer.toString(lineNum);
+      int strw = (int) g.getFontMetrics().getStringBounds(str, g).getWidth();
+      g.drawString(str, size.width - strw - 3, y);
+    }
   }
 
   /**

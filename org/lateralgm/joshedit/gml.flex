@@ -1,9 +1,9 @@
 /*
  * Copyright (C) 2011 IsmAvatar <IsmAvatar@gmail.com>
- * 
+ *
  * This is a text editor. It's free software. You can use,
  * modify, and distribute it under the terms of the GNU
- * General Public License, version 3 or later. 
+ * General Public License, version 3 or later.
  */
 
 package org.lateralgm.joshedit;
@@ -66,7 +66,7 @@ NumberLiteral = "-"? [0-9]* "."? [0-9]+
   {EndOfLineComment}             { return COM_LINE; }
   {TraditionalComment}           { return COM_SPAN; }
   {DocumentationComment}         { return COM_DOC; }
- 
+
   /* whitespace */
   {WhiteSpace}                   { /* ignore */ }
 
@@ -74,7 +74,7 @@ NumberLiteral = "-"? [0-9]* "."? [0-9]+
 }
 
 <sDSTRING> {
-  \"                             { yybegin(YYINITIAL); 
+  \"                             { yybegin(YYINITIAL);
                                    return symbol(LIT_STR_DOUBLE, string.toString()); }
   [^\n\r\"]+                     { string.append( yytext() ); }
 }

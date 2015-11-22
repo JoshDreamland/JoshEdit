@@ -95,7 +95,7 @@ public final class GLSLKeywords {
       e.printStackTrace();
     }
 
-    FUNCTIONS = funcList.toArray(new Function[0]);
+    FUNCTIONS = funcList.toArray(new Function[funcList.size()]);
   }
 
   private GLSLKeywords() {

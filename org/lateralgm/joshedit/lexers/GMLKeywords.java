@@ -96,7 +96,7 @@ public final class GMLKeywords {
       }
     }
 
-    FUNCTIONS = funcList.toArray(new Function[0]);
+    FUNCTIONS = funcList.toArray(new Function[funcList.size()]);
   }
 
   private GMLKeywords() {

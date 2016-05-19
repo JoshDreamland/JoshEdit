@@ -1962,7 +1962,7 @@ public class JoshText extends JComponent
       // if this was a mouse release then the autoscroller was stopped, so we don't want to
       // reactivate it
       if (e.getID() != MouseEvent.MOUSE_RELEASED) {
-      	updateMouseAutoScroll(e.getPoint());
+        updateMouseAutoScroll(e.getPoint());
       }
 
       if (sel.special.valid) {
@@ -3437,14 +3437,14 @@ public class JoshText extends JComponent
    * Check whether we have available undos.
    */
   public boolean canUndo() {
-  	return patchIndex > 0 && undoPatches.size() > 0;
+    return patchIndex > 0 && undoPatches.size() > 0;
   }
 
   /**
    * Check whether we have available redos.
    */
   public boolean canRedo() {
-  	return patchIndex < undoPatches.size();
+    return patchIndex < undoPatches.size();
   }
 
   /**

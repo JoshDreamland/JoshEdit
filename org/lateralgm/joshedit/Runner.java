@@ -123,7 +123,7 @@ public class Runner {
     // Magic number 50: approximate number of characters per line, generously rounded up
     List<String> list = new ArrayList<String>(text.length() / 50);
     Scanner sc = new Scanner(text);
-    while (sc.hasNext()) {
+    while (sc.hasNextLine()) {
       list.add(sc.nextLine());
     }
     sc.close();

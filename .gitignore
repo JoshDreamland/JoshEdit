@@ -1,2 +1,10 @@
-*.class
-*.orig
+# Build files
+/target/
+
+# Eclipse files (auto-generated from pom.xml)
+/.project
+/.classpath
+
+# IDEA files
+/JoshEdit.iml
+/.idea/

@@ -54,7 +54,7 @@ public class JoshTextPanel extends JPanel implements Printable {
   }
 
   public JoshTextPanel(String code) {
-    this(Runner.splitLines(code));
+    this(Runner.splitLines(code), null);
   }
   
   public JoshTextPanel(String code, Font font) {

@@ -141,13 +141,13 @@ public class JoshText extends JComponent
   // Dimensions
 
   /** The width of the largest UTF-8 character our font contains. */
-  private final int monoAdvance;
+  private int monoAdvance;
   /** The height of the largest UTF-8 character our font contains. */
-  private final int lineHeight;
+  private int lineHeight;
   /** The largest height above the base line of any UTF-8 character our font contains. */
-  private final int lineAscent;
+  private int lineAscent;
   /** The distance we need to keep between the baselines of each line of text. */
-  private final int lineLeading;
+  private int lineLeading;
 
   /** Our longest row, and how many other rows are this long */
   private int maxRowSize; // This is the size of the longest row, not the index.
@@ -416,12 +416,6 @@ public class JoshText extends JComponent
       }
     }
 
-    FontMetrics fm = getFontMetrics(getFont());
-    lineAscent = fm.getAscent();
-    lineHeight = fm.getHeight();
-    lineLeading = fm.getLeading();
-    monoAdvance = fm.getWidths()['M'];
-
     caret = new Caret(this);
     sel = new Selection(code, this, caret);
     dragger = new DragListener();
@@ -464,6 +458,16 @@ public class JoshText extends JComponent
   // ===============================================================================================
   // == Settings functions =========================================================================
   // ===============================================================================================
+
+  @Override
+  public void setFont(Font font) {
+    super.setFont(font);
+    FontMetrics fm = getFontMetrics(font);
+    lineAscent = fm.getAscent();
+    lineHeight = fm.getHeight();
+    lineLeading = fm.getLeading();
+    monoAdvance = fm.getWidths()['M'];
+  }
 
   void setColorProfile(ColorProfile profile) {
     if (profile.getWhitespaceColor() != null) {

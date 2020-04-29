@@ -50,7 +50,7 @@ public class JoshTextPanel extends JPanel implements Printable {
   };
 
   public JoshTextPanel() {
-    this((String[]) null);
+    this((String[]) null, null);
   }
 
   public JoshTextPanel(String code) {

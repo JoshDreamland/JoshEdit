@@ -58,6 +58,7 @@ public class LineNumberPanel extends JPanel {
    *        True if the first line should be given index 0, false if it should be given index 1.
    */
   public LineNumberPanel(FontMetrics metrics, int lines, boolean startZero) {
+    this.setFont(new Font("Monospace", Font.PLAIN, metrics.getFont().getSize())); //$NON-NLS-1$
     this.metrics = metrics;
     this.lines = lines;
     this.startZero = startZero;
@@ -163,7 +164,7 @@ public class LineNumberPanel extends JPanel {
     g.fillRect(0, 0, size.width, size.height);
     g.setColor(fgColor);
 
-    g.setFont(new Font("Monospace", Font.PLAIN, 12)); //$NON-NLS-1$
+    g.setFont(this.getFont());
 
     for (int y = insetY; lineNum < lines && y <= end; lineNum++, y += gh) {
       String str = Integer.toString(lineNum);
@@ -202,7 +203,7 @@ public class LineNumberPanel extends JPanel {
     g.fillRect(0, 0, getWidth(), getHeight());
     g.setColor(fgColor);
 
-    g.setFont(new Font("Monospace", Font.PLAIN, 12)); //$NON-NLS-1$
+    g.setFont(this.getFont());
 
     for (int y = start; lineNum < lines && y <= end; lineNum++, y += gh) {
       String str = Integer.toString(lineNum);

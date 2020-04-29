@@ -55,15 +55,19 @@ public class JoshTextPanel extends JPanel implements Printable {
   public JoshTextPanel(String code) {
     this(Runner.splitLines(code));
   }
+  
+  public JoshTextPanel(String code, Font font) {
+    this(Runner.splitLines(code), font);
+  }
 
   public JoshTextPanel(String[] codeLines) {
     this(codeLines, true);
   }
 
-  public JoshTextPanel(String[] codeLines, boolean startZero) {
+  public JoshTextPanel(String[] codeLines, Font font, boolean startZero) {
     super(new BorderLayout());
 
-    text = new JoshText(codeLines);
+    text = new JoshText(codeLines, font);
     lines = new LineNumberPanel(text, text.code.size(), startZero);
     text.code.addCodeListener(new CodeListener() {
       @Override

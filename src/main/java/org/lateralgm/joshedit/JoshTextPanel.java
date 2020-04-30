@@ -11,6 +11,7 @@
 package org.lateralgm.joshedit;
 
 import java.awt.BorderLayout;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.print.PageFormat;
@@ -49,21 +50,29 @@ public class JoshTextPanel extends JPanel implements Printable {
   };
 
   public JoshTextPanel() {
-    this((String[]) null);
+    this((String[]) null, null);
   }
 
   public JoshTextPanel(String code) {
-    this(Runner.splitLines(code));
+    this(Runner.splitLines(code), null);
+  }
+  
+  public JoshTextPanel(String code, Font font) {
+    this(Runner.splitLines(code), font);
   }
 
   public JoshTextPanel(String[] codeLines) {
-    this(codeLines, true);
+    this(codeLines, null);
   }
 
-  public JoshTextPanel(String[] codeLines, boolean startZero) {
+  public JoshTextPanel(String[] codeLines, Font font) {
+    this(codeLines, font, true);
+  }
+
+  public JoshTextPanel(String[] codeLines, Font font, boolean startZero) {
     super(new BorderLayout());
 
-    text = new JoshText(codeLines);
+    text = new JoshText(codeLines, font);
     lines = new LineNumberPanel(text, text.code.size(), startZero);
     text.code.addCodeListener(new CodeListener() {
       @Override

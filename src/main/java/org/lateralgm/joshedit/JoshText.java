@@ -371,9 +371,9 @@ public class JoshText extends JComponent
   // == Constructors ===============================================================================
   // ===============================================================================================
 
-  /** Default constructor; delegates to JoshText(String[]). */
+  /** Default constructor; delegates to JoshText(String[], Font). */
   public JoshText() {
-    this(null);
+    this(null, null);
   }
 
   /**
@@ -381,11 +381,16 @@ public class JoshText extends JComponent
    *
    * @param lines
    *        An array of Strings; one String for each line.
+   * @param font
+   *        The font to use for painting lines. Accepts null for default monospace font.
    */
-  public JoshText(String[] lines) {
+  public JoshText(String[] lines, Font font) {
     // Drawing stuff
     setPreferredSize(new Dimension(320, 240));
-    setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+    if (font == null)
+      setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+    else
+      setFont(font);
     setBackground(backgroundColor);
     setForeground(defaultFontColor);
     setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));

@@ -266,6 +266,7 @@ public class FindDialog extends JDialog
 
     bFind = new JButton(Runner.editorInterface.getString("FindDialog.FIND")); //$NON-NLS-1$
     bFind.addActionListener(this);
+    getRootPane().setDefaultButton(bFind);
     bReplace = new JButton(Runner.editorInterface.getString("FindDialog.REPLACE")); //$NON-NLS-1$
     bReplace.addActionListener(this);
     bRepAll = new JButton(Runner.editorInterface.getString("FindDialog.REPLACE_ALL")); //$NON-NLS-1$

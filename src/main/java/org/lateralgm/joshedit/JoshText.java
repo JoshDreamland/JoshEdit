@@ -1943,7 +1943,7 @@ public class JoshText extends JComponent
         return;
       }
 
-      if ((e.getModifiersEx() & (InputEvent.ALT_DOWN_MASK| InputEvent.CTRL_DOWN_MASK)) != 0) {
+      if ((e.getModifiersEx() & (InputEvent.ALT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK)) != 0) {
         sel.changeType(ST.RECT);
       } else {
         sel.changeType(ST.NORM);

@@ -15,7 +15,6 @@ import java.awt.Color;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Event;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -1265,7 +1264,7 @@ public class JoshText extends JComponent
             modifiers |= InputEvent.CTRL_DOWN_MASK;
             break;
           case 'G':
-            modifiers |= InputEvent.ALT_GRAPH_MASK;
+            modifiers |= InputEvent.ALT_GRAPH_DOWN_MASK;
             break;
           case 'M':
             modifiers |= InputEvent.META_DOWN_MASK;
@@ -1944,7 +1943,7 @@ public class JoshText extends JComponent
         return;
       }
 
-      if ((e.getModifiers() & (InputEvent.ALT_MASK | InputEvent.CTRL_MASK)) != 0) {
+      if ((e.getModifiersEx() & (InputEvent.ALT_DOWN_MASK| InputEvent.CTRL_DOWN_MASK)) != 0) {
         sel.changeType(ST.RECT);
       } else {
         sel.changeType(ST.NORM);
@@ -1976,7 +1975,7 @@ public class JoshText extends JComponent
 
       // cleanup (deselect, flash, repaint)
       if (!sel.special.valid
-          && (e.getModifiers() & Event.SHIFT_MASK) == 0
+          && (e.getModifiersEx() & MouseEvent.SHIFT_DOWN_MASK) == 0
           && (e.getID() == MouseEvent.MOUSE_PRESSED
           || (e.getID() == MouseEvent.MOUSE_RELEASED && shouldHandleRelease))) {
         sel.deselect(false);

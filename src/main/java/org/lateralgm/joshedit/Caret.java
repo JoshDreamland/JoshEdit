@@ -10,7 +10,6 @@
 package org.lateralgm.joshedit;
 
 import java.awt.Color;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Rectangle;
@@ -24,6 +23,7 @@ import javax.swing.UIManager;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 
+import org.lateralgm.joshedit.JoshText.CodeMetrics;
 import org.lateralgm.joshedit.Selection.ST;
 
 /**
@@ -145,9 +145,9 @@ public class Caret implements ActionListener {
 
   private Rectangle computeCaretRect(int selRow, ST selType) {
     Rectangle rect;
-    FontMetrics fm = painter.getFontMetrics(painter.getFont());
+    CodeMetrics cm = joshText.metrics;
     Insets i = painter.getInsets();
-    int gw = fm.getMaxAdvance(), gh = fm.getHeight();
+    int gw = cm.glyphWidth(), gh = cm.lineHeight();
     if (selType == ST.RECT) {
       rect = new Rectangle(1 + i.left + col * gw, // Position of the selection
           i.top + Math.min(row, selRow) * gh, // Top of the selection

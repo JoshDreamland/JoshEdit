@@ -10,7 +10,6 @@
 package org.lateralgm.joshedit;
 
 import java.awt.Color;
-import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Insets;
 import java.awt.Rectangle;
@@ -24,6 +23,7 @@ import javax.swing.UIManager;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 
+import org.lateralgm.joshedit.JoshText.CodeMetrics;
 import org.lateralgm.joshedit.Selection.ST;
 
 /**

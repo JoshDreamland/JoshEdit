@@ -140,6 +140,7 @@ public class Caret implements ActionListener {
       Rectangle rect = computeCaretRect(sel.row, sel.type);
       g.fillRect(rect.x, rect.y, rect.width, rect.height);
       g.setPaintMode();
+      lastSelection = sel; // << blink
     }
   }
 

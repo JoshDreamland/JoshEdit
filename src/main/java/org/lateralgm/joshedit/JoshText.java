@@ -682,10 +682,8 @@ public class JoshText extends JComponent
         }
       } finally {
         br.close();
-        if (code.isEmpty()) {
-          code.add("");  //$NON-NLS-1$
-        }
       }
+      code.add(""); //<< EOF Line //$NON-NLS-1$
 
       fireLineChange(0, code.size());
       doCodeSize(true);

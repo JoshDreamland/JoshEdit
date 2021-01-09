@@ -695,7 +695,7 @@ public class JoshText extends JComponent
   private static boolean hasExtension(String pathName) {
     File fn = new File(pathName);
     String name = fn.getName(); // An extension contains no path characters
-    return name.lastIndexOf('.') == -1;
+    return name.lastIndexOf('.') != -1;
   }
 
   /**

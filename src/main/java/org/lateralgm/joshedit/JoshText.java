@@ -712,9 +712,7 @@ public class JoshText extends JComponent
       BufferedWriter bw = new BufferedWriter(new FileWriter(name));
 
       try {
-        for (int i = 0; i < code.size(); i++) {
-          bw.write(code.getsb(i).toString() + "\n"); //$NON-NLS-1$
-        }
+        bw.write(this.getText());
       } finally {
         bw.close();
       }

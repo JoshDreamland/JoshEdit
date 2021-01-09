@@ -600,9 +600,10 @@ public class JoshText extends JComponent
    */
   public String getText() {
     StringBuilder res = new StringBuilder();
-    for (int i = 0; i < code.size(); i++) {
+    for (int i = 0; i < code.size()-1; i++) {
       res.append(code.get(i).sbuild.toString() + "\n"); //$NON-NLS-1$
     }
+    res.append(code.get(code.size()-1).sbuild.toString());
     return res.toString();
   }
 

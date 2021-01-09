@@ -126,6 +126,7 @@ public class Runner {
     while (sc.hasNextLine()) {
       list.add(sc.nextLine());
     }
+    list.add(""); //<< EOF Line //$NON-NLS-1$
     sc.close();
     return list.toArray(new String[0]);
   }
